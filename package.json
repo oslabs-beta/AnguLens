@@ -16,6 +16,10 @@
       {
         "command": "angulens.helloWorld",
         "title": "Hello World"
+      },
+      {
+        "command": "angulens.start",
+        "title": "Start AnguLens"
       }
     ]
   },
