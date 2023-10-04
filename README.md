@@ -1,27 +1,71 @@
-# Angulens
+# angulens README
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 16.2.4.
+This is the README for your extension "angulens". After writing up a brief description, we recommend including the following sections.
 
-## Development server
+## Features
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
 
-## Code scaffolding
+For example if there is an image subfolder under your extension project workspace:
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+\!\[feature X\]\(images/feature-x.png\)
 
-## Build
+> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+## Requirements
 
-## Running unit tests
+If you have any requirements or dependencies, add a section describing those and how to install and configure them.
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+## Extension Settings
 
-## Running end-to-end tests
+Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+For example:
 
-## Further help
+This extension contributes the following settings:
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+* `myExtension.enable`: Enable/disable this extension.
+* `myExtension.thing`: Set to `blah` to do something.
+
+## Known Issues
+
+Calling out known issues can help limit users opening duplicate issues against your extension.
+
+## Release Notes
+
+Users appreciate release notes as you update your extension.
+
+### 1.0.0
+
+Initial release of ...
+
+### 1.0.1
+
+Fixed issue #.
+
+### 1.1.0
+
+Added features X, Y, and Z.
+
+---
+
+## Following extension guidelines
+
+Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
+
+* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
+
+## Working with Markdown
+
+You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
+
+* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
+* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
+* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
+
+## For more information
+
+* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
+* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
+
+**Enjoy!**
