@@ -16,73 +16,19 @@ import {
 export class AppComponent implements OnInit {
   links: any[] = [];
   nodes: any[] = [];
-  clusters: Cluster[] = [];
+  clusters: any[] = [];
   title: string = 'webview-ui';
 
   constructor() {}
 
   ngOnInit(): void {
-    const { nodes, clusters } = this.convertToNodesAndClusters(this.source);
-
+    const { nodes, clusters } = this.populateGraph(this.source.src);
+    console.log(nodes, clusters, 'NODES AND CLUSTERS');
     this.nodes = [...this.nodes, ...nodes];
     this.clusters = [...this.clusters, ...clusters];
+
+    console.log(this.clusters, 'CLUSTERS AS A WHOLE');
   }
-
-  // links = [
-  //   {
-  //     id: 'a',
-  //     source: 'first',
-  //     target: 'second',
-  //     label: 'is parent of',
-  //   },
-  //   {
-  //     id: 'b',
-  //     source: 'first',
-  //     target: 'c1',
-  //     label: 'custom label',
-  //   },
-  //   {
-  //     id: 'd',
-  //     source: 'first',
-  //     target: 'c2',
-  //     label: 'custom label',
-  //   },
-  //   {
-  //     id: 'e',
-  //     source: 'c1',
-  //     target: 'd',
-  //     label: 'first link',
-  //   },
-  //   {
-  //     id: 'f',
-  //     source: 'c1',
-  //     target: 'd',
-  //     label: 'second link',
-  //   },
-  // ];
-
-  // nodes = [
-  //   {
-  //     id: 'first',
-  //     label: 'A',
-  //   },
-  //   {
-  //     id: 'second',
-  //     label: 'B',
-  //   },
-  //   {
-  //     id: 'c1',
-  //     label: 'C1',
-  //   },
-  //   {
-  //     id: 'c2',
-  //     label: 'C2',
-  //   },
-  //   {
-  //     id: 'd',
-  //     label: 'D',
-  //   },
-  // ];
 
   addNode() {
     const newNode = {
@@ -115,6 +61,7 @@ export class AppComponent implements OnInit {
 
     console.log('Added new node', newNode);
     console.log(this.nodes, 'NODES ARRAY');
+    console.log(this.clusters, 'CLUSTERS ARRAY');
   }
 
   source = {
@@ -176,84 +123,168 @@ export class AppComponent implements OnInit {
     },
   };
 
-  populateGraph() {
+  populateGraph(obj: any) {
     // source -> src ->
-    function iterateObject(obj: any) {
-      // iterate through keys
-      for (const key of obj) {
-        if (key.type === 'folder') {
-          iterateObject(key);
-          // make a cluster
-        } else {
-        }
-      }
-      // if key is an object (folder or file) -> check type
-      // if type is folder -> create a cluster
-      //iterate through keys -> every object with type that is not a folder -> create a node & link
+    const nodes: Node[] = [];
+    const clusters: Cluster[] = [];
+    console.log(obj, 'OBJ');
 
+    function populate(obj: any) {
       if (obj.type === 'folder') {
-        // iterate through keys of current object
-        for (const key of obj) {
-          // if the key
-          if (key.type === 'folder') iterateObject(obj);
-        }
-      }
-    }
-
-    return iterateObject(this.source);
-  }
-
-  // Recursive function to convert the object into nodes and clusters
-  convertToNodesAndClusters(
-    obj: any,
-    parentId?: string
-  ): { nodes: Node[]; clusters: Cluster[] } {
-    console.log("STEP 1: START", obj);
-    let nodes: Node[] = [];
-    let clusters: Cluster[] = [];
-
-    for (const key of Object.keys(obj)) {
-      const item = obj[key];
-
-      if (item.type === 'folder') {
-        // Create a cluster for the folder
-        const clusterId = `cluster-${key}`;
-        clusters.push(new Cluster(clusterId, key, []));
-        console.log("STEP 2: CLUSTERS PUSH", clusters);
-
-        // Recursively process the contents of the folder
-        const { nodes: childNodes, clusters: childClusters } =
-          this.convertToNodesAndClusters(item, clusterId);
-          
-        // Update childNodeIds for the cluster
-        const clusterIndex = clusters.findIndex((c) => c.id === clusterId);
-        clusters[clusterIndex].childNodeIds = childNodes.map((node) => node.id);
-
-        // Concatenate child nodes and clusters
-        nodes = nodes.concat(childNodes);
-        clusters = clusters.concat(childClusters);
-      } else {
-        // Create a node for non-folder items
-        const nodeId = `node-${key}`;
-        nodes.push(
-          new Node(
-            nodeId,
-            key,
-            { forceDimensions: false },
-            { width: 50, height: 30 },
-            { x: 0, y: 0 }
-          )
+        const clusterId = obj.path;
+        const clusterLabel = obj.path.split('/').pop();
+        const cluster = new Cluster(
+          clusterId,
+          clusterLabel,
+          [],
+          { forceDimensions: false },
+          { width: 30, height: 30 },
+          { x: 0, y: 0 }
         );
+        console.log('CLUSTER CREATED', cluster);
 
-        // Add the node ID to the parent cluster if applicable
-        if (parentId) {
-          const clusterIndex = clusters.findIndex((c) => c.id === parentId);
-          clusters[clusterIndex].childNodeIds.push(nodeId);
+        for (const key in obj) {
+          // Skip 'type' and 'path' properties
+          if (key !== 'type' && key !== 'path' && obj[key].type !== 'folder') {
+            // Recursively create the folder structure for the nested object
+            const childNodeId = populate(obj[key]);
+
+            // Add the child node to the current cluster
+            cluster.childNodeIds.push(childNodeId);
+          } else if (
+            key !== 'type' &&
+            key !== 'path' &&
+            obj[key].type === 'folder'
+          ) {
+            populate(obj[key]);
+          }
         }
+        clusters.push(cluster);
+      } else {
+        const nodeId = obj.path;
+        const nodeLabel = obj.path.split('/').pop();
+        const node = new Node(
+          nodeId,
+          nodeLabel,
+          { forceDimensions: false },
+          { width: 50, height: 30 },
+          { x: 0, y: 0 }
+        );
+        console.log(node, 'NODE');
+        nodes.push(node);
+        return nodeId;
       }
+      console.log(clusters, 'CLUSTERS');
     }
-    console.log(nodes, 'NODES');
-    console.log(clusters, 'CLUSTERS');
+    populate(obj);
     return { nodes, clusters };
   }
 }
+
+// links = [
+//   {
+//     id: 'a',
+//     source: 'first',
+//     target: 'second',
+//     label: 'is parent of',
+//   },
+//   {
+//     id: 'b',
+//     source: 'first',
+//     target: 'c1',
+//     label: 'custom label',
+//   },
+//   {
+//     id: 'd',
+//     source: 'first',
+//     target: 'c2',
+//     label: 'custom label',
+//   },
+//   {
+//     id: 'e',
+//     source: 'c1',
+//     target: 'd',
+//     label: 'first link',
+//   },
+//   {
+//     id: 'f',
+//     source: 'c1',
+//     target: 'd',
+//     label: 'second link',
+//   },
+// ];
+
+// nodes = [
+//   {
+//     id: 'first',
+//     label: 'A',
+//   },
+//   {
+//     id: 'second',
+//     label: 'B',
+//   },
+//   {
+//     id: 'c1',
+//     label: 'C1',
+//   },
+//   {
+//     id: 'c2',
+//     label: 'C2',
+//   },
+//   {
+//     id: 'd',
+//     label: 'D',
+//   },
+// ];
+
+// clusters = [
+//   {
+//     id: 'third',
+//     label: 'Cluster node',
+//     childNodeIds: ['c1', 'c2'],
+//   },
+// ];
+/*
+
+      
+      const test = {
+        nodes: [],
+        clusters: [
+          {
+            clusterId: '/Users/danielkim/CodeSmith/osp/AnguLens/src',
+            clusterLabel: 'src',
+      childNodeIds: [
+        '/Users/danielkim/CodeSmith/osp/AnguLens/src/extension.ts',
+        {
+          nodes: [],
+          clusters: [
+            {
+              clusterId: '/Users/danielkim/CodeSmith/osp/AnguLens/src/test',
+              clusterLabel: 'test',
+              childNodeIds: [
+                '/Users/danielkim/CodeSmith/osp/AnguLens/src/test/runTest.ts',
+                {
+                  nodes: [],
+                  clusters: [
+                    {
+                      clusterId:
+                        '/Users/danielkim/CodeSmith/osp/AnguLens/src/test/suite',
+                      clusterLabel: 'suite',
+                      childNodeIds: [
+                        '/Users/danielkim/CodeSmith/osp/AnguLens/src/test/suite/extension.test.ts',
+                        '/Users/danielkim/CodeSmith/osp/AnguLens/src/test/suite/index.ts',
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ],
+};
+
+
+*/

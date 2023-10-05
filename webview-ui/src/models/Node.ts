@@ -2,9 +2,9 @@ export class Node {
   constructor(
     public id: string,
     public label: string,
-    public meta: object,
-    public dimension: object,
-    public position: object
+    public meta: { forceDimensions: boolean },
+    public dimension: { width: number; height: number },
+    public position: { x: number; y: number }
   ) {}
 }
 
@@ -22,64 +22,42 @@ export class Cluster {
     public id: string,
     public label: string,
     public childNodeIds: string[],
+    public meta: { forceDimensions: boolean },
+    public dimension: { width: number; height: number },
+    public position: { x: number; y: number }
   ) {}
 }
 
-const source = {
-  src: {
-    type: 'folder',
-    path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src',
-    app: {
-      type: 'folder',
-      path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app',
-      'app-routing.module.ts': {
-        type: 'ts',
-        path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app/app-routing.module.ts',
-      },
-      'app.component.css': {
-        type: 'css',
-        path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app/app.component.css',
-      },
-      'app.component.html': {
-        type: 'html',
-        path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app/app.component.html',
-      },
-      'app.component.spec.ts': {
-        type: 'ts',
-        path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app/app.component.spec.ts',
-      },
-      'app.component.ts': {
-        type: 'ts',
-        path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app/app.component.ts',
-      },
-      'app.module.ts': {
-        type: 'ts',
-        path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app/app.module.ts',
-      },
-    },
-    assets: {
-      type: 'folder',
-      path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/assets',
-      '.gitkeep': {
-        type: 'gitkeep',
-        path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/assets/.gitkeep',
-      },
-    },
-    'favicon.ico': {
-      type: 'ico',
-      path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/favicon.ico',
-    },
-    'index.html': {
-      type: 'html',
-      path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/index.html',
-    },
-    'main.ts': {
-      type: 'ts',
-      path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/main.ts',
-    },
-    'styles.css': {
-      type: 'css',
-      path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/styles.css',
-    },
-  },
-};
+// childNodeIds
+// :
+// (2) ['c1', 'c2']
+// data
+// :
+// {color: '#8796c0'}
+// dimension
+// :
+// {width: 30, height: 30}
+// height
+// :
+// 450
+// id
+// :
+// "third"
+// label
+// :
+// "Cluster node"
+// meta
+// :
+// {forceDimensions: false}
+// position
+// :
+// {x: 0, y: 0}
+// width
+// :
+// 188.875
+// x
+// :
+// 246
+// y
+// :
+// 360
