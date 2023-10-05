@@ -1,17 +1,18 @@
 <button (click)="addNode()">Add Node</button>
 
-<ngx-graph
-  class="chart-container"
-  [view]="[800, 550]"
-  [links]="links"
-  [nodes]="nodes"
-  [clusters]="[
+<!-- [clusters]="[
     {
       id: 'third',
       label: 'Cluster node',
       childNodeIds: ['c1', 'c2']
     }
-  ]"
+  ]" -->
+<ngx-graph
+  class="chart-container"
+  [view]="[800, 550]"
+  [links]="links"
+  [nodes]="nodes"
+  [clusters]="clusters"
   layout="dagreCluster"
 >
   <ng-template #defsTemplate>
