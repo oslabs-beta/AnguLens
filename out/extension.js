@@ -4,8 +4,8 @@ exports.deactivate = exports.activate = void 0;
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 const vscode = require("vscode");
+const klaw = require("klaw");
 const path = require("path");
-const fs = require("fs");
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 function activate(context) {
@@ -28,19 +28,116 @@ function activate(context) {
         { enableScripts: true } // options
         );
         // Read the contents of your Angular app's index.html file
-        const indexPath = path.join(__dirname, "../webview-ui/dist/webview-ui", "index.html");
-        const htmlContent = fs.readFileSync(indexPath, "utf-8");
-        console.log(htmlContent);
+        // const indexPath = path.join(
+        //   __dirname,
+        //   "../webview-ui/dist/webview-ui",
+        //   "index.html"
+        // );
+        // const htmlContent = fs.readFileSync(indexPath, "utf-8");
+        // console.log(htmlContent);
         // panel.webview.html = htmlContent;
         const runtimeUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "runtime.5555b0e246616bd9.js")));
         const polyfillsUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "polyfills.ef3261c6791c905c.js")));
         const scriptUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "main.97b649a78c55b36d.js")));
         const stylesUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "styles.ef46db3751d8e999.css")));
+        const items = [];
+        const rootpath = '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src';
+        klaw(rootpath)
+            .on('data', item => items.push(item))
+            .on('end', () => {
+            console.dir(items);
+            populateStructure(items);
+        });
         panel.webview.html = getWebViewContent(stylesUri, runtimeUri, polyfillsUri, scriptUri);
     });
     context.subscriptions.push(disposable, runWebView);
 }
 exports.activate = activate;
+/*
+
+[
+  '/Users/danielkim/CodeSmith/osp/AnguLens/src',
+  '/Users/danielkim/CodeSmith/osp/AnguLens/src/extension.ts',
+  '/Users/danielkim/CodeSmith/osp/AnguLens/src/test',
+  '/Users/danielkim/CodeSmith/osp/AnguLens/src/test/runTest.ts',
+  '/Users/danielkim/CodeSmith/osp/AnguLens/src/test/suite',
+  '/Users/danielkim/CodeSmith/osp/AnguLens/src/test/suite/extension.test.ts',
+  '/Users/danielkim/CodeSmith/osp/AnguLens/src/test/suite/index.ts'
+]
+
+*/
+function populateStructure(array) {
+    const output = {};
+    let rootPath = '';
+    let omitIndeces;
+    for (const item of array) {
+        // if its the first iteration of the for loop
+        if (rootPath.length === 0) {
+            // console.log('item.path: 'item.path);
+            let pathArray = item.path.split('/');
+            // console.log('pathArray: ', pathArray);
+            let rootFolder = pathArray.pop();
+            // console.log('pathArray: ', pathArray);
+            rootPath = rootFolder;
+            output[rootFolder] = {
+                type: "folder",
+                path: item.path
+            };
+            omitIndeces = pathArray.length;
+            // console.log('omitIndeces: ', omitIndeces);
+        }
+        else {
+            //checking elements after the 1st one / root directory 
+            let pathArray = item.path.split('/');
+            pathArray.splice(0, omitIndeces);
+            let name = pathArray.pop();
+            // locating through nested output object logic
+            let objTracker = output;
+            for (const key of pathArray) {
+                objTracker = objTracker[key];
+            }
+            // assigning type logic
+            let type;
+            if (name.split(".").length > 1) {
+                type = name.split(".").pop();
+            }
+            else {
+                type = "folder";
+            }
+            objTracker[name] = {
+                type,
+                path: item.path
+            };
+        }
+    }
+    console.log(JSON.stringify(output));
+}
+// function populateStructure(array: string[]) {
+//   const output = {};
+//   const rootPath = array[0];
+//   const rootFolder = rootPath.split('/').pop() || "";
+//   output[rootFolder] = {
+//       type: "folder",
+//       path: rootPath
+//   };
+//   for (const item of array.slice(1)) {
+//       let relativePathArray = item.replace(rootPath + '/', '').split('/');
+//       let current = output[rootFolder];
+//       while (relativePathArray.length > 1) {
+//           const folder = relativePathArray.shift()!;
+//           current[folder] = current[folder] || { type: "folder" };
+//           current = current[folder];
+//       }
+//       const name = relativePathArray[0];
+//       const type = name.includes('.') ? name.split('.').pop()! : "folder";
+//       current[name] = {
+//           type,
+//           path: item
+//       };
+//   }
+//   console.dir(output);
+//   return output;
+// }
 function getWebViewContent(stylesUri, runtimeUri, polyfillsUri, scriptUri) {
     return `<!DOCTYPE html>
   <html lang="en">
