@@ -7,6 +7,7 @@ import {
 } from '@angular/core';
 import { DataSet } from 'vis-data';
 import { Network } from 'vis-network';
+import { FsItem } from '../models/FileSystem';
 
 @Component({
   selector: 'app-root',
@@ -17,37 +18,116 @@ export class AppComponent implements AfterViewInit {
   @ViewChild('networkContainer') networkContainer!: ElementRef;
 
   private network: any;
+  nodes: any[] = [];
+  edges: any[] = [];
+  fsItems: FsItem[] = [];
 
   ngAfterViewInit() {
-    // refer to docs on how to setup nodes and edges
-
-    // create an array with nodes
-    const nodes = new DataSet([
-      { id: 1, label: 'Node 1' },
-      { id: 2, label: 'Node 2' },
-      { id: 3, label: 'Node 3' },
-      { id: 4, label: 'Node 4' },
-      { id: 5, label: 'Node 5' },
-    ]);
-
-    console.log('nodes', nodes);
-
-    // create an array with edges
-    const edges = new DataSet<{ id?: number; from: number; to: number }>([
-      { from: 1, to: 3 },
-      { from: 1, to: 2 },
-      { from: 2, to: 4 },
-      { from: 2, to: 5 },
-      { from: 3, to: 3 },
-    ]);
-
-    console.log('edges', edges);
+    this.fsItems = this.populate(this.source.src);
+    console.log('fsItems', this.fsItems);
+    const { nodes, edges } = this.createNodesAndEdges(this.fsItems);
+    this.nodes = nodes;
+    this.edges = edges;
+    console.log('BEFORE SETTING DATASET');
+    const newNodes = new DataSet(nodes);
+    const newEdges = new DataSet(edges);
+    console.log('newNodes', newNodes);
+    console.log('newEdges', newEdges);
 
     // create a network
     const container = this.networkContainer.nativeElement;
-    const data = { nodes, edges };
-    const options = {};
+    // const data = { newNodes, newEdges };
+    const data: {
+      nodes: DataSet<any, 'id'>;
+      edges: DataSet<any, 'id'>;
+    } = {
+      nodes: newNodes,
+      edges: newEdges,
+    };
+    const options = {
+      // layout: {
+      //   hierarchical: {
+      //     direction: 'UD', // Up-Down direction
+      //     sortMethod: 'directed' // Sort based on the hierarchical structure
+      //   }
+      // }
+    };
     this.network = new Network(container, data, options);
+
+    // push to nodes array
+
+    // create an array with nodes
+    // const nodes = new DataSet([
+    //   { id: 1, label: 'Node 1' },
+    //   { id: 2, label: 'Node 2' },
+    //   { id: 3, label: 'Node 3' },
+    //   { id: 4, label: 'Node 4' },
+    //   { id: 5, label: 'Node 5' },
+    // ]);
+
+    // console.log('nodes', nodes);
+
+    // // create an array with edges
+    // const edges = new DataSet<{ id?: number; from: number; to: number }>([
+    //   { from: 1, to: 3 },
+    //   { from: 1, to: 2 },
+    //   { from: 2, to: 4 },
+    //   { from: 2, to: 5 },
+    //   { from: 3, to: 3 },
+    // ]);
+
+    // console.log('edges', edges);
+
+    // // create a network
+    // const container = this.networkContainer.nativeElement;
+    // const data = { nodes, edges };
+    // const options = {};
+    // this.network = new Network(container, data, options);
+  }
+
+  createNetwork() {
+    // Create an array with nodes and edges based on the FsItem hierarchy
+  }
+
+  createNodesAndEdges(fsItems: FsItem[]): { nodes: any[]; edges: any[] } {
+    const nodes: any[] = [];
+    const edges: any[] = [];
+
+    // Helper function to recursively add nodes and edges
+    function addNodesAndEdges(item: FsItem, parentFolder?: string) {
+      // Check if the node already exists to avoid duplicates
+      const existingNode = nodes.find((node) => node.id === item.id);
+      if (!existingNode) {
+        // Add the current item as a node
+        nodes.push({ id: item.id, label: item.label });
+
+        // If the item has children (files or subfolders), add edges to them
+        if (item.children && item.children.length > 0) {
+          for (const childId of item.children) {
+            edges.push({ from: item.id, to: childId });
+            const child = fsItems.find((fsItem) => fsItem.id === childId);
+            if (child) {
+              // Recursively add nodes and edges for children
+              addNodesAndEdges(child, item.id);
+            }
+          }
+        }
+      } else {
+        // If the node already exists, just add an edge to its parent
+        if (parentFolder) {
+          edges.push({ from: parentFolder, to: item.id });
+        }
+      }
+    }
+
+    // Iterate through the root items and start the process
+    for (const rootItem of fsItems) {
+      addNodesAndEdges(rootItem);
+    }
+
+    console.log('NODES', nodes);
+    console.log('EDGES', edges);
+    return { nodes, edges };
   }
 
   source = {
@@ -108,9 +188,160 @@ export class AppComponent implements AfterViewInit {
       },
     },
   };
+
+  populate(obj: any, items: FsItem[] = []): FsItem[] {
+    // Helper function to recursively populate the file system hierarchy
+    function populateGraph(
+      obj: any,
+      parentFolder?: string
+    ): FsItem | undefined {
+      // If the current object is a folder
+      if (obj.type === 'folder') {
+        // Create a folder item
+        const folder: FsItem = {
+          id: obj.path,
+          label: obj.path.split('/').pop(),
+          type: obj.type,
+          children: [],
+          folderParent: parentFolder,
+        };
+        console.log('FOLDER HAS BEEN CREATED', folder);
+
+        // Iterate over the properties of the folder
+        for (const key in obj) {
+          // If the property is not 'type' or 'path' and represents a file
+          if (key !== 'type' && key !== 'path' && obj[key].type !== 'folder') {
+            // Recursively populate for files
+            const fileChild = populateGraph(obj[key], folder.id);
+            // Add file IDs to the folder's children and to the result array
+            if (fileChild) {
+              folder.children.push(fileChild.id);
+              fileChild.folderParent = folder.id;
+            }
+            // console.log('FILE CHILDREN FOR THIS FOLDER', folder);
+
+            // items.push(file);
+          }
+          // If the property is not 'type' or 'path' and represents a subfolder
+          else if (
+            key !== 'type' &&
+            key !== 'path' &&
+            obj[key].type === 'folder'
+          ) {
+            folder.children.push(obj[key].path);
+            // Recursively populate for subfolders
+            populateGraph(obj[key]);
+          }
+        }
+        // Add the folder item to the result array
+        items.push(folder);
+        // If the current object is a file
+        return folder;
+      } else {
+        // Create a file item
+        const fsItem: FsItem = {
+          id: obj.path,
+          label: obj.path.split('/').pop(),
+          type: obj.type,
+          children: [],
+        };
+
+        // Add the file item to the result array
+        items.push(fsItem);
+
+        // console.log('FILE HAS BEEN CREATED', fsItem);
+        return fsItem;
+      }
+      // Return the result array
+      // return items;
+    }
+
+    // Call the populateGraph function to start the population process
+    populateGraph(obj);
+
+    console.log('ITEMS HERE', items);
+
+    // Return the final result array
+    return items;
+  }
 }
 
 /*
+
+  populate(obj: any, items: FsItem[] = []): FsItem[] {
+    // Helper function to recursively populate the file system hierarchy
+    function populateGraph(obj: any, parentFolder?: string): FsItem | undefined {
+      // If the current object is a folder
+      if (obj.type === 'folder') {
+        // Create a folder item
+        const folder: FsItem = {
+          id: obj.path,
+          label: obj.path.split('/').pop(),
+          type: obj.type,
+          children: [],
+          folderParent: parentFolder,
+        };
+        console.log('FOLDER HAS BEEN CREATED', folder);
+
+        // Iterate over the properties of the folder
+        for (const key in obj) {
+          // If the property is not 'type' or 'path' and represents a file
+          if (key !== 'type' && key !== 'path' && obj[key].type !== 'folder') {
+            // Recursively populate for files
+            const fileChild = populateGraph(obj[key], folder.id);
+            // Add file IDs to the folder's children and to the result array
+            if (fileChild) {
+              folder.children.push(fileChild.id);
+              fileChild.folderParent = folder.id;
+            }
+            // console.log('FILE CHILDREN FOR THIS FOLDER', folder);
+
+            // items.push(file);
+          }
+          // If the property is not 'type' or 'path' and represents a subfolder
+          else if (
+            key !== 'type' &&
+            key !== 'path' &&
+            obj[key].type === 'folder'
+          ) {
+            folder.children.push(obj[key].path);
+            // Recursively populate for subfolders
+            populateGraph(obj[key]);
+          }
+        }
+        // Add the folder item to the result array
+        items.push(folder);
+        // If the current object is a file
+        return folder;
+      } else {
+        // Create a file item
+        const fsItem: FsItem = {
+          id: obj.path,
+          label: obj.path.split('/').pop(),
+          type: obj.type,
+          children: [],
+        };
+
+        // Add the file item to the result array
+        items.push(fsItem);
+
+        // console.log('FILE HAS BEEN CREATED', fsItem);
+        return fsItem;
+      }
+      // Return the result array
+      // return items;
+    }
+
+    // Call the populateGraph function to start the population process
+    populateGraph(obj);
+
+    console.log('ITEMS HERE', items);
+
+    // Return the final result array
+    return items;
+  }
+}
+
 
   
 
