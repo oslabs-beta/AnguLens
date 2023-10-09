@@ -91,7 +91,39 @@ export class AppComponent implements AfterViewInit {
       const existingNode = nodes.find((node) => node.id === item.id);
       if (!existingNode) {
         // Add the current item as a node
-        nodes.push({ id: item.id, label: item.label });
+        let fileImg: string = '';
+        let selectedImg: string = '';
+        //console.log('id:', id);
+        console.log('type type type', item.type);
+        switch (item.type) {
+          case 'gitkeep': 
+            fileImg = '../assets/icons8-git-50.png';
+            break;
+          case 'ts': 
+            fileImg = '../assets/icons8-angular-50.png';
+            break;
+          case 'css':
+            fileImg = '../assets/icons8-css-50.png';
+            break;
+          case 'folder':
+            fileImg = '../assets/icons8-folder-50.png';
+            selectedImg = '../assets/icons8-opened-folder-50.png';
+            break;
+          case 'html': 
+            fileImg = '../assets/icons8-code-50.png';
+            break;
+          default:
+            fileImg = '../assets/icons8-file-50.png';
+            break;
+        } 
+        nodes.push({ 
+          id: item.id, 
+          label: item.label,
+          image: {
+            unselected: fileImg,
+            selected: selectedImg === '' ? fileImg : selectedImg,
+          }
+        });
 
         // If the item has children (files or subfolders), add edges to them
         if (item.children && item.children.length > 0) {
