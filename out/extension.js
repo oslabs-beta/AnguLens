@@ -28,20 +28,38 @@ function activate(context) {
         { enableScripts: true } // options
         );
         // Read the contents of your Angular app's index.html file
-        const indexPath = path.join(__dirname, "../webview-ui/dist/webview-ui", "index.html");
-        const htmlContent = fs.readFileSync(indexPath, "utf-8");
-        console.log(htmlContent);
+        // const indexPath = path.join(
+        //   __dirname,
+        //   "../webview-ui/dist/webview-ui",
+        //   "index.html"
+        // );
+        // const htmlContent = fs.readFileSync(indexPath, "utf-8");
+        // console.log(htmlContent);
         // panel.webview.html = htmlContent;
-        const runtimeUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "runtime.5555b0e246616bd9.js")));
+        const runtimeUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "runtime.01fe1d460628a1d3.js")));
         const polyfillsUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "polyfills.ef3261c6791c905c.js")));
-        const scriptUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "main.97b649a78c55b36d.js")));
+        const scriptUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "main.363c944a1854266c.js")));
         const stylesUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "styles.ef46db3751d8e999.css")));
-        panel.webview.html = getWebViewContent(stylesUri, runtimeUri, polyfillsUri, scriptUri);
+        // added this
+        // Create a webview-compatible URI for the "assets" folder
+        const assetsFolder = vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui/assets"));
+        // Create URIs for all image assets in the "assets" folder
+        const imageUris = getAssetUris(assetsFolder, panel.webview);
+        panel.webview.html = getWebViewContent(stylesUri, runtimeUri, polyfillsUri, scriptUri, imageUris);
     });
     context.subscriptions.push(disposable, runWebView);
 }
 exports.activate = activate;
-function getWebViewContent(stylesUri, runtimeUri, polyfillsUri, scriptUri) {
+function getAssetUris(folderUri, webview) {
+    const imageFiles = fs.readdirSync(folderUri.fsPath);
+    return imageFiles.map((file) => webview.asWebviewUri(vscode.Uri.file(path.join(folderUri.fsPath, file))));
+}
+function getWebViewContent(stylesUri, runtimeUri, polyfillsUri, scriptUri, imageUris // added this
+) {
+    // added this
+    const imageTags = imageUris
+        .map((uri) => `<img src="${uri}" alt="Image" />`)
+        .join("\n");
     return `<!DOCTYPE html>
   <html lang="en">
     <head>
@@ -51,6 +69,8 @@ function getWebViewContent(stylesUri, runtimeUri, polyfillsUri, scriptUri) {
       <title>Hello World</title>
     </head>
     <body>
+      <div>AnguLens</div>
+      ${imageTags}
       <app-root></app-root>
       <script type="module" src="${runtimeUri}"></script>
       <script type="module" src="${polyfillsUri}"></script>

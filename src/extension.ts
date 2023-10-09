@@ -34,13 +34,13 @@ export function activate(context: vscode.ExtensionContext) {
     );
 
     // Read the contents of your Angular app's index.html file
-    const indexPath = path.join(
-      __dirname,
-      "../webview-ui/dist/webview-ui",
-      "index.html"
-    );
-    const htmlContent = fs.readFileSync(indexPath, "utf-8");
-    console.log(htmlContent);
+    // const indexPath = path.join(
+    //   __dirname,
+    //   "../webview-ui/dist/webview-ui",
+    //   "index.html"
+    // );
+    // const htmlContent = fs.readFileSync(indexPath, "utf-8");
+    // console.log(htmlContent);
     // panel.webview.html = htmlContent;
 
     const runtimeUri = panel.webview.asWebviewUri(
@@ -48,7 +48,7 @@ export function activate(context: vscode.ExtensionContext) {
         path.join(
           __dirname,
           "../webview-ui/dist/webview-ui",
-          "runtime.5555b0e246616bd9.js"
+          "runtime.01fe1d460628a1d3.js"
         )
       )
     );
@@ -66,7 +66,7 @@ export function activate(context: vscode.ExtensionContext) {
         path.join(
           __dirname,
           "../webview-ui/dist/webview-ui",
-          "main.97b649a78c55b36d.js"
+          "main.363c944a1854266c.js"
         )
       )
     );
@@ -79,23 +79,47 @@ export function activate(context: vscode.ExtensionContext) {
         )
       )
     );
+
+    // added this
+    // Create a webview-compatible URI for the "assets" folder
+    const assetsFolder = vscode.Uri.file(
+      path.join(__dirname, "../webview-ui/dist/webview-ui/assets")
+    );
+
+    // Create URIs for all image assets in the "assets" folder
+    const imageUris = getAssetUris(assetsFolder, panel.webview);
+
     panel.webview.html = getWebViewContent(
       stylesUri,
       runtimeUri,
       polyfillsUri,
-      scriptUri
+      scriptUri,
+      imageUris
     );
   });
 
   context.subscriptions.push(disposable, runWebView);
 }
 
+function getAssetUris(folderUri: vscode.Uri, webview: Webview): vscode.Uri[] {
+  const imageFiles = fs.readdirSync(folderUri.fsPath);
+  return imageFiles.map((file) =>
+    webview.asWebviewUri(vscode.Uri.file(path.join(folderUri.fsPath, file)))
+  );
+}
+
 function getWebViewContent(
   stylesUri: any,
   runtimeUri: any,
   polyfillsUri: any,
-  scriptUri: any
+  scriptUri: any,
+  imageUris: any[] // added this
 ) {
+  // added this
+  const imageTags = imageUris
+    .map((uri: any) => `<img src="${uri}" alt="Image" />`)
+    .join("\n");
+
   return `<!DOCTYPE html>
   <html lang="en">
     <head>
@@ -105,6 +129,8 @@ function getWebViewContent(
       <title>Hello World</title>
     </head>
     <body>
+      <div>AnguLens</div>
+      ${imageTags}
       <app-root></app-root>
       <script type="module" src="${runtimeUri}"></script>
       <script type="module" src="${polyfillsUri}"></script>

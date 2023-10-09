@@ -96,12 +96,13 @@ export class AppComponent implements AfterViewInit {
         //console.log('id:', id);
         console.log('type type type', item.type);
         switch (item.type) {
-          case 'gitkeep': 
+          case 'gitkeep':
             fileImg = '../assets/icons8-git-50.png';
             break;
-          case 'ts': 
+          case 'ts':
             fileImg = '../assets/icons8-angular-50.png';
             break;
+
           case 'css':
             fileImg = '../assets/icons8-css-50.png';
             break;
@@ -109,20 +110,20 @@ export class AppComponent implements AfterViewInit {
             fileImg = '../assets/icons8-folder-50.png';
             selectedImg = '../assets/icons8-opened-folder-50.png';
             break;
-          case 'html': 
+          case 'html':
             fileImg = '../assets/icons8-code-50.png';
             break;
           default:
             fileImg = '../assets/icons8-file-50.png';
             break;
-        } 
-        nodes.push({ 
-          id: item.id, 
+        }
+        nodes.push({
+          id: item.id,
           label: item.label,
           image: {
             unselected: fileImg,
             selected: selectedImg === '' ? fileImg : selectedImg,
-          }
+          },
         });
 
         // If the item has children (files or subfolders), add edges to them
