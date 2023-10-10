@@ -1,11 +1,15 @@
-// The module 'vscode' contains the VS Code extensibility API
+ // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
+import * as ts from "typescript";
 import { Uri, Webview } from "vscode";
 import * as klaw from 'klaw';
 import * as path from "path";
 import * as fs from "fs";
+import { tsquery } from '@phenomnomnominal/tsquery';
 import { getVSCodeDownloadUrl } from "@vscode/test-electron/out/util";
+
+
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -81,13 +85,28 @@ export function activate(context: vscode.ExtensionContext) {
       )
     );
 
+    const filePath = "/Users/scottstaskus/Desktop/angular-crash-2021/src/app/components/task-item/task-item.component.ts";
+    const sourceFile = generateAST(filePath);
+
+    function visitNode(node: ts.Node) {
+      console.log(`Node Kind: ${ts.SyntaxKind[node.kind]}, Text: "${node.getText(sourceFile)}"`)
+      ts.forEachChild(node,visitNode)
+    }
+
+     //visitNode(sourceFile);
+
+    //our AST stored as the variable --> sourceFile
+
+    console.log(tsquery(sourceFile, "PropertyDeclaration"));
+
+
     const items = [];
-    const rootpath = '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src';
+    const rootpath = '/Users/scottstaskus/desktop/AnguLens/webview-ui/src';
 
     klaw(rootpath)
       .on('data', item => items.push(item))
       .on('end', () => {
-        console.dir(items);
+       // console.dir(items);
         populateStructure(items);
       });
     
@@ -164,9 +183,35 @@ function populateStructure(array: any) {
 
     }
   }
-  console.log(JSON.stringify(output));
+  //console.log(JSON.stringify(output));
 }
 
+
+// example --> const filePath = "/Users/scottstaskus/Desktop/AnguLens/webview-ui/src/app/app.component.ts"
+
+
+function generateAST(filePath: string): ts.Node | undefined {
+  // Read the TypeScript file content
+  const fileContent = fs.readFileSync(filePath, 'utf-8');
+  // Parse the TypeScript code to get the AST
+  const sourceFile = ts.createSourceFile(
+    filePath,
+    fileContent,
+    ts.ScriptTarget.Latest,
+    true
+  );
+  // Return the AST (abstract syntax tree) of the source file
+  return sourceFile;
+}
+
+
+
+
+// // Example usage
+// const filePath = 'path/to/your/typescript/file.ts';
+// const ast = generateAST(filePath);
+// // Now 'ast' contains the abstract syntax tree of the TypeScript file
+// // You can traverse and manipulate the AST as needed
 
 
 

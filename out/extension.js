@@ -4,8 +4,11 @@ exports.deactivate = exports.activate = void 0;
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 const vscode = require("vscode");
+const ts = require("typescript");
 const klaw = require("klaw");
 const path = require("path");
+const fs = require("fs");
+const tsquery_1 = require("@phenomnomnominal/tsquery");
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 function activate(context) {
@@ -40,12 +43,21 @@ function activate(context) {
         const polyfillsUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "polyfills.ef3261c6791c905c.js")));
         const scriptUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "main.97b649a78c55b36d.js")));
         const stylesUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "styles.ef46db3751d8e999.css")));
+        const filePath = "/Users/scottstaskus/Desktop/angular-crash-2021/src/app/components/task-item/task-item.component.ts";
+        const sourceFile = generateAST(filePath);
+        function visitNode(node) {
+            console.log(`Node Kind: ${ts.SyntaxKind[node.kind]}, Text: "${node.getText(sourceFile)}"`);
+            ts.forEachChild(node, visitNode);
+        }
+        //visitNode(sourceFile);
+        //our AST stored as the variable --> sourceFile
+        console.log((0, tsquery_1.tsquery)(sourceFile, "PropertyDeclaration"));
         const items = [];
-        const rootpath = '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src';
+        const rootpath = '/Users/scottstaskus/desktop/AnguLens/webview-ui/src';
         klaw(rootpath)
             .on('data', item => items.push(item))
             .on('end', () => {
-            console.dir(items);
+            // console.dir(items);
             populateStructure(items);
         });
         panel.webview.html = getWebViewContent(stylesUri, runtimeUri, polyfillsUri, scriptUri);
@@ -110,8 +122,22 @@ function populateStructure(array) {
             };
         }
     }
-    console.log(JSON.stringify(output));
+    //console.log(JSON.stringify(output));
 }
+// example --> const filePath = "/Users/scottstaskus/Desktop/AnguLens/webview-ui/src/app/app.component.ts"
+function generateAST(filePath) {
+    // Read the TypeScript file content
+    const fileContent = fs.readFileSync(filePath, 'utf-8');
+    // Parse the TypeScript code to get the AST
+    const sourceFile = ts.createSourceFile(filePath, fileContent, ts.ScriptTarget.Latest, true);
+    // Return the AST (abstract syntax tree) of the source file
+    return sourceFile;
+}
+// // Example usage
+// const filePath = 'path/to/your/typescript/file.ts';
+// const ast = generateAST(filePath);
+// // Now 'ast' contains the abstract syntax tree of the TypeScript file
+// // You can traverse and manipulate the AST as needed
 // function populateStructure(array: string[]) {
 //   const output = {};
 //   const rootPath = array[0];
