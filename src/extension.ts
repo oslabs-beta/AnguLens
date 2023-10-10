@@ -104,7 +104,7 @@ export function activate(context: vscode.ExtensionContext) {
       runtimeUri,
       polyfillsUri,
       scriptUri,
-      imageUris
+      
     );
   });
 
@@ -123,13 +123,9 @@ function getWebViewContent(
   runtimeUri: any,
   polyfillsUri: any,
   scriptUri: any,
-  imageUris: any[] // added this
+  
 ) {
-  // added this
-  const imageTags = imageUris
-    .map((uri: any) => `<img src="${uri}" alt="Image" />`)
-    .join("\n");
-  console.log('IMAGE TAGS', imageTags);
+
   return `<!DOCTYPE html>
   <html lang="en">
     <head>
@@ -140,7 +136,7 @@ function getWebViewContent(
     </head>
     <body>
       <div>AnguLens</div>
-      ${imageTags}
+      
       <app-root></app-root>
       <script type="module" src="${runtimeUri}"></script>
       <script type="module" src="${polyfillsUri}"></script>
