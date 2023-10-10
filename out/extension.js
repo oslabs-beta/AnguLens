@@ -38,7 +38,7 @@ function activate(context) {
         // panel.webview.html = htmlContent;
         const runtimeUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "runtime.01fe1d460628a1d3.js")));
         const polyfillsUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "polyfills.ef3261c6791c905c.js")));
-        const scriptUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "main.bd7ffc7035ce1f22.js")));
+        const scriptUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "main.6f72f920bd197b5a.js")));
         const stylesUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "styles.ef46db3751d8e999.css")));
         // added this
         // Create a webview-compatible URI for the "assets" folder
@@ -48,7 +48,7 @@ function activate(context) {
         const stringUris = imageUris.map((uri) => uri.toString());
         // Send the message to the WebView
         const message = {
-            command: 'updateUris',
+            command: "updateUris",
             data: stringUris,
         };
         panel.webview.postMessage(message);
@@ -61,13 +61,15 @@ function getAssetUris(folderUri, webview) {
     const imageFiles = fs.readdirSync(folderUri.fsPath);
     return imageFiles.map((file) => webview.asWebviewUri(vscode.Uri.file(path.join(folderUri.fsPath, file))));
 }
-function getWebViewContent(stylesUri, runtimeUri, polyfillsUri, scriptUri, imageUris // added this
-) {
-    // added this
+function getWebViewContent(stylesUri, runtimeUri, polyfillsUri, scriptUri, imageUris) {
     const imageTags = imageUris
         .map((uri) => `<img src="${uri}" alt="Image" />`)
         .join("\n");
-    console.log('IMAGE TAGS', imageTags);
+    // Include imageTags in the script content
+    const scriptContent = `
+    const imageContainer = document.createElement('div');
+    imageContainer.innerHTML = \`${imageTags}\`;
+  `;
     return `<!DOCTYPE html>
   <html lang="en">
     <head>
@@ -78,12 +80,13 @@ function getWebViewContent(stylesUri, runtimeUri, polyfillsUri, scriptUri, image
     </head>
     <body>
       <div>AnguLens</div>
-      ${imageTags}
-      <app-root></app-root>
+     <app-root></app-root>
       <script type="module" src="${runtimeUri}"></script>
       <script type="module" src="${polyfillsUri}"></script>
-      <script type="module" src="${scriptUri}"></script>
-    </body>
+      <script type="module">
+        ${scriptContent}
+      </script>
+      <script type="module" src="${scriptUri}"></script>    </body>
   </html>`;
 }
 // This method is called when your extension is deactivated

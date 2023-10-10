@@ -67,7 +67,7 @@ export function activate(context: vscode.ExtensionContext) {
         path.join(
           __dirname,
           "../webview-ui/dist/webview-ui",
-          "main.bd7ffc7035ce1f22.js"
+          "main.6f72f920bd197b5a.js"
         )
       )
     );
@@ -92,19 +92,17 @@ export function activate(context: vscode.ExtensionContext) {
     const stringUris = imageUris.map((uri) => uri.toString());
     // Send the message to the WebView
     const message: object = {
-      command: 'updateUris',
+      command: "updateUris",
       data: stringUris,
     };
     panel.webview.postMessage(message);
-
-
 
     panel.webview.html = getWebViewContent(
       stylesUri,
       runtimeUri,
       polyfillsUri,
       scriptUri,
-      
+      imageUris
     );
   });
 
@@ -123,8 +121,17 @@ function getWebViewContent(
   runtimeUri: any,
   polyfillsUri: any,
   scriptUri: any,
-  
+  imageUris: any
 ) {
+  const imageTags = imageUris
+    .map((uri: any) => `<img src="${uri}" alt="Image" />`)
+    .join("\n");
+
+  // Include imageTags in the script content
+  const scriptContent = `
+    const imageContainer = document.createElement('div');
+    imageContainer.innerHTML = \`${imageTags}\`;
+  `;
 
   return `<!DOCTYPE html>
   <html lang="en">
@@ -136,12 +143,13 @@ function getWebViewContent(
     </head>
     <body>
       <div>AnguLens</div>
-      
-      <app-root></app-root>
+     <app-root></app-root>
       <script type="module" src="${runtimeUri}"></script>
       <script type="module" src="${polyfillsUri}"></script>
-      <script type="module" src="${scriptUri}"></script>
-    </body>
+      <script type="module">
+        ${scriptContent}
+      </script>
+      <script type="module" src="${scriptUri}"></script>    </body>
   </html>`;
 }
 
