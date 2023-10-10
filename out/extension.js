@@ -8,7 +8,6 @@ const ts = require("typescript");
 const klaw = require("klaw");
 const path = require("path");
 const fs = require("fs");
-const tsquery_1 = require("@phenomnomnominal/tsquery");
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 function activate(context) {
@@ -43,15 +42,48 @@ function activate(context) {
         const polyfillsUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "polyfills.ef3261c6791c905c.js")));
         const scriptUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "main.97b649a78c55b36d.js")));
         const stylesUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "styles.ef46db3751d8e999.css")));
-        const filePath = "/Users/scottstaskus/Desktop/angular-crash-2021/src/app/components/task-item/task-item.component.ts";
-        const sourceFile = generateAST(filePath);
-        function visitNode(node) {
-            console.log(`Node Kind: ${ts.SyntaxKind[node.kind]}, Text: "${node.getText(sourceFile)}"`);
-            ts.forEachChild(node, visitNode);
+        /*
+    
+        const filePath = "/Users/danielkim/personal-projects/task-tracker/src/app/components/header/header.component.html";
+        // const sourceFile = generateAST(filePath);
+        const fileContent = fs.readFileSync(filePath, 'utf-8');
+    
+        const ast = parseTemplate(fileContent, filePath, {
+          preserveWhitespaces: false, // Set this based on your preference
+        });
+        
+        const inputBindings: any[] = [];
+        
+        function extractInputsFromAst(node: any) {
+          if (node.inputs) {
+            Object.keys(node.inputs).forEach(input => {
+              inputBindings.push({ input, value: node.inputs[input] });
+            });
+          }
+        
+          if (node.children) {
+            node.children.forEach(child => extractInputsFromAst(child));
+          }
         }
+        
+        extractInputsFromAst(ast);
+        console.log('Input Bindings:', inputBindings);
+    
+        */
+        // const inputVariables = tsquery(
+        //   sourceFile,
+        //   'PropertyDeclaration:has(Identifier[name=Input])'
+        // ) as ts.PropertyDeclaration[];
+        // inputVariables.forEach(variable => {
+        //   const variableName = (variable.name as ts.Identifier).text;
+        //   console.log('Input variable:', variableName);
+        // });
+        // function visitNode(node: ts.Node) {
+        //   console.log(`Node Kind: ${ts.SyntaxKind[node.kind]}, Text: "${node.getText(sourceFile)}"`)
+        //   ts.forEachChild(node,visitNode)
+        // }
         //visitNode(sourceFile);
-        //our AST stored as the variable --> sourceFile
-        console.log((0, tsquery_1.tsquery)(sourceFile, "PropertyDeclaration"));
+        //console.log(tsquery(sourceFile, "PropertyDeclaration"));
         const items = [];
         const rootpath = '/Users/scottstaskus/desktop/AnguLens/webview-ui/src';
         klaw(rootpath)
