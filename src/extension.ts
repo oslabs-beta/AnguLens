@@ -7,6 +7,7 @@ import * as fs from "fs";
 import { getVSCodeDownloadUrl } from "@vscode/test-electron/out/util";
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
+
 export function activate(context: vscode.ExtensionContext) {
   // Use the console to output diagnostic information (console.log) and errors (console.error)
   // This line of code will only be executed once when your extension is activated
@@ -66,7 +67,7 @@ export function activate(context: vscode.ExtensionContext) {
         path.join(
           __dirname,
           "../webview-ui/dist/webview-ui",
-          "main.363c944a1854266c.js"
+          "main.bd7ffc7035ce1f22.js"
         )
       )
     );
@@ -88,6 +89,15 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Create URIs for all image assets in the "assets" folder
     const imageUris = getAssetUris(assetsFolder, panel.webview);
+    const stringUris = imageUris.map((uri) => uri.toString());
+    // Send the message to the WebView
+    const message: object = {
+      command: 'updateUris',
+      data: stringUris,
+    };
+    panel.webview.postMessage(message);
+
+
 
     panel.webview.html = getWebViewContent(
       stylesUri,
@@ -119,7 +129,7 @@ function getWebViewContent(
   const imageTags = imageUris
     .map((uri: any) => `<img src="${uri}" alt="Image" />`)
     .join("\n");
-
+  console.log('IMAGE TAGS', imageTags);
   return `<!DOCTYPE html>
   <html lang="en">
     <head>

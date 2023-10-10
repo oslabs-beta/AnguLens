@@ -8,7 +8,8 @@ import {
 import { DataSet } from 'vis-data';
 import { Network } from 'vis-network';
 import { FsItem } from '../models/FileSystem';
-
+import { ExtensionMessage } from '../models/message';
+import { URIObj } from 'src/models/uri';
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -23,68 +24,86 @@ export class AppComponent implements AfterViewInit {
   fsItems: FsItem[] = [];
 
   ngAfterViewInit() {
-    this.fsItems = this.populate(this.source.src);
-    console.log('fsItems', this.fsItems);
-    const { nodes, edges } = this.createNodesAndEdges(this.fsItems);
-    this.nodes = nodes;
-    this.edges = edges;
-    console.log('BEFORE SETTING DATASET');
-    const newNodes = new DataSet(nodes);
-    const newEdges = new DataSet(edges);
-    console.log('newNodes', newNodes);
-    console.log('newEdges', newEdges);
+    console.log('INIT');
 
-    // create a network
-    const container = this.networkContainer.nativeElement;
-    // const data = { newNodes, newEdges };
-    const data: {
-      nodes: DataSet<any, 'id'>;
-      edges: DataSet<any, 'id'>;
-    } = {
-      nodes: newNodes,
-      edges: newEdges,
-    };
-    const options = {
-      layout: {
-        hierarchical: {
-          direction: 'UD', // Up-Down direction
-          nodeSpacing: 1000,
-          parentCentralization: true,
-          edgeMinimization: true,
-          shakeTowards: 'roots', // Tweak the layout algorithm to get better results
-          sortMethod: 'directed', // Sort based on the hierarchical structure
-        },
-      },
+    //catch URIS
+    window.addEventListener('message', (event) => {
+      const message: ExtensionMessage = event.data;
+      console.log('caught message?', message);
 
-      nodes: {
-        shape: 'image',
-        image: {
-          selected: '../assets/scottytoohotty.png',
-          unselected: '../assets/folder-svgrepo-com.svg',
-        },
-        shadow: {
-          enabled: true,
-          color: 'rgba(0,0,0,0.5)',
-          size: 10,
-          x: 5,
-          y: 5,
-        },
-      },
+      if (message.command === 'updateUris') {
+        const uris: any = message.data;
+        console.log('URISSSSSSSSS', uris);
 
-      physics: {
-        hierarchicalRepulsion: {
-          avoidOverlap: 1,
-          nodeDistance: 145,
-        },
-      },
-    };
-    this.network = new Network(container, data, options);
+        this.fsItems = this.populate(this.source.src);
+        console.log('fsItems', this.fsItems);
+        const { nodes, edges } = this.createNodesAndEdges(this.fsItems, uris);
+        this.nodes = nodes;
+        this.edges = edges;
+        console.log('BEFORE SETTING DATASET');
+        const newNodes = new DataSet(nodes);
+        const newEdges = new DataSet(edges);
+        console.log('newNodes', newNodes);
+        console.log('newEdges', newEdges);
+    
+        // create a network
+        const container = this.networkContainer.nativeElement;
+        // const data = { newNodes, newEdges };
+        const data: {
+          nodes: DataSet<any, 'id'>;
+          edges: DataSet<any, 'id'>;
+        } = {
+          nodes: newNodes,
+          edges: newEdges,
+        };
+        const options = {
+          layout: {
+            hierarchical: {
+              direction: 'UD', // Up-Down direction
+              nodeSpacing: 1000,
+              parentCentralization: true,
+              edgeMinimization: true,
+              shakeTowards: 'roots', // Tweak the layout algorithm to get better results
+              sortMethod: 'directed', // Sort based on the hierarchical structure
+            },
+          },
+    
+          nodes: {
+            shape: 'image',
+            image: {
+              selected: '../assets/scottytoohotty.png',
+              unselected: '../assets/folder-svgrepo-com.svg',
+            },
+            shadow: {
+              enabled: true,
+              color: 'rgba(0,0,0,0.5)',
+              size: 10,
+              x: 5,
+              y: 5,
+            },
+          },
+    
+          physics: {
+            hierarchicalRepulsion: {
+              avoidOverlap: 1,
+              nodeDistance: 145,
+            },
+          },
+        };
+        this.network = new Network(container, data, options);
+
+
+
+
+
+      }
+    });
+
   }
 
-  createNodesAndEdges(fsItems: FsItem[]): { nodes: any[]; edges: any[] } {
+  createNodesAndEdges(fsItems: FsItem[], uris: string[]): { nodes: any[]; edges: any[] } {
     const nodes: any[] = [];
     const edges: any[] = [];
-
     // Helper function to recursively add nodes and edges
     function addNodesAndEdges(item: FsItem, parentFolder?: string) {
       // Check if the node already exists to avoid duplicates
@@ -97,24 +116,23 @@ export class AppComponent implements AfterViewInit {
         console.log('type type type', item.type);
         switch (item.type) {
           case 'gitkeep':
-            fileImg = '../assets/icons8-git-50.png';
+            fileImg = uris[6];
             break;
           case 'ts':
-            fileImg = '../assets/icons8-angular-50.png';
+            fileImg = uris[1];
             break;
-
           case 'css':
-            fileImg = '../assets/icons8-css-50.png';
+            fileImg = uris[3];
             break;
           case 'folder':
-            fileImg = '../assets/icons8-folder-50.png';
-            selectedImg = '../assets/icons8-opened-folder-50.png';
+            fileImg = uris[5];
+            selectedImg = uris[7];
             break;
           case 'html':
-            fileImg = '../assets/icons8-code-50.png';
+            fileImg = uris[2];
             break;
           default:
-            fileImg = '../assets/icons8-file-50.png';
+            fileImg = uris[4];
             break;
         }
         nodes.push({

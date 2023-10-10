@@ -38,13 +38,20 @@ function activate(context) {
         // panel.webview.html = htmlContent;
         const runtimeUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "runtime.01fe1d460628a1d3.js")));
         const polyfillsUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "polyfills.ef3261c6791c905c.js")));
-        const scriptUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "main.363c944a1854266c.js")));
+        const scriptUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "main.bd7ffc7035ce1f22.js")));
         const stylesUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "styles.ef46db3751d8e999.css")));
         // added this
         // Create a webview-compatible URI for the "assets" folder
         const assetsFolder = vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui/assets"));
         // Create URIs for all image assets in the "assets" folder
         const imageUris = getAssetUris(assetsFolder, panel.webview);
+        const stringUris = imageUris.map((uri) => uri.toString());
+        // Send the message to the WebView
+        const message = {
+            command: 'updateUris',
+            data: stringUris,
+        };
+        panel.webview.postMessage(message);
         panel.webview.html = getWebViewContent(stylesUri, runtimeUri, polyfillsUri, scriptUri, imageUris);
     });
     context.subscriptions.push(disposable, runWebView);
@@ -60,6 +67,7 @@ function getWebViewContent(stylesUri, runtimeUri, polyfillsUri, scriptUri, image
     const imageTags = imageUris
         .map((uri) => `<img src="${uri}" alt="Image" />`)
         .join("\n");
+    console.log('IMAGE TAGS', imageTags);
     return `<!DOCTYPE html>
   <html lang="en">
     <head>
