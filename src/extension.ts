@@ -5,6 +5,10 @@ import { Uri, Webview } from "vscode";
 import * as path from "path";
 import * as fs from "fs";
 import { getVSCodeDownloadUrl } from "@vscode/test-electron/out/util";
+
+import * as klaw from "klaw";
+import { send } from "process";
+
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -33,14 +37,27 @@ export function activate(context: vscode.ExtensionContext) {
       { enableScripts: true } // options
     );
 
+    /*
+[
+  '/Users/danielkim/CodeSmith/osp/AnguLens/src',
+  '/Users/danielkim/CodeSmith/osp/AnguLens/src/extension.ts',
+  '/Users/danielkim/CodeSmith/osp/AnguLens/src/test',
+  '/Users/danielkim/CodeSmith/osp/AnguLens/src/test/runTest.ts',
+  '/Users/danielkim/CodeSmith/osp/AnguLens/src/test/suite',
+  '/Users/danielkim/CodeSmith/osp/AnguLens/src/test/suite/extension.test.ts',
+  '/Users/danielkim/CodeSmith/osp/AnguLens/src/test/suite/index.ts'
+]
+*/
+
+    console.log("workspaceFolders -> ", vscode.workspace.workspaceFolders);
     // Read the contents of your Angular app's index.html file
-    const indexPath = path.join(
-      __dirname,
-      "../webview-ui/dist/webview-ui",
-      "index.html"
-    );
-    const htmlContent = fs.readFileSync(indexPath, "utf-8");
-    console.log(htmlContent);
+    // const indexPath = path.join(
+    //   __dirname,
+    //   "../webview-ui/dist/webview-ui",
+    //   "index.html"
+    // );
+    // const htmlContent = fs.readFileSync(indexPath, "utf-8");
+    // console.log(htmlContent);
     // panel.webview.html = htmlContent;
 
     const runtimeUri = panel.webview.asWebviewUri(
@@ -48,7 +65,7 @@ export function activate(context: vscode.ExtensionContext) {
         path.join(
           __dirname,
           "../webview-ui/dist/webview-ui",
-          "runtime.5555b0e246616bd9.js"
+          "runtime.01fe1d460628a1d3.js"
         )
       )
     );
@@ -66,7 +83,7 @@ export function activate(context: vscode.ExtensionContext) {
         path.join(
           __dirname,
           "../webview-ui/dist/webview-ui",
-          "main.97b649a78c55b36d.js"
+          "main.ab36e7f6f6141fc8.js"
         )
       )
     );
@@ -79,23 +96,185 @@ export function activate(context: vscode.ExtensionContext) {
         )
       )
     );
+
+    // added this
+    // Create a webview-compatible URI for the "assets" folder
+    const assetsFolder = vscode.Uri.file(
+      path.join(__dirname, "../webview-ui/dist/webview-ui/assets")
+    );
+
+    // Create URIs for all image assets in the "assets" folder
+    const imageUris = getAssetUris(assetsFolder, panel.webview);
+    const stringUris = imageUris.map((uri) => uri.toString());
+
+    interface Message {
+      command: string;
+      data: any;
+    }
+
+    // Send the message to the WebView
+    const message: Message = {
+      command: "updateUris",
+      data: stringUris,
+    };
+
+    panel.webview.postMessage(message);
+
+    const items: any = [];
+
+    panel.webview.onDidReceiveMessage(
+      (message: Message) => {
+        console.log("message received but no clue what it is");
+        switch (message.command) {
+          case "loadNetwork": {
+            const srcRootPath = message.data.filePath;
+            // const rootpath = "/Users/scottstaskus/desktop/AnguLens/webview-ui/src";
+            // const rootpath = vscode.workspace.workspaceFolders;
+            console.log("rootpath here ==========", srcRootPath);
+            let rootPath: string = "";
+            if (Array.isArray(srcRootPath)) {
+              rootPath = srcRootPath[0].uri.fsPath;
+              console.log("ROOTPATH IF ARRAY ======>", rootPath);
+            } else if (typeof srcRootPath === "string") {
+              rootPath = srcRootPath;
+            } else {
+              console.error("Invalid rootpath provided");
+              return;
+            }
+            klaw(rootPath)
+              .on("data", (item) => items.push(item))
+              .on("end", () => {
+                // const sliceItems = items.slice(0, 30);
+                // console.log("SLICE ITEMS HERE ======>", sliceItems);
+                console.log("items before populate HERE ========D", items);
+                // console.dir(items);
+                // console.log("ITEM TYPE 8======-->", items[0].type);
+
+                const sendNewPathObj: Message = {
+                  command: "updatePath",
+                  data: populateStructure(items),
+                };
+
+                console.log("POPULATED STRUCTURE DATA", sendNewPathObj.data);
+
+                panel.webview.postMessage(sendNewPathObj);
+                console.log("PANEL WEBVIEW POST MESSAGE SENT");
+              });
+            // console.log("PANEL ONDIDRECEIVEMESSAGE RUNKLAW FINISHED");
+            break;
+          }
+
+          default:
+            console.error("Unknown command", message.command);
+            break;
+        }
+      },
+      undefined,
+      context.subscriptions
+    );
+
     panel.webview.html = getWebViewContent(
       stylesUri,
       runtimeUri,
       polyfillsUri,
-      scriptUri
+      scriptUri,
+      imageUris
     );
   });
 
   context.subscriptions.push(disposable, runWebView);
+}
+// function runKlaw(rootPath: string, items: any) {
+//   klaw(rootPath)
+//     .on("data", (item) => items.push(item))
+//     .on("end", () => {
+//       // const sliceItems = items.slice(0, 30);
+//       // console.log("SLICE ITEMS HERE ======>", sliceItems);
+//       console.log("items before populate HERE ========D", items.length);
+//       // console.dir(items);
+//       populateStructure(items);
+//       console.log("ITEMS AFTER POPULATE -->", items);
+//       console.log("POPULATED ITEMS ARRAY HERE ========>", items.length);
+//     });
+// }
+
+function getAssetUris(folderUri: vscode.Uri, webview: Webview): vscode.Uri[] {
+  const imageFiles = fs.readdirSync(folderUri.fsPath);
+  return imageFiles.map((file) =>
+    webview.asWebviewUri(vscode.Uri.file(path.join(folderUri.fsPath, file)))
+  );
+}
+
+function populateStructure(array: any): object {
+  console.log("POPULATED STRUCTURE TRIGGERED");
+  // console.log("POPULATE PASSED IN ARRAY====", array);
+  const output = {};
+  let rootPath: string = "";
+  let omitIndeces;
+  for (const item of array) {
+    // if its the first iteration of the for loop
+    if (rootPath.length === 0) {
+      // console.log('item.path: 'item.path);
+      let pathArray = item.path.split("/");
+      // console.log('pathArray: ', pathArray);
+      let rootFolder = pathArray.pop();
+      // console.log('pathArray: ', pathArray);
+      rootPath = rootFolder;
+      output[rootFolder] = {
+        type: "folder",
+        path: item.path,
+      };
+      omitIndeces = pathArray.length;
+      // console.log('omitIndeces: ', omitIndeces);
+    } else {
+      //checking elements after the 1st one / root directory
+      let pathArray = item.path.split("/");
+      pathArray.splice(0, omitIndeces);
+      let name = pathArray.pop();
+
+      // locating through nested output object logic
+      let objTracker = output;
+      for (const key of pathArray) {
+        objTracker = objTracker[key];
+      }
+
+      // assigning type logic
+      let type;
+      if (name.split(".").length > 1) {
+        type = name.split(".").pop();
+      } else {
+        type = "folder";
+      }
+
+      objTracker[name] = {
+        type,
+        path: item.path,
+      };
+    }
+  }
+  console.log("HEYYYYYY");
+  console.log("OUTPUT HERE =====>", output);
+  return output;
+  // console.log("JSON STRINGIFIED OUTPUT", JSON.stringify(output));
 }
 
 function getWebViewContent(
   stylesUri: any,
   runtimeUri: any,
   polyfillsUri: any,
-  scriptUri: any
+  scriptUri: any,
+  imageUris: any
 ) {
+  const imageTags = imageUris
+    .map((uri: any) => `<img src="${uri}" alt="Image" />`)
+    .join("\n");
+
+  // Include imageTags in the script content
+  const scriptContent = `
+    const imageContainer = document.createElement('div');
+    imageContainer.innerHTML = \`${imageTags}\`;
+  `;
+
   return `<!DOCTYPE html>
   <html lang="en">
     <head>
@@ -105,11 +284,14 @@ function getWebViewContent(
       <title>Hello World</title>
     </head>
     <body>
-      <app-root></app-root>
+      <div>AnguLens</div>
+     <app-root></app-root>
       <script type="module" src="${runtimeUri}"></script>
       <script type="module" src="${polyfillsUri}"></script>
-      <script type="module" src="${scriptUri}"></script>
-    </body>
+      <script type="module">
+        ${scriptContent}
+      </script>
+      <script type="module" src="${scriptUri}"></script>    </body>
   </html>`;
 }
 
