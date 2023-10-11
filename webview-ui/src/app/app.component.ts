@@ -22,6 +22,8 @@ export class AppComponent implements AfterViewInit {
   edges: any[] = [];
   fsItems: FsItem[] = [];
 
+  currentDirection: 'DU' | 'UD' = 'UD';
+
   ngAfterViewInit() {
     this.fsItems = this.populate(this.source.src);
     console.log('fsItems', this.fsItems);
@@ -68,6 +70,18 @@ export class AppComponent implements AfterViewInit {
           size: 10,
           x: 5,
           y: 5,
+        },
+      },
+
+      edges: {
+        smooth: {
+          enabled: true,
+          type: 'cubicBezier',
+          forceDirection:
+            this.currentDirection == 'UD' || this.currentDirection == 'DU'
+              ? 'vertical'
+              : 'horizontal',
+          roundness: 0.4,
         },
       },
 
@@ -279,6 +293,58 @@ export class AppComponent implements AfterViewInit {
 
     // Return the final result array
     return items;
+  }
+
+  changeLayout() {
+    if (this.network) {
+      this.currentDirection = this.currentDirection === 'UD' ? 'DU' : 'UD';
+      this.network.setOptions({
+        layout: {
+          hierarchical: {
+            direction: this.currentDirection, // Up-Down direction
+            nodeSpacing: 1000,
+            parentCentralization: true,
+            edgeMinimization: true,
+            shakeTowards: 'roots', // Tweak the layout algorithm to get better results
+            sortMethod: 'directed', // Sort based on the hierarchical structure
+          },
+        },
+
+        nodes: {
+          shape: 'image',
+          image: {
+            selected: '../assets/scottytoohotty.png',
+            unselected: '../assets/folder-svgrepo-com.svg',
+          },
+          shadow: {
+            enabled: true,
+            color: 'rgba(0,0,0,0.5)',
+            size: 10,
+            x: 5,
+            y: 5,
+          },
+        },
+
+        edges: {
+          smooth: {
+            enabled: true,
+            type: 'cubicBezier',
+            forceDirection:
+              this.currentDirection == 'UD' || this.currentDirection == 'DU'
+                ? 'vertical'
+                : 'horizontal',
+            roundness: 0.4,
+          },
+        },
+
+        physics: {
+          hierarchicalRepulsion: {
+            avoidOverlap: 1,
+            nodeDistance: 145,
+          },
+        },
+      });
+    }
   }
 }
 

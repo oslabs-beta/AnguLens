@@ -1,6 +1,17 @@
-<!-- app.component.html -->
 
-<div #networkContainer style="width: 1000px; height: 1000px"></div>
-<h2>Angular Router</h2>
+<div
+  id="mynetwork"
+  #networkContainer
+  style="
+    width: 1000px;
+    height: 1000px;
+    background-color: white;
+    border: 1px solid lightgray;
+  "
+></div>
+<div class="button-container">
+  <button class="layout-btn" (click)="changeLayout()">
+    Change Layout Direction
+  </button>
+</div>
 <router-outlet></router-outlet>
-<!-- //#222222 -->
