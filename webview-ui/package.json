@@ -18,6 +18,7 @@
     "@angular/platform-browser": "^16.2.0",
     "@angular/platform-browser-dynamic": "^16.2.0",
     "@angular/router": "^16.2.0",
+    "@types/vscode-webview": "^1.57.2",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "vis-network": "^9.1.7",

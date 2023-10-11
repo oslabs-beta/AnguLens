@@ -10,7 +10,8 @@ import { Network } from 'vis-network';
 import { FsItem } from '../models/FileSystem';
 import { ExtensionMessage } from '../models/message';
 import { URIObj } from 'src/models/uri';
-import * as vscode from 'vscode';
+
+import { vscode } from './utilities/vscode';
 
 @Component({
   selector: 'app-root',
@@ -115,22 +116,28 @@ export class AppComponent implements AfterViewInit {
   }
 
   loadNetwork() {
-    // You can use this.filePath to load the network based on the entered file path
-    // For example, you might want to send a message to the extension with the file path
-    // and handle it in the 'message' event listener
-
-    // Example:
     console.log('File path:', this.filePath);
 
-    // Send a message to the extension
-    const message: ExtensionMessage = {
+    vscode.postMessage({
       command: 'loadNetwork',
       data: {
         filePath: this.filePath,
       },
-    };
-    console.log('MESSAGE PASSED TO WINDOW', message);
-    window.postMessage(message, '*');
+    });
+
+    // if (vscode) {
+    //   // Send a message to the extension
+    //   const message: ExtensionMessage = {
+    //     command: 'loadNetwork',
+    //     data: {
+    //       filePath: this.filePath,
+    //     },
+    //   };
+    //   console.log('MESSAGE PASSED TO WINDOW', message);
+    //   window.postMessage(message, '*');
+    // } else {
+    //   console.log();
+    // }
   }
 
   createNodesAndEdges(

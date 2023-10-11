@@ -45,6 +45,7 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
+    "@types/vscode-webview": "^1.57.2",
     "klaw": "^4.1.0"
   }
 }
