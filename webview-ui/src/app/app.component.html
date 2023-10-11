@@ -1,4 +1,9 @@
 <!-- app.component.html -->
+<div>
+  <label for="filePathInput">Enter File Path:</label>
+  <input type="text" id="filePathInput" [(ngModel)]="filePath" />
+  <button (click)="loadNetwork()">Load Network</button>
+</div>
 
 <div
   #networkContainer

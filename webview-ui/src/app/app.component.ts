@@ -10,6 +10,8 @@ import { Network } from 'vis-network';
 import { FsItem } from '../models/FileSystem';
 import { ExtensionMessage } from '../models/message';
 import { URIObj } from 'src/models/uri';
+import * as vscode from 'vscode';
+
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -23,85 +25,118 @@ export class AppComponent implements AfterViewInit {
   edges: any[] = [];
   fsItems: FsItem[] = [];
 
+  filePath: string = '';
+
   ngAfterViewInit() {
     console.log('INIT');
-
     //catch URIS
+    // this.loadNetwork();
+
     window.addEventListener('message', (event) => {
       const message: ExtensionMessage = event.data;
       console.log('caught message?', message);
 
-      if (message.command === 'updateUris') {
-        const uris: any = message.data;
-        console.log('URISSSSSSSSS', uris);
+      //handle different commands from extension
+      switch (message.command) {
+        //load icon URI's
+        case 'updateUris': {
+          const uris: any = message.data;
+          console.log('URISSSSSSSSS', uris);
 
-        this.fsItems = this.populate(this.source.src);
-        console.log('fsItems', this.fsItems);
-        const { nodes, edges } = this.createNodesAndEdges(this.fsItems, uris);
-        this.nodes = nodes;
-        this.edges = edges;
-        console.log('BEFORE SETTING DATASET');
-        const newNodes = new DataSet(nodes);
-        const newEdges = new DataSet(edges);
-        console.log('newNodes', newNodes);
-        console.log('newEdges', newEdges);
-    
-        // create a network
-        const container = this.networkContainer.nativeElement;
-        // const data = { newNodes, newEdges };
-        const data: {
-          nodes: DataSet<any, 'id'>;
-          edges: DataSet<any, 'id'>;
-        } = {
-          nodes: newNodes,
-          edges: newEdges,
-        };
-        const options = {
-          layout: {
-            hierarchical: {
-              direction: 'UD', // Up-Down direction
-              nodeSpacing: 1000,
-              parentCentralization: true,
-              edgeMinimization: true,
-              shakeTowards: 'roots', // Tweak the layout algorithm to get better results
-              sortMethod: 'directed', // Sort based on the hierarchical structure
+          this.fsItems = this.populate(this.source.src);
+          console.log('fsItems', this.fsItems);
+          const { nodes, edges } = this.createNodesAndEdges(this.fsItems, uris);
+          this.nodes = nodes;
+          this.edges = edges;
+          console.log('BEFORE SETTING DATASET');
+          const newNodes = new DataSet(nodes);
+          const newEdges = new DataSet(edges);
+          console.log('newNodes', newNodes);
+          console.log('newEdges', newEdges);
+
+          // create a network
+          const container = this.networkContainer.nativeElement;
+          // const data = { newNodes, newEdges };
+          const data: {
+            nodes: DataSet<any, 'id'>;
+            edges: DataSet<any, 'id'>;
+          } = {
+            nodes: newNodes,
+            edges: newEdges,
+          };
+          const options = {
+            layout: {
+              hierarchical: {
+                direction: 'UD', // Up-Down direction
+                nodeSpacing: 1000,
+                parentCentralization: true,
+                edgeMinimization: true,
+                shakeTowards: 'roots', // Tweak the layout algorithm to get better results
+                sortMethod: 'directed', // Sort based on the hierarchical structure
+              },
             },
-          },
-    
-          nodes: {
-            shape: 'image',
-            image: {
-              selected: '../assets/scottytoohotty.png',
-              unselected: '../assets/folder-svgrepo-com.svg',
+
+            nodes: {
+              shape: 'image',
+              image: {
+                selected: '../assets/scottytoohotty.png',
+                unselected: '../assets/folder-svgrepo-com.svg',
+              },
+              shadow: {
+                enabled: true,
+                color: 'rgba(0,0,0,0.5)',
+                size: 10,
+                x: 5,
+                y: 5,
+              },
             },
-            shadow: {
-              enabled: true,
-              color: 'rgba(0,0,0,0.5)',
-              size: 10,
-              x: 5,
-              y: 5,
+
+            physics: {
+              hierarchicalRepulsion: {
+                avoidOverlap: 1,
+                nodeDistance: 145,
+              },
             },
-          },
-    
-          physics: {
-            hierarchicalRepulsion: {
-              avoidOverlap: 1,
-              nodeDistance: 145,
-            },
-          },
-        };
-        this.network = new Network(container, data, options);
+          };
+          console.log('Data:', data);
+          console.log('Options:', options);
+          this.network = new Network(container, data, options);
+          break;
+        }
 
+        //new command
 
-
-
-
+        //default
+        default:
+          console.log('unknown comand ->', message.command);
+          break;
       }
     });
-
   }
 
-  createNodesAndEdges(fsItems: FsItem[], uris: string[]): { nodes: any[]; edges: any[] } {
+  loadNetwork() {
+    // You can use this.filePath to load the network based on the entered file path
+    // For example, you might want to send a message to the extension with the file path
+    // and handle it in the 'message' event listener
+
+    // Example:
+    console.log('File path:', this.filePath);
+
+    // Send a message to the extension
+    const message: ExtensionMessage = {
+      command: 'loadNetwork',
+      data: {
+        filePath: this.filePath,
+      },
+    };
+    console.log('MESSAGE PASSED TO WINDOW', message);
+    window.postMessage(message, '*');
+  }
+
+  createNodesAndEdges(
+    fsItems: FsItem[],
+    uris: string[]
+  ): { nodes: any[]; edges: any[] } {
     const nodes: any[] = [];
     const edges: any[] = [];
     // Helper function to recursively add nodes and edges
