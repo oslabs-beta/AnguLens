@@ -7,6 +7,7 @@ import * as fs from "fs";
 import { getVSCodeDownloadUrl } from "@vscode/test-electron/out/util";
 
 import * as klaw from "klaw";
+import { send } from "process";
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -82,7 +83,7 @@ export function activate(context: vscode.ExtensionContext) {
         path.join(
           __dirname,
           "../webview-ui/dist/webview-ui",
-          "main.7a2db5a889ce970c.js"
+          "main.ab36e7f6f6141fc8.js"
         )
       )
     );
@@ -140,8 +141,26 @@ export function activate(context: vscode.ExtensionContext) {
               console.error("Invalid rootpath provided");
               return;
             }
-            runKlaw(rootPath, items);
+            klaw(rootPath)
+              .on("data", (item) => items.push(item))
+              .on("end", () => {
+                // const sliceItems = items.slice(0, 30);
+                // console.log("SLICE ITEMS HERE ======>", sliceItems);
+                console.log("items before populate HERE ========D", items);
+                // console.dir(items);
+                // console.log("ITEM TYPE 8======-->", items[0].type);
 
+                const sendNewPathObj: Message = {
+                  command: "updatePath",
+                  data: populateStructure(items),
+                };
+
+                console.log("POPULATED STRUCTURE DATA", sendNewPathObj.data);
+
+                panel.webview.postMessage(sendNewPathObj);
+                console.log("PANEL WEBVIEW POST MESSAGE SENT");
+              });
+            // console.log("PANEL ONDIDRECEIVEMESSAGE RUNKLAW FINISHED");
             break;
           }
 
@@ -165,19 +184,19 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(disposable, runWebView);
 }
-function runKlaw(rootPath: string, items: any) {
-  klaw(rootPath)
-    .on("data", (item) => items.push(item))
-    .on("end", () => {
-      // const sliceItems = items.slice(0, 30);
-      // console.log("SLICE ITEMS HERE ======>", sliceItems);
-      console.log("items before populate HERE ========D", items.length);
-      // console.dir(items);
-      populateStructure(items);
-      console.log("ITEMS AFTER POPULATE -->", items);
-      console.log("POPULATED ITEMS ARRAY HERE ========>", items.length);
-    });
-}
+// function runKlaw(rootPath: string, items: any) {
+//   klaw(rootPath)
+//     .on("data", (item) => items.push(item))
+//     .on("end", () => {
+//       // const sliceItems = items.slice(0, 30);
+//       // console.log("SLICE ITEMS HERE ======>", sliceItems);
+//       console.log("items before populate HERE ========D", items.length);
+//       // console.dir(items);
+//       populateStructure(items);
+//       console.log("ITEMS AFTER POPULATE -->", items);
+//       console.log("POPULATED ITEMS ARRAY HERE ========>", items.length);
+//     });
+// }
 
 function getAssetUris(folderUri: vscode.Uri, webview: Webview): vscode.Uri[] {
   const imageFiles = fs.readdirSync(folderUri.fsPath);
@@ -186,7 +205,7 @@ function getAssetUris(folderUri: vscode.Uri, webview: Webview): vscode.Uri[] {
   );
 }
 
-function populateStructure(array: any) {
+function populateStructure(array: any): object {
   console.log("POPULATED STRUCTURE TRIGGERED");
   // console.log("POPULATE PASSED IN ARRAY====", array);
   const output = {};
@@ -234,6 +253,8 @@ function populateStructure(array: any) {
     }
   }
   console.log("HEYYYYYY");
+  console.log("OUTPUT HERE =====>", output);
+  return output;
   // console.log("JSON STRINGIFIED OUTPUT", JSON.stringify(output));
 }
 

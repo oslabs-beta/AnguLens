@@ -25,7 +25,7 @@ export class AppComponent implements AfterViewInit {
   nodes: any[] = [];
   edges: any[] = [];
   fsItems: FsItem[] = [];
-
+  uris: any;
   filePath: string = '';
 
   ngAfterViewInit() {
@@ -41,12 +41,80 @@ export class AppComponent implements AfterViewInit {
       switch (message.command) {
         //load icon URI's
         case 'updateUris': {
-          const uris: any = message.data;
-          console.log('URISSSSSSSSS', uris);
+          this.uris = message.data;
+          console.log('URISSSSSSSSS', this.uris);
 
           this.fsItems = this.populate(this.source.src);
           console.log('fsItems', this.fsItems);
-          const { nodes, edges } = this.createNodesAndEdges(this.fsItems, uris);
+          const { nodes, edges } = this.createNodesAndEdges(
+            this.fsItems,
+            this.uris
+          );
+          this.nodes = nodes;
+          this.edges = edges;
+          console.log('BEFORE SETTING DATASET');
+          const newNodes = new DataSet(nodes);
+          const newEdges = new DataSet(edges);
+          console.log('newNodes', newNodes);
+          console.log('newEdges', newEdges);
+
+          // create a network
+          const container = this.networkContainer.nativeElement;
+          // const data = { newNodes, newEdges };
+          const data: {
+            nodes: DataSet<any, 'id'>;
+            edges: DataSet<any, 'id'>;
+          } = {
+            nodes: newNodes,
+            edges: newEdges,
+          };
+          const options = {
+            layout: {
+              hierarchical: {
+                direction: 'UD', // Up-Down direction
+                nodeSpacing: 1000,
+                parentCentralization: true,
+                edgeMinimization: true,
+                shakeTowards: 'roots', // Tweak the layout algorithm to get better results
+                sortMethod: 'directed', // Sort based on the hierarchical structure
+              },
+            },
+
+            nodes: {
+              shape: 'image',
+              image: {
+                selected: '../assets/scottytoohotty.png',
+                unselected: '../assets/folder-svgrepo-com.svg',
+              },
+              shadow: {
+                enabled: true,
+                color: 'rgba(0,0,0,0.5)',
+                size: 10,
+                x: 5,
+                y: 5,
+              },
+            },
+
+            physics: {
+              hierarchicalRepulsion: {
+                avoidOverlap: 1,
+                nodeDistance: 145,
+              },
+            },
+          };
+          console.log('Data:', data);
+          console.log('Options:', options);
+          this.network = new Network(container, data, options);
+          break;
+        }
+
+        case 'updatePath': {
+          this.fsItems = this.populate(message.data.src);
+          console.log('fsItems', this.fsItems);
+          const { nodes, edges } = this.createNodesAndEdges(
+            this.fsItems,
+            this.uris
+          );
           this.nodes = nodes;
           this.edges = edges;
           console.log('BEFORE SETTING DATASET');

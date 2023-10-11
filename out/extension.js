@@ -51,7 +51,7 @@ function activate(context) {
         // panel.webview.html = htmlContent;
         const runtimeUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "runtime.01fe1d460628a1d3.js")));
         const polyfillsUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "polyfills.ef3261c6791c905c.js")));
-        const scriptUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "main.7a2db5a889ce970c.js")));
+        const scriptUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "main.ab36e7f6f6141fc8.js")));
         const stylesUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "styles.ef46db3751d8e999.css")));
         // added this
         // Create a webview-compatible URI for the "assets" folder
@@ -86,7 +86,23 @@ function activate(context) {
                         console.error("Invalid rootpath provided");
                         return;
                     }
-                    runKlaw(rootPath, items);
+                    klaw(rootPath)
+                        .on("data", (item) => items.push(item))
+                        .on("end", () => {
+                        // const sliceItems = items.slice(0, 30);
+                        // console.log("SLICE ITEMS HERE ======>", sliceItems);
+                        console.log("items before populate HERE ========D", items);
+                        // console.dir(items);
+                        // console.log("ITEM TYPE 8======-->", items[0].type);
+                        const sendNewPathObj = {
+                            command: "updatePath",
+                            data: populateStructure(items),
+                        };
+                        console.log("POPULATED STRUCTURE DATA", sendNewPathObj.data);
+                        panel.webview.postMessage(sendNewPathObj);
+                        console.log("PANEL WEBVIEW POST MESSAGE SENT");
+                    });
+                    // console.log("PANEL ONDIDRECEIVEMESSAGE RUNKLAW FINISHED");
                     break;
                 }
                 default:
@@ -99,19 +115,19 @@ function activate(context) {
     context.subscriptions.push(disposable, runWebView);
 }
 exports.activate = activate;
-function runKlaw(rootPath, items) {
-    klaw(rootPath)
-        .on("data", (item) => items.push(item))
-        .on("end", () => {
-        // const sliceItems = items.slice(0, 30);
-        // console.log("SLICE ITEMS HERE ======>", sliceItems);
-        console.log("items before populate HERE ========D", items.length);
-        // console.dir(items);
-        populateStructure(items);
-        console.log("ITEMS AFTER POPULATE -->", items);
-        console.log("POPULATED ITEMS ARRAY HERE ========>", items.length);
-    });
-}
+// function runKlaw(rootPath: string, items: any) {
+//   klaw(rootPath)
+//     .on("data", (item) => items.push(item))
+//     .on("end", () => {
+//       // const sliceItems = items.slice(0, 30);
+//       // console.log("SLICE ITEMS HERE ======>", sliceItems);
+//       console.log("items before populate HERE ========D", items.length);
+//       // console.dir(items);
+//       populateStructure(items);
+//       console.log("ITEMS AFTER POPULATE -->", items);
+//       console.log("POPULATED ITEMS ARRAY HERE ========>", items.length);
+//     });
+// }
 function getAssetUris(folderUri, webview) {
     const imageFiles = fs.readdirSync(folderUri.fsPath);
     return imageFiles.map((file) => webview.asWebviewUri(vscode.Uri.file(path.join(folderUri.fsPath, file))));
@@ -163,6 +179,8 @@ function populateStructure(array) {
         }
     }
     console.log("HEYYYYYY");
+    console.log("OUTPUT HERE =====>", output);
+    return output;
     // console.log("JSON STRINGIFIED OUTPUT", JSON.stringify(output));
 }
 function getWebViewContent(stylesUri, runtimeUri, polyfillsUri, scriptUri, imageUris) {
