@@ -1,12 +1,13 @@
-<!-- app.component.html -->
 <div>
-  <label for="filePathInput">Enter File Path:</label>
-  <input type="text" id="filePathInput" [(ngModel)]="filePath" />
-  <button (click)="loadNetwork()">Load Network</button>
+  <button (click)="toggleView()">Change View</button>
 </div>
 
-<div
-  #networkContainer
-  style="width: 2000px; height: 1500px; background-color: white"
-></div>
+<div *ngIf="currentView === 'folder-file'">
+  <folder-file></folder-file>
+</div>
+
+<div *ngIf="currentView === 'parent-child'">
+  <parent-child></parent-child>
+</div>
+
 <router-outlet></router-outlet>

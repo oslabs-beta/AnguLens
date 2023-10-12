@@ -1,441 +1,53 @@
-import {
-  Component,
-  ElementRef,
-  OnInit,
-  ViewChild,
-  AfterViewInit,
-} from '@angular/core';
-import { DataSet } from 'vis-data';
-import { Network } from 'vis-network';
-import { FsItem } from '../models/FileSystem';
-import { ExtensionMessage } from '../models/message';
-import { URIObj } from 'src/models/uri';
-
+import { Component, OnInit } from '@angular/core';
 import { vscode } from './utilities/vscode';
-
+import { ExtensionMessage } from '../models/message';
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
 })
-export class AppComponent implements AfterViewInit {
-  @ViewChild('networkContainer') networkContainer!: ElementRef;
+export class AppComponent implements OnInit {
+  currentView: string = '';
 
-  private network: any;
-  nodes: any[] = [];
-  edges: any[] = [];
-  fsItems: FsItem[] = [];
-  uris: any;
-  filePath: string = '';
+  ngOnInit() {
+    //start view as the folder-file hierarchy graph
+    this.currentView = 'folder-file';
 
-  ngAfterViewInit() {
-    console.log('INIT');
-    //catch URIS
-    // this.loadNetwork();
+    //add listener to catch and store image URI's to pass down to view components to load icons
+    // window.addEventListener('message', (event) => {
+    //   const message: ExtensionMessage = event.data;
 
-    window.addEventListener('message', (event) => {
-      const message: ExtensionMessage = event.data;
-      console.log('caught message?', message);
+    //   switch(message.command) {
+    //     case 'updateUris': {
+    //       this.uris = message.data;
+    //       break;
+    //     }
 
-      //handle different commands from extension
-      switch (message.command) {
-        //load icon URI's
-        case 'updateUris': {
-          this.uris = message.data;
-          console.log('URISSSSSSSSS', this.uris);
-
-          this.fsItems = this.populate(this.source.src);
-          console.log('fsItems', this.fsItems);
-          const { nodes, edges } = this.createNodesAndEdges(
-            this.fsItems,
-            this.uris
-          );
-          this.nodes = nodes;
-          this.edges = edges;
-          console.log('BEFORE SETTING DATASET');
-          const newNodes = new DataSet(nodes);
-          const newEdges = new DataSet(edges);
-          console.log('newNodes', newNodes);
-          console.log('newEdges', newEdges);
-
-          // create a network
-          const container = this.networkContainer.nativeElement;
-          // const data = { newNodes, newEdges };
-          const data: {
-            nodes: DataSet<any, 'id'>;
-            edges: DataSet<any, 'id'>;
-          } = {
-            nodes: newNodes,
-            edges: newEdges,
-          };
-          const options = {
-            layout: {
-              hierarchical: {
-                direction: 'UD', // Up-Down direction
-                nodeSpacing: 1000,
-                parentCentralization: true,
-                edgeMinimization: true,
-                shakeTowards: 'roots', // Tweak the layout algorithm to get better results
-                sortMethod: 'directed', // Sort based on the hierarchical structure
-              },
-            },
-
-            nodes: {
-              shape: 'image',
-              image: {
-                selected: '../assets/scottytoohotty.png',
-                unselected: '../assets/folder-svgrepo-com.svg',
-              },
-              shadow: {
-                enabled: true,
-                color: 'rgba(0,0,0,0.5)',
-                size: 10,
-                x: 5,
-                y: 5,
-              },
-            },
-
-            physics: {
-              hierarchicalRepulsion: {
-                avoidOverlap: 1,
-                nodeDistance: 145,
-              },
-            },
-          };
-          console.log('Data:', data);
-          console.log('Options:', options);
-          this.network = new Network(container, data, options);
-          break;
-        }
-
-        case 'updatePath': {
-          this.fsItems = this.populate(message.data.src);
-          console.log('fsItems', this.fsItems);
-          const { nodes, edges } = this.createNodesAndEdges(
-            this.fsItems,
-            this.uris
-          );
-          this.nodes = nodes;
-          this.edges = edges;
-          console.log('BEFORE SETTING DATASET');
-          const newNodes = new DataSet(nodes);
-          const newEdges = new DataSet(edges);
-          console.log('newNodes', newNodes);
-          console.log('newEdges', newEdges);
-
-          // create a network
-          const container = this.networkContainer.nativeElement;
-          // const data = { newNodes, newEdges };
-          const data: {
-            nodes: DataSet<any, 'id'>;
-            edges: DataSet<any, 'id'>;
-          } = {
-            nodes: newNodes,
-            edges: newEdges,
-          };
-          const options = {
-            layout: {
-              hierarchical: {
-                direction: 'UD', // Up-Down direction
-                nodeSpacing: 1000,
-                parentCentralization: true,
-                edgeMinimization: true,
-                shakeTowards: 'roots', // Tweak the layout algorithm to get better results
-                sortMethod: 'directed', // Sort based on the hierarchical structure
-              },
-            },
-
-            nodes: {
-              shape: 'image',
-              image: {
-                selected: '../assets/scottytoohotty.png',
-                unselected: '../assets/folder-svgrepo-com.svg',
-              },
-              shadow: {
-                enabled: true,
-                color: 'rgba(0,0,0,0.5)',
-                size: 10,
-                x: 5,
-                y: 5,
-              },
-            },
-
-            physics: {
-              hierarchicalRepulsion: {
-                avoidOverlap: 1,
-                nodeDistance: 145,
-              },
-            },
-          };
-          console.log('Data:', data);
-          console.log('Options:', options);
-          this.network = new Network(container, data, options);
-          break;
-        }
-
-        //new command
-
-        //default
-        default:
-          console.log('unknown comand ->', message.command);
-          break;
-      }
-    });
+    //     default:
+    //       console.log('Unknown in app event listener -> ', message.command);
+    //       break;
+    //   }
+    // });
   }
 
-  loadNetwork() {
-    console.log('File path:', this.filePath);
-
-    vscode.postMessage({
-      command: 'loadNetwork',
-      data: {
-        filePath: this.filePath,
-      },
-    });
-
-    // if (vscode) {
-    //   // Send a message to the extension
-    //   const message: ExtensionMessage = {
-    //     command: 'loadNetwork',
-    //     data: {
-    //       filePath: this.filePath,
-    //     },
-    //   };
-    //   console.log('MESSAGE PASSED TO WINDOW', message);
-    //   window.postMessage(message, '*');
-    // } else {
-    //   console.log();
-    // }
-  }
-
-  createNodesAndEdges(
-    fsItems: FsItem[],
-    uris: string[]
-  ): { nodes: any[]; edges: any[] } {
-    const nodes: any[] = [];
-    const edges: any[] = [];
-    // Helper function to recursively add nodes and edges
-    function addNodesAndEdges(item: FsItem, parentFolder?: string) {
-      // Check if the node already exists to avoid duplicates
-      const existingNode = nodes.find((node) => node.id === item.id);
-      if (!existingNode) {
-        // Add the current item as a node
-        let fileImg: string = '';
-        let selectedImg: string = '';
-        //console.log('id:', id);
-        console.log('type type type', item.type);
-        switch (item.type) {
-          case 'gitkeep':
-            fileImg = uris[6];
-            break;
-          case 'ts':
-            fileImg = uris[1];
-            break;
-          case 'css':
-            fileImg = uris[3];
-            break;
-          case 'folder':
-            fileImg = uris[5];
-            selectedImg = uris[7];
-            break;
-          case 'html':
-            fileImg = uris[2];
-            break;
-          default:
-            fileImg = uris[4];
-            break;
-        }
-        nodes.push({
-          id: item.id,
-          label: item.label,
-          image: {
-            unselected: fileImg,
-            selected: selectedImg === '' ? fileImg : selectedImg,
-          },
-        });
-
-        // If the item has children (files or subfolders), add edges to them
-        if (item.children && item.children.length > 0) {
-          for (const childId of item.children) {
-            edges.push({ from: item.id, to: childId });
-            const child = fsItems.find((fsItem) => fsItem.id === childId);
-            if (child) {
-              // Recursively add nodes and edges for children
-              addNodesAndEdges(child, item.id);
-            }
-          }
-        }
-      }
+  //toggle visible divs on button click, see app.html
+  toggleView() {
+    this.currentView =
+      this.currentView === 'folder-file' ? 'parent-child' : 'folder-file';
+    if (this.currentView === 'folder-file') {
+      vscode.postMessage({
+        command: 'reloadFolderFile',
+        data: {},
+      });
     }
-
-    // Iterate through the root items and start the process
-    for (const rootItem of fsItems) {
-      addNodesAndEdges(rootItem);
+    if (this.currentView === 'parent-child') {
+      vscode.postMessage({
+        command: 'loadParentChild',
+        data: {},
+      });
     }
-
-    console.log('NODES', nodes);
-    console.log('EDGES', edges);
-    return { nodes, edges };
   }
 
-  source = {
-    src: {
-      type: 'folder',
-      path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src',
-      app: {
-        type: 'folder',
-        path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app',
-        'app-routing.module.ts': {
-          type: 'ts',
-          path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app/app-routing.module.ts',
-        },
-        'app.component.css': {
-          type: 'css',
-          path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app/app.component.css',
-        },
-        'app.component.html': {
-          type: 'html',
-          path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app/app.component.html',
-        },
-        'app.component.spec.ts': {
-          type: 'ts',
-          path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app/app.component.spec.ts',
-        },
-        'app.component.ts': {
-          type: 'ts',
-          path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app/app.component.ts',
-        },
-        'app.module.ts': {
-          type: 'ts',
-          path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app/app.module.ts',
-        },
-      },
-      assets: {
-        type: 'folder',
-        path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/assets',
-        '.gitkeep': {
-          type: 'gitkeep',
-          path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/assets/.gitkeep',
-        },
-      },
-      'favicon.ico': {
-        type: 'ico',
-        path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/favicon.ico',
-      },
-      'index.html': {
-        type: 'html',
-        path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/index.html',
-      },
-      'main.ts': {
-        type: 'ts',
-        path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/main.ts',
-      },
-      'styles.css': {
-        type: 'css',
-        path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/styles.css',
-      },
-    },
-  };
-
-  populate(obj: any, items: FsItem[] = []): FsItem[] {
-    // Helper function to recursively populate the file system hierarchy
-    function populateGraph(
-      obj: any,
-      parentFolder?: string
-    ): FsItem | undefined {
-      // If the current object is a folder
-      if (obj.type === 'folder') {
-        // Create a folder item
-        const folder: FsItem = {
-          id: obj.path,
-          label: obj.path.split('/').pop(),
-          type: obj.type,
-          children: [],
-          folderParent: parentFolder,
-        };
-        console.log('FOLDER HAS BEEN CREATED', folder);
-
-        // Iterate over the properties of the folder
-        for (const key in obj) {
-          // If the property is not 'type' or 'path' and represents a file
-          if (key !== 'type' && key !== 'path' && obj[key].type !== 'folder') {
-            // Recursively populate for files
-            const fileChild = populateGraph(obj[key], folder.id);
-            // Add file IDs to the folder's children and to the result array
-            if (fileChild) {
-              folder.children.push(fileChild.id);
-              fileChild.folderParent = folder.id;
-            }
-            // console.log('FILE CHILDREN FOR THIS FOLDER', folder);
-          }
-          // If the property is not 'type' or 'path' and represents a subfolder
-          else if (
-            key !== 'type' &&
-            key !== 'path' &&
-            obj[key].type === 'folder'
-          ) {
-            folder.children.push(obj[key].path);
-            // Recursively populate for subfolders
-            populateGraph(obj[key]);
-          }
-        }
-        // Add the folder item to the result array
-        items.push(folder);
-        // If the current object is a file
-        return folder;
-      } else {
-        // Create a file item
-        const fsItem: FsItem = {
-          id: obj.path,
-          label: obj.path.split('/').pop(),
-          type: obj.type,
-          children: [],
-        };
-
-        // Add the file item to the result array
-        items.push(fsItem);
-
-        // console.log('FILE HAS BEEN CREATED', fsItem);
-        return fsItem;
-      }
-    }
-
-    // Call the populateGraph function to start the population process
-    populateGraph(obj);
-
-    console.log('ITEMS HERE', items);
-
-    // Return the final result array
-    return items;
-  }
+  // nodes, edges, uris
+  // src object
 }
-
-// push to nodes array
-
-// create an array with nodes
-// const nodes = new DataSet([
-//   { id: 1, label: 'Node 1' },
-//   { id: 2, label: 'Node 2' },
-//   { id: 3, label: 'Node 3' },
-//   { id: 4, label: 'Node 4' },
-//   { id: 5, label: 'Node 5' },
-// ]);
-
-// console.log('nodes', nodes);
-
-// // create an array with edges
-// const edges = new DataSet<{ id?: number; from: number; to: number }>([
-//   { from: 1, to: 3 },
-//   { from: 1, to: 2 },
-//   { from: 2, to: 4 },
-//   { from: 2, to: 5 },
-//   { from: 3, to: 3 },
-// ]);
-
-// console.log('edges', edges);
-
-// // create a network
-// const container = this.networkContainer.nativeElement;
-// const data = { nodes, edges };
-// const options = {};
-// this.network = new Network(container, data, options);
