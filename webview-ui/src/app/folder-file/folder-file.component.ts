@@ -99,6 +99,15 @@ export class FolderFileComponent implements AfterViewInit {
               },
             },
 
+            edges: {
+              smooth: {
+                enabled: true,
+                type: 'cubicBezier',
+                forceDirection: 'UD',
+                roundness: 0.4,
+              },
+            },
+
             physics: {
               hierarchicalRepulsion: {
                 avoidOverlap: 1,
@@ -169,6 +178,15 @@ export class FolderFileComponent implements AfterViewInit {
               },
             },
 
+            edges: {
+              smooth: {
+                enabled: true,
+                type: 'cubicBezier',
+                forceDirection: 'UD',
+                roundness: 0.4,
+              },
+            },
+
             physics: {
               hierarchicalRepulsion: {
                 avoidOverlap: 1,
@@ -234,6 +252,15 @@ export class FolderFileComponent implements AfterViewInit {
                 size: 10,
                 x: 5,
                 y: 5,
+              },
+            },
+
+            edges: {
+              smooth: {
+                enabled: true,
+                type: 'cubicBezier',
+                forceDirection: 'UD',
+                roundness: 0.4,
               },
             },
 
