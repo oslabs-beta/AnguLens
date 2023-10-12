@@ -1,12 +1,16 @@
-<!-- app.component.html -->
-<div>
-  <label for="filePathInput">Enter File Path:</label>
-  <input type="text" id="filePathInput" [(ngModel)]="filePath" />
-  <button (click)="loadNetwork()">Load Network</button>
+<div class="center-container">
+  <label for="filePathInput"></label>
+  <div class="input-button-container">
+    <input
+      type="text"
+      id="filePathInput"
+      [(ngModel)]="filePath"
+      placeholder="Enter file path"
+      class="custom-input"
+    />
+    <button (click)="loadNetwork()" class="custom-button">Load Network</button>
+  </div>
 </div>
 
-<div
-  #networkContainer
-  style="width: 2000px; height: 1500px; background-color: white"
-></div>
+<div #networkContainer class="network-container"></div>
 <router-outlet></router-outlet>

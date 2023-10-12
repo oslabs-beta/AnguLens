@@ -48,6 +48,22 @@ export class AppComponent implements OnInit {
     }
   }
 
+  loadFolderFile() {
+    this.currentView = 'folder-file';
+    vscode.postMessage({
+      command: 'reloadFolderFile',
+      data: {},
+    });
+  }
+
+  loadParentChild() {
+    this.currentView = 'parent-child';
+    vscode.postMessage({
+      command: 'loadParentChild',
+      data: {},
+    });
+  }
+
   // nodes, edges, uris
   // src object
 }
