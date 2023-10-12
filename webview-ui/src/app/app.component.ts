@@ -50,7 +50,8 @@ export class AppComponent implements AfterViewInit {
       layout: {
         hierarchical: {
           direction: 'UD', // Up-Down direction
-          nodeSpacing: 1000,
+          levelSeparation: 300, //increase vertical spacing
+          nodeSpacing: 1000, //increase horizontal spacing
           parentCentralization: true,
           edgeMinimization: true,
           shakeTowards: 'roots', // Tweak the layout algorithm to get better results
