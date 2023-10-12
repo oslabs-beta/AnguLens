@@ -31,17 +31,6 @@ function activate(context) {
         vscode.ViewColumn.One, // showOptions
         { enableScripts: true } // options
         );
-        /*
-    [
-      '/Users/danielkim/CodeSmith/osp/AnguLens/src',
-      '/Users/danielkim/CodeSmith/osp/AnguLens/src/extension.ts',
-      '/Users/danielkim/CodeSmith/osp/AnguLens/src/test',
-      '/Users/danielkim/CodeSmith/osp/AnguLens/src/test/runTest.ts',
-      '/Users/danielkim/CodeSmith/osp/AnguLens/src/test/suite',
-      '/Users/danielkim/CodeSmith/osp/AnguLens/src/test/suite/extension.test.ts',
-      '/Users/danielkim/CodeSmith/osp/AnguLens/src/test/suite/index.ts'
-    ]
-    */
         console.log("workspaceFolders -> ", vscode.workspace.workspaceFolders);
         // Read the contents of your Angular app's index.html file
         // const indexPath = path.join(
@@ -54,7 +43,7 @@ function activate(context) {
         // panel.webview.html = htmlContent;
         const runtimeUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "runtime.01fe1d460628a1d3.js")));
         const polyfillsUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "polyfills.ef3261c6791c905c.js")));
-        const scriptUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "main.d0b439f23372b4f4.js")));
+        const scriptUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "main.d23da195d3dc543a.js")));
         const stylesUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "styles.ef46db3751d8e999.css")));
         // added this
         // Create a webview-compatible URI for the "assets" folder
@@ -149,19 +138,6 @@ function activate(context) {
     context.subscriptions.push(disposable, runWebView);
 }
 exports.activate = activate;
-// function runKlaw(rootPath: string, items: any) {
-//   klaw(rootPath)
-//     .on("data", (item) => items.push(item))
-//     .on("end", () => {
-//       // const sliceItems = items.slice(0, 30);
-//       // console.log("SLICE ITEMS HERE ======>", sliceItems);
-//       console.log("items before populate HERE ========D", items.length);
-//       // console.dir(items);
-//       populateStructure(items);
-//       console.log("ITEMS AFTER POPULATE -->", items);
-//       console.log("POPULATED ITEMS ARRAY HERE ========>", items.length);
-//     });
-// }
 function getAssetUris(folderUri, webview) {
     const imageFiles = fs.readdirSync(folderUri.fsPath);
     return imageFiles.map((file) => webview.asWebviewUri(vscode.Uri.file(path.join(folderUri.fsPath, file))));
