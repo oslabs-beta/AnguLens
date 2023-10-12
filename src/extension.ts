@@ -39,18 +39,6 @@ export function activate(context: vscode.ExtensionContext) {
       { enableScripts: true } // options
     );
 
-    /*
-[
-  '/Users/danielkim/CodeSmith/osp/AnguLens/src',
-  '/Users/danielkim/CodeSmith/osp/AnguLens/src/extension.ts',
-  '/Users/danielkim/CodeSmith/osp/AnguLens/src/test',
-  '/Users/danielkim/CodeSmith/osp/AnguLens/src/test/runTest.ts',
-  '/Users/danielkim/CodeSmith/osp/AnguLens/src/test/suite',
-  '/Users/danielkim/CodeSmith/osp/AnguLens/src/test/suite/extension.test.ts',
-  '/Users/danielkim/CodeSmith/osp/AnguLens/src/test/suite/index.ts'
-]
-*/
-
     console.log("workspaceFolders -> ", vscode.workspace.workspaceFolders);
     // Read the contents of your Angular app's index.html file
     // const indexPath = path.join(
@@ -85,7 +73,7 @@ export function activate(context: vscode.ExtensionContext) {
         path.join(
           __dirname,
           "../webview-ui/dist/webview-ui",
-          "main.d0b439f23372b4f4.js"
+          "main.d23da195d3dc543a.js"
         )
       )
     );

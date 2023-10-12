@@ -31,6 +31,50 @@ export class FolderFileComponent implements AfterViewInit {
   fsItems: FsItem[] = [];
   uris: any;
   filePath: string = '';
+  options = {
+    layout: {
+      hierarchical: {
+        direction: 'UD', // Up-Down direction
+        nodeSpacing: 1000,
+        levelSeparation: 300,
+        parentCentralization: true,
+        edgeMinimization: true,
+        shakeTowards: 'roots', // Tweak the layout algorithm to get better results
+        sortMethod: 'directed', // Sort based on the hierarchical structure
+      },
+    },
+
+    nodes: {
+      shape: 'image',
+      image: {
+        selected: '../assets/scottytoohotty.png',
+        unselected: '../assets/folder-svgrepo-com.svg',
+      },
+      shadow: {
+        enabled: true,
+        color: 'rgba(0,0,0,0.5)',
+        size: 10,
+        x: 5,
+        y: 5,
+      },
+    },
+
+    edges: {
+      smooth: {
+        enabled: true,
+        type: 'cubicBezier',
+        forceDirection: 'vertical',
+        roundness: 0.4,
+      },
+    },
+
+    physics: {
+      hierarchicalRepulsion: {
+        avoidOverlap: 1,
+        nodeDistance: 145,
+      },
+    },
+  };
 
   ngAfterViewInit() {
     console.log('INIT');
@@ -79,53 +123,7 @@ export class FolderFileComponent implements AfterViewInit {
             nodes: newNodes,
             edges: newEdges,
           };
-          const options = {
-            layout: {
-              hierarchical: {
-                direction: 'UD', // Up-Down direction
-                nodeSpacing: 1000,
-                // levelSeparation: 300,
-                parentCentralization: true,
-                edgeMinimization: true,
-                shakeTowards: 'roots', // Tweak the layout algorithm to get better results
-                sortMethod: 'directed', // Sort based on the hierarchical structure
-              },
-            },
-
-            nodes: {
-              shape: 'image',
-              image: {
-                selected: '../assets/scottytoohotty.png',
-                unselected: '../assets/folder-svgrepo-com.svg',
-              },
-              shadow: {
-                enabled: true,
-                color: 'rgba(0,0,0,0.5)',
-                size: 10,
-                x: 5,
-                y: 5,
-              },
-            },
-
-            edges: {
-              smooth: {
-                enabled: true,
-                type: 'cubicBezier',
-                forceDirection: 'vertical',
-                roundness: 0.4,
-              },
-            },
-
-            physics: {
-              hierarchicalRepulsion: {
-                avoidOverlap: 1,
-                nodeDistance: 145,
-              },
-            },
-          };
-          console.log('Data:', data);
-          console.log('Options:', options);
-          this.network = new Network(container, data, options);
+          this.network = new Network(container, data, this.options);
           break;
         }
 
@@ -159,53 +157,7 @@ export class FolderFileComponent implements AfterViewInit {
             nodes: newNodes,
             edges: newEdges,
           };
-          const options = {
-            layout: {
-              hierarchical: {
-                direction: 'UD', // Up-Down direction
-                nodeSpacing: 1000,
-                // levelSeparation: 300,
-                parentCentralization: true,
-                edgeMinimization: true,
-                shakeTowards: 'roots', // Tweak the layout algorithm to get better results
-                sortMethod: 'directed', // Sort based on the hierarchical structure
-              },
-            },
-
-            nodes: {
-              shape: 'image',
-              image: {
-                selected: '../assets/scottytoohotty.png',
-                unselected: '../assets/folder-svgrepo-com.svg',
-              },
-              shadow: {
-                enabled: true,
-                color: 'rgba(0,0,0,0.5)',
-                size: 10,
-                x: 5,
-                y: 5,
-              },
-            },
-
-            edges: {
-              smooth: {
-                enabled: true,
-                type: 'cubicBezier',
-                forceDirection: 'vertical',
-                roundness: 0.4,
-              },
-            },
-
-            physics: {
-              hierarchicalRepulsion: {
-                avoidOverlap: 1,
-                nodeDistance: 145,
-              },
-            },
-          };
-          console.log('Data:', data);
-          console.log('Options:', options);
-          this.network = new Network(container, data, options);
+          this.network = new Network(container, data, this.options);
           break;
         }
 
@@ -237,51 +189,7 @@ export class FolderFileComponent implements AfterViewInit {
             nodes: newNodes,
             edges: newEdges,
           };
-          const options = {
-            layout: {
-              hierarchical: {
-                direction: 'UD', // Up-Down direction
-                nodeSpacing: 1000,
-                // levelSeparation: 300,
-                parentCentralization: true,
-                edgeMinimization: true,
-                shakeTowards: 'roots', // Tweak the layout algorithm to get better results
-                sortMethod: 'directed', // Sort based on the hierarchical structure
-              },
-            },
-
-            nodes: {
-              shape: 'image',
-              image: {
-                selected: '../assets/scottytoohotty.png',
-                unselected: '../assets/folder-svgrepo-com.svg',
-              },
-              shadow: {
-                enabled: true,
-                color: 'rgba(0,0,0,0.5)',
-                size: 10,
-                x: 5,
-                y: 5,
-              },
-            },
-
-            edges: {
-              smooth: {
-                enabled: true,
-                type: 'cubicBezier',
-                forceDirection: 'vertical',
-                roundness: 0.4,
-              },
-            },
-
-            physics: {
-              hierarchicalRepulsion: {
-                avoidOverlap: 1,
-                nodeDistance: 145,
-              },
-            },
-          };
-          this.network = new Network(container, data, options);
+          this.network = new Network(container, data, this.options);
           break;
         }
 
