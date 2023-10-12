@@ -51,7 +51,7 @@ function activate(context) {
         // panel.webview.html = htmlContent;
         const runtimeUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "runtime.01fe1d460628a1d3.js")));
         const polyfillsUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "polyfills.ef3261c6791c905c.js")));
-        const scriptUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "main.4b45ea11f949bff6.js")));
+        const scriptUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "main.c525e777549cdd1e.js")));
         const stylesUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "styles.ef46db3751d8e999.css")));
         // added this
         // Create a webview-compatible URI for the "assets" folder
@@ -103,6 +103,13 @@ function activate(context) {
                         console.log("PANEL WEBVIEW POST MESSAGE SENT");
                     });
                     // console.log("PANEL ONDIDRECEIVEMESSAGE RUNKLAW FINISHED");
+                    break;
+                }
+                case "reloadFolderFile": {
+                    panel.webview.postMessage({
+                        command: "reUpdatePath",
+                        data: {},
+                    });
                     break;
                 }
                 default:

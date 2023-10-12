@@ -83,7 +83,7 @@ export function activate(context: vscode.ExtensionContext) {
         path.join(
           __dirname,
           "../webview-ui/dist/webview-ui",
-          "main.4b45ea11f949bff6.js"
+          "main.c525e777549cdd1e.js"
         )
       )
     );
@@ -161,6 +161,14 @@ export function activate(context: vscode.ExtensionContext) {
                 console.log("PANEL WEBVIEW POST MESSAGE SENT");
               });
             // console.log("PANEL ONDIDRECEIVEMESSAGE RUNKLAW FINISHED");
+            break;
+          }
+
+          case "reloadFolderFile": {
+            panel.webview.postMessage({
+              command: "reUpdatePath",
+              data: {},
+            });
             break;
           }
 

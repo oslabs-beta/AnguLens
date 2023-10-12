@@ -1,4 +1,13 @@
 <div>
-  <app-folder-file></app-folder-file>
+  <button (click)="toggleView()">Change View</button>
 </div>
+
+<div *ngIf="currentView === 'folder-file'">
+  <folder-file></folder-file>
+</div>
+
+<div *ngIf="currentView === 'parent-child'">
+  <parent-child></parent-child>
+</div>
+
 <router-outlet></router-outlet>

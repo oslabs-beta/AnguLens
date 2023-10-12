@@ -13,13 +13,17 @@ import { URIObj } from 'src/models/uri';
 
 import { vscode } from '../utilities/vscode';
 
+import { FileSystemService } from 'src/services/FileSystemService';
+
 @Component({
-  selector: 'app-folder-file',
+  selector: 'folder-file',
   templateUrl: './folder-file.component.html',
   styleUrls: ['./folder-file.component.css'],
 })
 export class FolderFileComponent implements AfterViewInit {
   @ViewChild('networkContainer') networkContainer!: ElementRef;
+
+  constructor(private fileSystemService: FileSystemService) {}
 
   private network: any;
   nodes: any[] = [];
@@ -110,6 +114,11 @@ export class FolderFileComponent implements AfterViewInit {
 
         case 'updatePath': {
           this.fsItems = this.populate(message.data.src);
+          this.fileSystemService.updateState(
+            this.fsItems,
+            this.uris,
+            message.data.src
+          );
           console.log('fsItems', this.fsItems);
           const { nodes, edges } = this.createNodesAndEdges(
             this.fsItems,
@@ -173,7 +182,71 @@ export class FolderFileComponent implements AfterViewInit {
           break;
         }
 
-        //new command
+        // reupdate screen
+        case 'reUpdatePath': {
+          this.fsItems = this.fileSystemService.fsItems;
+          // set fsItems nodes and edges from services
+          this.uris = this.fileSystemService.uris;
+          const { nodes, edges } = this.createNodesAndEdges(
+            this.fsItems,
+            this.uris
+          );
+
+          this.nodes = nodes;
+          this.edges = edges;
+          console.log('BEFORE SETTING DATASET');
+          const newNodes = new DataSet(nodes);
+          const newEdges = new DataSet(edges);
+          console.log('newNodes', newNodes);
+          console.log('newEdges', newEdges);
+
+          // create a network
+          const container = this.networkContainer.nativeElement;
+          // const data = { newNodes, newEdges };
+          const data: {
+            nodes: DataSet<any, 'id'>;
+            edges: DataSet<any, 'id'>;
+          } = {
+            nodes: newNodes,
+            edges: newEdges,
+          };
+          const options = {
+            layout: {
+              hierarchical: {
+                direction: 'UD', // Up-Down direction
+                nodeSpacing: 1000,
+                parentCentralization: true,
+                edgeMinimization: true,
+                shakeTowards: 'roots', // Tweak the layout algorithm to get better results
+                sortMethod: 'directed', // Sort based on the hierarchical structure
+              },
+            },
+
+            nodes: {
+              shape: 'image',
+              image: {
+                selected: '../assets/scottytoohotty.png',
+                unselected: '../assets/folder-svgrepo-com.svg',
+              },
+              shadow: {
+                enabled: true,
+                color: 'rgba(0,0,0,0.5)',
+                size: 10,
+                x: 5,
+                y: 5,
+              },
+            },
+
+            physics: {
+              hierarchicalRepulsion: {
+                avoidOverlap: 1,
+                nodeDistance: 145,
+              },
+            },
+          };
+          this.network = new Network(container, data, options);
+          break;
+        }
 
         //default
         default:
@@ -183,6 +256,9 @@ export class FolderFileComponent implements AfterViewInit {
     });
   }
 
+  /*
+    After the User inputs a src path
+  */
   loadNetwork() {
     console.log('File path:', this.filePath);
 
@@ -192,20 +268,6 @@ export class FolderFileComponent implements AfterViewInit {
         filePath: this.filePath,
       },
     });
-
-    // if (vscode) {
-    //   // Send a message to the extension
-    //   const message: ExtensionMessage = {
-    //     command: 'loadNetwork',
-    //     data: {
-    //       filePath: this.filePath,
-    //     },
-    //   };
-    //   console.log('MESSAGE PASSED TO WINDOW', message);
-    //   window.postMessage(message, '*');
-    // } else {
-    //   console.log();
-    // }
   }
 
   createNodesAndEdges(
