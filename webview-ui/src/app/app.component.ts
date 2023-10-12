@@ -55,7 +55,7 @@ export class AppComponent implements AfterViewInit {
           parentCentralization: true,
           edgeMinimization: true,
           shakeTowards: 'roots', // Tweak the layout algorithm to get better results
-          sortMethod: 'directed', // Sort based on the hierarchical structure
+          sortMethod: 'hubsize', // Sort based on the hierarchical structure
         },
       },
 
@@ -82,7 +82,7 @@ export class AppComponent implements AfterViewInit {
             this.currentDirection == 'UD' || this.currentDirection == 'DU'
               ? 'vertical'
               : 'horizontal',
-          roundness: 0.4,
+          roundness: 0.2,
         },
       },
 
