@@ -149,19 +149,6 @@ function activate(context) {
     context.subscriptions.push(disposable, runWebView);
 }
 exports.activate = activate;
-// function runKlaw(rootPath: string, items: any) {
-//   klaw(rootPath)
-//     .on("data", (item) => items.push(item))
-//     .on("end", () => {
-//       // const sliceItems = items.slice(0, 30);
-//       // console.log("SLICE ITEMS HERE ======>", sliceItems);
-//       console.log("items before populate HERE ========D", items.length);
-//       // console.dir(items);
-//       populateStructure(items);
-//       console.log("ITEMS AFTER POPULATE -->", items);
-//       console.log("POPULATED ITEMS ARRAY HERE ========>", items.length);
-//     });
-// }
 function getAssetUris(folderUri, webview) {
     const imageFiles = fs.readdirSync(folderUri.fsPath);
     return imageFiles.map((file) => webview.asWebviewUri(vscode.Uri.file(path.join(folderUri.fsPath, file))));

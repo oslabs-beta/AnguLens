@@ -224,19 +224,6 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(disposable, runWebView);
 }
-// function runKlaw(rootPath: string, items: any) {
-//   klaw(rootPath)
-//     .on("data", (item) => items.push(item))
-//     .on("end", () => {
-//       // const sliceItems = items.slice(0, 30);
-//       // console.log("SLICE ITEMS HERE ======>", sliceItems);
-//       console.log("items before populate HERE ========D", items.length);
-//       // console.dir(items);
-//       populateStructure(items);
-//       console.log("ITEMS AFTER POPULATE -->", items);
-//       console.log("POPULATED ITEMS ARRAY HERE ========>", items.length);
-//     });
-// }
 
 function getAssetUris(folderUri: vscode.Uri, webview: Webview): vscode.Uri[] {
   const imageFiles = fs.readdirSync(folderUri.fsPath);
