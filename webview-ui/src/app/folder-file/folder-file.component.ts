@@ -77,10 +77,11 @@ export class FolderFileComponent implements AfterViewInit {
               hierarchical: {
                 direction: 'UD', // Up-Down direction
                 nodeSpacing: 1000,
+                levelSeparation: 300,
                 parentCentralization: true,
                 edgeMinimization: true,
                 shakeTowards: 'roots', // Tweak the layout algorithm to get better results
-                sortMethod: 'hubsize', // Sort based on the hierarchical structure
+                sortMethod: 'directed', // Sort based on the hierarchical structure
               },
             },
 
@@ -156,10 +157,11 @@ export class FolderFileComponent implements AfterViewInit {
               hierarchical: {
                 direction: 'UD', // Up-Down direction
                 nodeSpacing: 1000,
+                levelSeparation: 300,
                 parentCentralization: true,
                 edgeMinimization: true,
                 shakeTowards: 'roots', // Tweak the layout algorithm to get better results
-                sortMethod: 'hubsize', // Sort based on the hierarchical structure
+                sortMethod: 'directed', // Sort based on the hierarchical structure
               },
             },
 
@@ -233,10 +235,11 @@ export class FolderFileComponent implements AfterViewInit {
               hierarchical: {
                 direction: 'UD', // Up-Down direction
                 nodeSpacing: 1000,
+                levelSeparation: 300,
                 parentCentralization: true,
                 edgeMinimization: true,
                 shakeTowards: 'roots', // Tweak the layout algorithm to get better results
-                sortMethod: 'hubsize', // Sort based on the hierarchical structure
+                sortMethod: 'directed', // Sort based on the hierarchical structure
               },
             },
 
