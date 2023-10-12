@@ -85,7 +85,7 @@ export function activate(context: vscode.ExtensionContext) {
         path.join(
           __dirname,
           "../webview-ui/dist/webview-ui",
-          "main.e08f5c05cc1bfb14.js"
+          "main.d0b439f23372b4f4.js"
         )
       )
     );
@@ -124,13 +124,14 @@ export function activate(context: vscode.ExtensionContext) {
 
     const items: any = [];
     const selectorNames: object[] = [];
-
+    let currentFilePath: string = "";
     panel.webview.onDidReceiveMessage(
       (message: Message) => {
         console.log("message received but no clue what it is");
         switch (message.command) {
           case "loadNetwork": {
             const srcRootPath = message.data.filePath;
+            currentFilePath = message.data.filePath;
             // const rootpath = "/Users/scottstaskus/desktop/AnguLens/webview-ui/src";
             // const rootpath = vscode.workspace.workspaceFolders;
             console.log("rootpath here ==========>", srcRootPath);
@@ -174,6 +175,24 @@ export function activate(context: vscode.ExtensionContext) {
                 console.log("PANEL WEBVIEW POST MESSAGE SENT");
               });
             // console.log("PANEL ONDIDRECEIVEMESSAGE RUNKLAW FINISHED");
+            break;
+          }
+
+          case "loadParentChild": {
+            klaw(currentFilePath)
+              .on("data", (item) => items.push(item))
+              .on("end", () => {
+                const pcObject = populatePCView(selectorNames);
+                console.log("PC OBJECT!!!! : ", pcObject);
+
+                const pcMessage: Message = {
+                  command: "updatePC",
+                  data: pcObject,
+                };
+
+                panel.webview.postMessage(pcMessage);
+              });
+
             break;
           }
 

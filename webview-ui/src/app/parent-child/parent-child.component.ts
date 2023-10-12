@@ -23,11 +23,57 @@ import { ParentChildServices } from 'src/services/ParentChildServices';
 export class ParentChildComponent implements OnInit {
   @ViewChild('networkContainer') networkContainer!: ElementRef;
 
+  constructor(private parentChildServices: ParentChildServices) {}
+
   nodes: any[] = [];
   edges: any[] = [];
   uris: any[] = [];
   pcItems: PcItem[] = [];
   private network: any;
+  options = {
+    layout: {
+      hierarchical: {
+        direction: 'UD', // Up-Down direction
+        nodeSpacing: 1000,
+        // levelSeparation: 300,
+        parentCentralization: true,
+        edgeMinimization: true,
+        shakeTowards: 'roots', // Tweak the layout algorithm to get better results
+        sortMethod: 'directed', // Sort based on the hierarchical structure
+      },
+    },
+
+    nodes: {
+      shape: 'circle',
+      // image: {
+      //   selected: '../assets/scottytoohotty.png',
+      //   unselected: '../assets/folder-svgrepo-com.svg',
+      // },
+      shadow: {
+        enabled: true,
+        color: 'rgba(0,0,0,0.5)',
+        size: 10,
+        x: 5,
+        y: 5,
+      },
+    },
+
+    edges: {
+      smooth: {
+        enabled: true,
+        type: 'cubicBezier',
+        forceDirection: 'vertical',
+        roundness: 0.4,
+      },
+    },
+
+    physics: {
+      hierarchicalRepulsion: {
+        avoidOverlap: 1,
+        nodeDistance: 145,
+      },
+    },
+  };
 
   ngOnInit(): void {
     this.pcItems = this.populate(this.App);
@@ -45,17 +91,17 @@ export class ParentChildComponent implements OnInit {
           this.uris = message.data;
           console.log('URISSSSSSSSS', this.uris);
 
-          this.fsItems = this.populate(this.source.src);
-          console.log('fsItems', this.fsItems);
+          this.pcItems = this.populate(this.App);
+          console.log('fsItems', this.pcItems);
 
-          this.ParentChildServices.updateState(
-            this.fsItems,
+          this.parentChildServices.updateState(
+            this.pcItems,
             this.uris,
-            this.source.src
+            this.App
           );
 
           const { nodes, edges } = this.createNodesAndEdges(
-            this.fsItems,
+            this.pcItems,
             this.uris
           );
           this.nodes = nodes;
@@ -76,53 +122,49 @@ export class ParentChildComponent implements OnInit {
             nodes: newNodes,
             edges: newEdges,
           };
-          const options = {
-            layout: {
-              hierarchical: {
-                direction: 'UD', // Up-Down direction
-                nodeSpacing: 1000,
-                // levelSeparation: 300,
-                parentCentralization: true,
-                edgeMinimization: true,
-                shakeTowards: 'roots', // Tweak the layout algorithm to get better results
-                sortMethod: 'directed', // Sort based on the hierarchical structure
-              },
-            },
 
-            nodes: {
-              shape: 'image',
-              image: {
-                selected: '../assets/scottytoohotty.png',
-                unselected: '../assets/folder-svgrepo-com.svg',
-              },
-              shadow: {
-                enabled: true,
-                color: 'rgba(0,0,0,0.5)',
-                size: 10,
-                x: 5,
-                y: 5,
-              },
-            },
-
-            edges: {
-              smooth: {
-                enabled: true,
-                type: 'cubicBezier',
-                forceDirection: 'vertical',
-                roundness: 0.4,
-              },
-            },
-
-            physics: {
-              hierarchicalRepulsion: {
-                avoidOverlap: 1,
-                nodeDistance: 145,
-              },
-            },
-          };
           console.log('Data:', data);
-          console.log('Options:', options);
-          this.network = new Network(container, data, options);
+          console.log('Options:', this.options);
+          this.network = new Network(container, data, this.options);
+          break;
+        }
+
+        case 'updatePC': {
+          this.pcItems = this.populate(message.data);
+          console.log('fsItems', this.pcItems);
+
+          this.parentChildServices.updateState(
+            this.pcItems,
+            this.uris,
+            message.data
+          );
+
+          const { nodes, edges } = this.createNodesAndEdges(
+            this.pcItems,
+            this.uris
+          );
+          this.nodes = nodes;
+          this.edges = edges;
+          console.log('BEFORE SETTING DATASET');
+          const newNodes = new DataSet(nodes);
+          const newEdges = new DataSet(edges);
+          console.log('newNodes', newNodes);
+          console.log('newEdges', newEdges);
+
+          // create a network
+          const container = this.networkContainer.nativeElement;
+          // const data = { newNodes, newEdges };
+          const data: {
+            nodes: DataSet<any, 'id'>;
+            edges: DataSet<any, 'id'>;
+          } = {
+            nodes: newNodes,
+            edges: newEdges,
+          };
+
+          console.log('Data:', data);
+          console.log('Options:', this.options);
+          this.network = new Network(container, data, this.options);
           break;
         }
         default:
@@ -148,34 +190,9 @@ export class ParentChildComponent implements OnInit {
         let selectedImg: string = '';
         //console.log('id:', id);
         console.log('type type type', item.type);
-        switch (item.type) {
-          case 'gitkeep':
-            fileImg = uris[6];
-            break;
-          case 'ts':
-            fileImg = uris[1];
-            break;
-          case 'css':
-            fileImg = uris[3];
-            break;
-          case 'folder':
-            fileImg = uris[5];
-            selectedImg = uris[7];
-            break;
-          case 'html':
-            fileImg = uris[2];
-            break;
-          default:
-            fileImg = uris[4];
-            break;
-        }
         nodes.push({
           id: item.id,
           label: item.label,
-          image: {
-            unselected: fileImg,
-            selected: selectedImg === '' ? fileImg : selectedImg,
-          },
         });
 
         // If the item has children (files or subfolders), add edges to them

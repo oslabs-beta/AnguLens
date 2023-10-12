@@ -54,7 +54,7 @@ function activate(context) {
         // panel.webview.html = htmlContent;
         const runtimeUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "runtime.01fe1d460628a1d3.js")));
         const polyfillsUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "polyfills.ef3261c6791c905c.js")));
-        const scriptUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "main.e08f5c05cc1bfb14.js")));
+        const scriptUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "main.d0b439f23372b4f4.js")));
         const stylesUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "styles.ef46db3751d8e999.css")));
         // added this
         // Create a webview-compatible URI for the "assets" folder
@@ -70,11 +70,13 @@ function activate(context) {
         panel.webview.postMessage(message);
         const items = [];
         const selectorNames = [];
+        let currentFilePath = "";
         panel.webview.onDidReceiveMessage((message) => {
             console.log("message received but no clue what it is");
             switch (message.command) {
                 case "loadNetwork": {
                     const srcRootPath = message.data.filePath;
+                    currentFilePath = message.data.filePath;
                     // const rootpath = "/Users/scottstaskus/desktop/AnguLens/webview-ui/src";
                     // const rootpath = vscode.workspace.workspaceFolders;
                     console.log("rootpath here ==========>", srcRootPath);
@@ -114,6 +116,20 @@ function activate(context) {
                         console.log("PANEL WEBVIEW POST MESSAGE SENT");
                     });
                     // console.log("PANEL ONDIDRECEIVEMESSAGE RUNKLAW FINISHED");
+                    break;
+                }
+                case "loadParentChild": {
+                    klaw(currentFilePath)
+                        .on("data", (item) => items.push(item))
+                        .on("end", () => {
+                        const pcObject = populatePCView(selectorNames);
+                        console.log("PC OBJECT!!!! : ", pcObject);
+                        const pcMessage = {
+                            command: "updatePC",
+                            data: pcObject,
+                        };
+                        panel.webview.postMessage(pcMessage);
+                    });
                     break;
                 }
                 case "reloadFolderFile": {
