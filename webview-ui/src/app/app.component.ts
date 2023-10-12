@@ -8,9 +8,6 @@ import { ExtensionMessage } from '../models/message';
 })
 export class AppComponent implements OnInit {
   currentView: string = '';
-  
-
-
 
   ngOnInit() {
     //start view as the folder-file hierarchy graph

@@ -80,7 +80,7 @@ export class FolderFileComponent implements AfterViewInit {
                 parentCentralization: true,
                 edgeMinimization: true,
                 shakeTowards: 'roots', // Tweak the layout algorithm to get better results
-                sortMethod: 'directed', // Sort based on the hierarchical structure
+                sortMethod: 'hubsize', // Sort based on the hierarchical structure
               },
             },
 
@@ -159,7 +159,7 @@ export class FolderFileComponent implements AfterViewInit {
                 parentCentralization: true,
                 edgeMinimization: true,
                 shakeTowards: 'roots', // Tweak the layout algorithm to get better results
-                sortMethod: 'directed', // Sort based on the hierarchical structure
+                sortMethod: 'hubsize', // Sort based on the hierarchical structure
               },
             },
 
@@ -236,7 +236,7 @@ export class FolderFileComponent implements AfterViewInit {
                 parentCentralization: true,
                 edgeMinimization: true,
                 shakeTowards: 'roots', // Tweak the layout algorithm to get better results
-                sortMethod: 'directed', // Sort based on the hierarchical structure
+                sortMethod: 'hubsize', // Sort based on the hierarchical structure
               },
             },
 
