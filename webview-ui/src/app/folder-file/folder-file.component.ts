@@ -50,6 +50,13 @@ export class FolderFileComponent implements AfterViewInit {
 
           this.fsItems = this.populate(this.source.src);
           console.log('fsItems', this.fsItems);
+
+          this.fileSystemService.updateState(
+            this.fsItems,
+            this.uris,
+            this.source.src
+          );
+
           const { nodes, edges } = this.createNodesAndEdges(
             this.fsItems,
             this.uris
@@ -77,7 +84,7 @@ export class FolderFileComponent implements AfterViewInit {
               hierarchical: {
                 direction: 'UD', // Up-Down direction
                 nodeSpacing: 1000,
-                levelSeparation: 300,
+                // levelSeparation: 300,
                 parentCentralization: true,
                 edgeMinimization: true,
                 shakeTowards: 'roots', // Tweak the layout algorithm to get better results
@@ -104,7 +111,7 @@ export class FolderFileComponent implements AfterViewInit {
               smooth: {
                 enabled: true,
                 type: 'cubicBezier',
-                forceDirection: 'UD',
+                forceDirection: 'vertical',
                 roundness: 0.4,
               },
             },
@@ -157,7 +164,7 @@ export class FolderFileComponent implements AfterViewInit {
               hierarchical: {
                 direction: 'UD', // Up-Down direction
                 nodeSpacing: 1000,
-                levelSeparation: 300,
+                // levelSeparation: 300,
                 parentCentralization: true,
                 edgeMinimization: true,
                 shakeTowards: 'roots', // Tweak the layout algorithm to get better results
@@ -184,7 +191,7 @@ export class FolderFileComponent implements AfterViewInit {
               smooth: {
                 enabled: true,
                 type: 'cubicBezier',
-                forceDirection: 'UD',
+                forceDirection: 'vertical',
                 roundness: 0.4,
               },
             },
@@ -235,7 +242,7 @@ export class FolderFileComponent implements AfterViewInit {
               hierarchical: {
                 direction: 'UD', // Up-Down direction
                 nodeSpacing: 1000,
-                levelSeparation: 300,
+                // levelSeparation: 300,
                 parentCentralization: true,
                 edgeMinimization: true,
                 shakeTowards: 'roots', // Tweak the layout algorithm to get better results
@@ -262,7 +269,7 @@ export class FolderFileComponent implements AfterViewInit {
               smooth: {
                 enabled: true,
                 type: 'cubicBezier',
-                forceDirection: 'UD',
+                forceDirection: 'vertical',
                 roundness: 0.4,
               },
             },

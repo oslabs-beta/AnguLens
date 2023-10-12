@@ -40,6 +40,12 @@ export class AppComponent implements OnInit {
         data: {},
       });
     }
+    if (this.currentView === 'parent-child') {
+      vscode.postMessage({
+        command: 'loadParentChild',
+        data: {},
+      });
+    }
   }
 
   // nodes, edges, uris

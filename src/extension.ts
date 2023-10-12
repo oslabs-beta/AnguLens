@@ -5,9 +5,11 @@ import { Uri, Webview } from "vscode";
 import * as path from "path";
 import * as fs from "fs";
 import { getVSCodeDownloadUrl } from "@vscode/test-electron/out/util";
-
 import * as klaw from "klaw";
 import { send } from "process";
+import * as ts from "typescript";
+import { tsquery } from "@phenomnomnominal/tsquery";
+import cheerio = require("cheerio");
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -83,7 +85,7 @@ export function activate(context: vscode.ExtensionContext) {
         path.join(
           __dirname,
           "../webview-ui/dist/webview-ui",
-          "main.9d21856d83229e57.js"
+          "main.e08f5c05cc1bfb14.js"
         )
       )
     );
@@ -121,6 +123,7 @@ export function activate(context: vscode.ExtensionContext) {
     panel.webview.postMessage(message);
 
     const items: any = [];
+    const selectorNames: object[] = [];
 
     panel.webview.onDidReceiveMessage(
       (message: Message) => {
@@ -130,7 +133,7 @@ export function activate(context: vscode.ExtensionContext) {
             const srcRootPath = message.data.filePath;
             // const rootpath = "/Users/scottstaskus/desktop/AnguLens/webview-ui/src";
             // const rootpath = vscode.workspace.workspaceFolders;
-            console.log("rootpath here ==========", srcRootPath);
+            console.log("rootpath here ==========>", srcRootPath);
             let rootPath: string = "";
             if (Array.isArray(srcRootPath)) {
               rootPath = srcRootPath[0].uri.fsPath;
@@ -146,16 +149,26 @@ export function activate(context: vscode.ExtensionContext) {
               .on("end", () => {
                 // const sliceItems = items.slice(0, 30);
                 // console.log("SLICE ITEMS HERE ======>", sliceItems);
-                console.log("items before populate HERE ========D", items);
+                console.log("items before populate HERE ========>", items);
                 // console.dir(items);
                 // console.log("ITEM TYPE 8======-->", items[0].type);
 
                 const sendNewPathObj: Message = {
                   command: "updatePath",
-                  data: populateStructure(items),
+                  data: populateStructure(items, selectorNames),
                 };
 
                 console.log("POPULATED STRUCTURE DATA", sendNewPathObj.data);
+
+                const pcObject = populatePCView(selectorNames);
+                console.log("PC OBJECT!!!! : ", pcObject);
+
+                const pcMessage: Message = {
+                  command: "updatePC",
+                  data: pcObject,
+                };
+
+                panel.webview.postMessage(pcMessage);
 
                 panel.webview.postMessage(sendNewPathObj);
                 console.log("PANEL WEBVIEW POST MESSAGE SENT");
@@ -213,7 +226,82 @@ function getAssetUris(folderUri: vscode.Uri, webview: Webview): vscode.Uri[] {
   );
 }
 
-function populateStructure(array: any): object {
+function generateAST(filePath: string) {
+  // Read the TypeScript file content
+  const fileContent = fs.readFileSync(filePath, "utf-8");
+
+  // Parse the TypeScript code to get the AST
+  const sourceFile = ts.createSourceFile(
+    filePath,
+    fileContent,
+    ts.ScriptTarget.Latest,
+    true
+  );
+
+  // Return the AST (abstract syntax tree) of the source file
+  return sourceFile;
+}
+
+function populatePCView(selectorNames: object[]): object {
+  // step 1: build initial object with information about app component
+  let appPath: string;
+  for (const selectorName of selectorNames) {
+    if (selectorName.selectorName === "app-root") {
+      // folderPath = '/Users/danielkim/personal-projects/task-tracker/src/app'
+      appPath = selectorName.folderPath;
+    }
+  }
+  const output = {
+    name: "app",
+    path: appPath,
+    children: [],
+  };
+
+  populateChildren(output, selectorNames);
+  return output;
+}
+
+function populateChildren(pcObject: object, selectorNames: object[]): object {
+  // Step 1: populating current object's children array
+  const filePath = convertToHtml(pcObject.path);
+  for (const selectorName of selectorNames) {
+    if (selectorCheck(filePath, selectorName.selectorName)) {
+      const obj = {
+        name: selectorName.selectorName,
+        path: selectorName.folderPath,
+        children: [],
+      };
+      pcObject.children.push(obj);
+    }
+  }
+  // Step 2: Recursively call this function on each obj of children array
+  pcObject.children.forEach((child) => populateChildren(child, selectorNames));
+  return pcObject;
+}
+
+function convertToHtml(folderPath: string): string {
+  let path = folderPath.split("/");
+  const component = path.pop();
+  const htmlFile = component + ".component.html";
+  return folderPath + "/" + htmlFile;
+}
+
+function selectorCheck(filePath: string, selectorName: string): boolean {
+  const parsed = fs.readFileSync(filePath, "utf-8");
+  // creates AST of angular template (--> check up on what fs.readFileSync is doing: may be turning file into a STRING)
+  const $ = cheerio.load(parsed);
+  // $ is variable name (?) --> then we check
+  // To find an element by its tag name (selectorName)
+  const foundElement = $(selectorName);
+
+  //if it found a match (has length) return true
+  if (foundElement.length) {
+    return true;
+  }
+  return false;
+}
+
+function populateStructure(array: any, selectorNames: object[]): object {
   console.log("POPULATED STRUCTURE TRIGGERED");
   // console.log("POPULATE PASSED IN ARRAY====", array);
   const output = {};
@@ -228,6 +316,7 @@ function populateStructure(array: any): object {
       let rootFolder = pathArray.pop();
       // console.log('pathArray: ', pathArray);
       rootPath = rootFolder;
+      // console.log('root path is : ', rootPath);
       output[rootFolder] = {
         type: "folder",
         path: item.path,
@@ -254,13 +343,39 @@ function populateStructure(array: any): object {
         type = "folder";
       }
 
+      if (type === "ts") {
+        const filePath = item.path;
+        const sourceFile = generateAST(filePath);
+
+        // Query for PropertyAssignment nodes with an Identifier name of 'selector'
+        const selectorProperties = tsquery(
+          sourceFile,
+          "PropertyAssignment > Identifier[name=selector]"
+        );
+        console.log("component name: ", name);
+        const testArray = filePath.split("/");
+        testArray.pop();
+        const test = testArray.join("/");
+
+        // Check if selectorProperties is not empty and log the selector name
+        if (selectorProperties.length > 0) {
+          const selectorName = selectorProperties[0].parent.initializer.text;
+          console.log("Component Selector Name:", selectorName);
+          const obj = {
+            selectorName,
+            folderPath: test,
+          };
+          selectorNames.push(obj);
+        }
+      }
+
       objTracker[name] = {
         type,
         path: item.path,
       };
     }
   }
-  console.log("HEYYYYYY");
+  console.log(selectorNames);
   console.log("OUTPUT HERE =====>", output);
   return output;
   // console.log("JSON STRINGIFIED OUTPUT", JSON.stringify(output));
