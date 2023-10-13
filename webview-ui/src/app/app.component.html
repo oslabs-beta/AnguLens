@@ -1,6 +1,22 @@
-<div>
-  <button (click)="toggleView()">Change View</button>
+<!-- <div class="buttonContainer">
+  <div>
+    <button class="button-77" (click)="toggleView()">
+      {{ currentView === 'folder-file' ? 'Parent Child View' : 'File System View' }}
+    </button>
+  </div>
+</div> -->
+
+<div class="buttonContainer">
+  <div>
+    <button class="button-77" (click)="loadFolderFile()">
+      Folder-File
+    </button>
+    <button class="button-77" (click)="loadParentChild()">
+      Parent-Child
+    </button>
+  </div>
 </div>
+
 
 <div *ngIf="currentView === 'folder-file'">
   <folder-file></folder-file>
