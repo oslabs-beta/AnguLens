@@ -15,6 +15,11 @@ import { vscode } from '../utilities/vscode';
 
 import { FileSystemService } from 'src/services/FileSystemService';
 
+type AppState = {
+  networkData: any; // Use the appropriate data type for 'networkData'
+  options: any; // Use the appropriate data type for 'options'
+};
+
 @Component({
   selector: 'folder-file',
   templateUrl: './folder-file.component.html',
@@ -87,7 +92,48 @@ export class FolderFileComponent implements OnInit {
       console.log('caught message?', message);
 
       //handle different commands from extension
+      // const reloadState = vscode.setState({networkData: data, options: this.options,});
+
       switch (message.command) {
+        case 'updateState': {
+          const state = vscode.getState() as {
+            fsItems: FsItem[];
+            uris: any;
+          } | null;
+          if (state) {
+            console.log('STATE NETWORK', state);
+
+            this.fsItems = state.fsItems;
+            this.uris = state.uris;
+            this.fileSystemService.fsItems = state.fsItems;
+            this.fileSystemService.uris = state.uris;
+            const { nodes, edges } = this.createNodesAndEdges(
+              this.fsItems,
+              this.uris
+            );
+
+            this.nodes = nodes;
+            this.edges = edges;
+
+            const newNodes = new DataSet(nodes);
+            const newEdges = new DataSet(edges);
+
+            // const data = { newNodes, newEdges };
+            const data: {
+              nodes: DataSet<any, 'id'>;
+              edges: DataSet<any, 'id'>;
+            } = {
+              nodes: newNodes,
+              edges: newEdges,
+            };
+
+            const container = this.networkContainer.nativeElement;
+            //store network onstate?
+            //store functions on state?
+            this.network = new Network(container, data, this.options);
+          }
+          break;
+        }
         //load icon URI's
         case 'updateUris': {
           this.uris = message.data;
@@ -123,6 +169,7 @@ export class FolderFileComponent implements OnInit {
           //store network onstate?
           //store functions on state?
           this.network = new Network(container, data, this.options);
+          vscode.setState({ fsItems: this.fsItems, uris: this.uris });
           break;
         }
 
@@ -157,6 +204,14 @@ export class FolderFileComponent implements OnInit {
             edges: newEdges,
           };
           this.network = new Network(container, data, this.options);
+          const updateState = vscode.setState({
+            fsItems: this.fsItems,
+            uris: this.uris,
+          });
+          console.log(
+            'STATE OF UPDATE PATH SET HERE:  ',
+            JSON.stringify(updateState)
+          );
           break;
         }
 
@@ -191,6 +246,15 @@ export class FolderFileComponent implements OnInit {
             edges: newEdges,
           };
           this.network = new Network(container, data, this.options);
+          const reloadState = vscode.setState({
+            fsItems: this.fsItems,
+            uris: this.uris,
+          });
+          console.log(
+            'STATE OF RELOAD STATE SET HERE:  ',
+            JSON.stringify(reloadState)
+          );
+
           break;
         }
 
@@ -211,7 +275,7 @@ export class FolderFileComponent implements OnInit {
     vscode.postMessage({
       command: 'loadNetwork',
       data: {
-        filePath: this.filePath
+        filePath: this.filePath,
       },
     });
   }

@@ -29,19 +29,9 @@ function activate(context) {
         vscode.ViewColumn.One, // showOptions
         { enableScripts: true } // options
         );
-        console.log("workspaceFolders -> ", vscode.workspace.workspaceFolders);
-        // Read the contents of your Angular app's index.html file
-        // const indexPath = path.join(
-        //   __dirname,
-        //   "../webview-ui/dist/webview-ui",
-        //   "index.html"
-        // );
-        // const htmlContent = fs.readFileSync(indexPath, "utf-8");
-        // console.log(htmlContent);
-        // panel.webview.html = htmlContent;
         const runtimeUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "runtime.01fe1d460628a1d3.js")));
         const polyfillsUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "polyfills.ef3261c6791c905c.js")));
-        const scriptUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "main.6dc108e9dd13e7d0.js")));
+        const scriptUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "main.41ddc3f56592cfdb.js")));
         const stylesUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "styles.ef46db3751d8e999.css")));
         // START URIS
         // added this
@@ -120,6 +110,14 @@ function activate(context) {
             }
         }, undefined, context.subscriptions);
         panel.webview.html = getWebViewContent(stylesUri, runtimeUri, polyfillsUri, scriptUri, imageUris);
+        panel.onDidChangeViewState((e) => {
+            if (e.webviewPanel.visible) {
+                panel.webview.postMessage({
+                    command: "updateState",
+                    data: {},
+                });
+            }
+        });
     });
     context.subscriptions.push(disposable, runWebView);
 }
