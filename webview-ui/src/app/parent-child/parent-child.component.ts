@@ -76,8 +76,6 @@ export class ParentChildComponent implements OnInit {
   };
 
   ngOnInit(): void {
-    this.pcItems = this.populate(this.App);
-    console.log('PC ITEMS', this.pcItems);
 
     window.addEventListener('message', (event) => {
       const message: ExtensionMessage = event.data;

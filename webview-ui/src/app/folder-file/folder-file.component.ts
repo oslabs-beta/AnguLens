@@ -20,7 +20,7 @@ import { FileSystemService } from 'src/services/FileSystemService';
   templateUrl: './folder-file.component.html',
   styleUrls: ['./folder-file.component.css'],
 })
-export class FolderFileComponent implements AfterViewInit {
+export class FolderFileComponent implements OnInit {
   @ViewChild('networkContainer') networkContainer!: ElementRef;
 
   constructor(private fileSystemService: FileSystemService) {}
@@ -76,8 +76,9 @@ export class FolderFileComponent implements AfterViewInit {
     },
   };
 
-  ngAfterViewInit() {
-    console.log('INIT');
+  // ngOnInit(): void {}
+
+  ngOnInit() {
     //catch URIS
     // this.loadNetwork();
 
@@ -90,10 +91,7 @@ export class FolderFileComponent implements AfterViewInit {
         //load icon URI's
         case 'updateUris': {
           this.uris = message.data;
-          console.log('URISSSSSSSSS', this.uris);
-
           this.fsItems = this.populate(this.source.src);
-          console.log('fsItems', this.fsItems);
 
           this.fileSystemService.updateState(
             this.fsItems,
@@ -107,11 +105,9 @@ export class FolderFileComponent implements AfterViewInit {
           );
           this.nodes = nodes;
           this.edges = edges;
-          console.log('BEFORE SETTING DATASET');
+
           const newNodes = new DataSet(nodes);
           const newEdges = new DataSet(edges);
-          console.log('newNodes', newNodes);
-          console.log('newEdges', newEdges);
 
           // create a network
           const container = this.networkContainer.nativeElement;
@@ -123,29 +119,32 @@ export class FolderFileComponent implements AfterViewInit {
             nodes: newNodes,
             edges: newEdges,
           };
+
+          //store network onstate?
+          //store functions on state?
           this.network = new Network(container, data, this.options);
           break;
         }
 
         case 'updatePath': {
           this.fsItems = this.populate(message.data.src);
+
           this.fileSystemService.updateState(
             this.fsItems,
             this.uris,
             message.data.src
           );
-          console.log('fsItems', this.fsItems);
+
           const { nodes, edges } = this.createNodesAndEdges(
             this.fsItems,
             this.uris
           );
+
           this.nodes = nodes;
           this.edges = edges;
-          console.log('BEFORE SETTING DATASET');
+
           const newNodes = new DataSet(nodes);
           const newEdges = new DataSet(edges);
-          console.log('newNodes', newNodes);
-          console.log('newEdges', newEdges);
 
           // create a network
           const container = this.networkContainer.nativeElement;
@@ -162,8 +161,10 @@ export class FolderFileComponent implements AfterViewInit {
         }
 
         // reupdate screen
-        case 'reUpdatePath': {
+        case 'reloadFolderFile': {
+          console.log('SERVICES :D FS ITEMS', this.fileSystemService.fsItems);
           this.fsItems = this.fileSystemService.fsItems;
+          console.log('FSITEMS in Reload Folder File', this.fsItems);
           // set fsItems nodes and edges from services
           this.uris = this.fileSystemService.uris;
           const { nodes, edges } = this.createNodesAndEdges(
@@ -210,7 +211,7 @@ export class FolderFileComponent implements AfterViewInit {
     vscode.postMessage({
       command: 'loadNetwork',
       data: {
-        filePath: this.filePath,
+        filePath: this.filePath
       },
     });
   }

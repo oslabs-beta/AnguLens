@@ -7,9 +7,7 @@ const vscode = require("vscode");
 const path = require("path");
 const fs = require("fs");
 const klaw = require("klaw");
-const ts = require("typescript");
-const tsquery_1 = require("@phenomnomnominal/tsquery");
-const cheerio = require("cheerio");
+const populateAlgos_1 = require("./createViewAlgos/populateAlgos");
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 function activate(context) {
@@ -43,8 +41,9 @@ function activate(context) {
         // panel.webview.html = htmlContent;
         const runtimeUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "runtime.01fe1d460628a1d3.js")));
         const polyfillsUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "polyfills.ef3261c6791c905c.js")));
-        const scriptUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "main.380c26d317204385.js")));
+        const scriptUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "main.6dc108e9dd13e7d0.js")));
         const stylesUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "styles.ef46db3751d8e999.css")));
+        // START URIS
         // added this
         // Create a webview-compatible URI for the "assets" folder
         const assetsFolder = vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui/assets"));
@@ -57,22 +56,18 @@ function activate(context) {
             data: stringUris,
         };
         panel.webview.postMessage(message);
+        //END URIS
         const items = [];
         const selectorNames = [];
         let currentFilePath = "";
         panel.webview.onDidReceiveMessage((message) => {
-            console.log("message received but no clue what it is");
             switch (message.command) {
                 case "loadNetwork": {
                     const srcRootPath = message.data.filePath;
                     currentFilePath = message.data.filePath;
-                    // const rootpath = "/Users/scottstaskus/desktop/AnguLens/webview-ui/src";
-                    // const rootpath = vscode.workspace.workspaceFolders;
-                    console.log("rootpath here ==========>", srcRootPath);
                     let rootPath = "";
                     if (Array.isArray(srcRootPath)) {
                         rootPath = srcRootPath[0].uri.fsPath;
-                        console.log("ROOTPATH IF ARRAY ======>", rootPath);
                     }
                     else if (typeof srcRootPath === "string") {
                         rootPath = srcRootPath;
@@ -84,34 +79,25 @@ function activate(context) {
                     klaw(rootPath)
                         .on("data", (item) => items.push(item))
                         .on("end", () => {
-                        // const sliceItems = items.slice(0, 30);
-                        // console.log("SLICE ITEMS HERE ======>", sliceItems);
-                        console.log("items before populate HERE ========>", items);
-                        // console.dir(items);
-                        // console.log("ITEM TYPE 8======-->", items[0].type);
                         const sendNewPathObj = {
                             command: "updatePath",
-                            data: populateStructure(items, selectorNames),
+                            data: (0, populateAlgos_1.populateStructure)(items, selectorNames),
                         };
-                        console.log("POPULATED STRUCTURE DATA", sendNewPathObj.data);
-                        const pcObject = populatePCView(selectorNames);
-                        console.log("PC OBJECT!!!! : ", pcObject);
+                        const pcObject = (0, populateAlgos_1.populatePCView)(selectorNames);
                         const pcMessage = {
                             command: "updatePC",
                             data: pcObject,
                         };
                         panel.webview.postMessage(pcMessage);
                         panel.webview.postMessage(sendNewPathObj);
-                        console.log("PANEL WEBVIEW POST MESSAGE SENT");
                     });
-                    // console.log("PANEL ONDIDRECEIVEMESSAGE RUNKLAW FINISHED");
                     break;
                 }
                 case "loadParentChild": {
                     klaw(currentFilePath)
                         .on("data", (item) => items.push(item))
                         .on("end", () => {
-                        const pcObject = populatePCView(selectorNames);
+                        const pcObject = (0, populateAlgos_1.populatePCView)(selectorNames);
                         console.log("PC OBJECT!!!! : ", pcObject);
                         const pcMessage = {
                             command: "updatePC",
@@ -123,7 +109,7 @@ function activate(context) {
                 }
                 case "reloadFolderFile": {
                     panel.webview.postMessage({
-                        command: "reUpdatePath",
+                        command: "reloadFolderFile",
                         data: {},
                     });
                     break;
@@ -142,139 +128,7 @@ function getAssetUris(folderUri, webview) {
     const imageFiles = fs.readdirSync(folderUri.fsPath);
     return imageFiles.map((file) => webview.asWebviewUri(vscode.Uri.file(path.join(folderUri.fsPath, file))));
 }
-function generateAST(filePath) {
-    // Read the TypeScript file content
-    const fileContent = fs.readFileSync(filePath, "utf-8");
-    // Parse the TypeScript code to get the AST
-    const sourceFile = ts.createSourceFile(filePath, fileContent, ts.ScriptTarget.Latest, true);
-    // Return the AST (abstract syntax tree) of the source file
-    return sourceFile;
-}
-function populatePCView(selectorNames) {
-    // step 1: build initial object with information about app component
-    let appPath;
-    for (const selectorName of selectorNames) {
-        if (selectorName.selectorName === "app-root") {
-            // folderPath = '/Users/danielkim/personal-projects/task-tracker/src/app'
-            appPath = selectorName.folderPath;
-        }
-    }
-    const output = {
-        name: "app",
-        path: appPath,
-        children: [],
-    };
-    populateChildren(output, selectorNames);
-    return output;
-}
-function populateChildren(pcObject, selectorNames) {
-    // Step 1: populating current object's children array
-    const filePath = convertToHtml(pcObject.path);
-    for (const selectorName of selectorNames) {
-        if (selectorCheck(filePath, selectorName.selectorName)) {
-            const obj = {
-                name: selectorName.selectorName,
-                path: selectorName.folderPath,
-                children: [],
-            };
-            pcObject.children.push(obj);
-        }
-    }
-    // Step 2: Recursively call this function on each obj of children array
-    pcObject.children.forEach((child) => populateChildren(child, selectorNames));
-    return pcObject;
-}
-function convertToHtml(folderPath) {
-    let path = folderPath.split("/");
-    const component = path.pop();
-    const htmlFile = component + ".component.html";
-    return folderPath + "/" + htmlFile;
-}
-function selectorCheck(filePath, selectorName) {
-    const parsed = fs.readFileSync(filePath, "utf-8");
-    // creates AST of angular template (--> check up on what fs.readFileSync is doing: may be turning file into a STRING)
-    const $ = cheerio.load(parsed);
-    // $ is variable name (?) --> then we check
-    // To find an element by its tag name (selectorName)
-    const foundElement = $(selectorName);
-    //if it found a match (has length) return true
-    if (foundElement.length) {
-        return true;
-    }
-    return false;
-}
-function populateStructure(array, selectorNames) {
-    console.log("POPULATED STRUCTURE TRIGGERED");
-    // console.log("POPULATE PASSED IN ARRAY====", array);
-    const output = {};
-    let rootPath = "";
-    let omitIndeces;
-    for (const item of array) {
-        // if its the first iteration of the for loop
-        if (rootPath.length === 0) {
-            // console.log('item.path: 'item.path);
-            let pathArray = item.path.split("/");
-            // console.log('pathArray: ', pathArray);
-            let rootFolder = pathArray.pop();
-            // console.log('pathArray: ', pathArray);
-            rootPath = rootFolder;
-            // console.log('root path is : ', rootPath);
-            output[rootFolder] = {
-                type: "folder",
-                path: item.path,
-            };
-            omitIndeces = pathArray.length;
-            // console.log('omitIndeces: ', omitIndeces);
-        }
-        else {
-            //checking elements after the 1st one / root directory
-            let pathArray = item.path.split("/");
-            pathArray.splice(0, omitIndeces);
-            let name = pathArray.pop();
-            // locating through nested output object logic
-            let objTracker = output;
-            for (const key of pathArray) {
-                objTracker = objTracker[key];
-            }
-            // assigning type logic
-            let type;
-            if (name.split(".").length > 1) {
-                type = name.split(".").pop();
-            }
-            else {
-                type = "folder";
-            }
-            if (type === "ts") {
-                const filePath = item.path;
-                const sourceFile = generateAST(filePath);
-                // Query for PropertyAssignment nodes with an Identifier name of 'selector'
-                const selectorProperties = (0, tsquery_1.tsquery)(sourceFile, "PropertyAssignment > Identifier[name=selector]");
-                console.log("component name: ", name);
-                const testArray = filePath.split("/");
-                testArray.pop();
-                const test = testArray.join("/");
-                // Check if selectorProperties is not empty and log the selector name
-                if (selectorProperties.length > 0) {
-                    const selectorName = selectorProperties[0].parent.initializer.text;
-                    console.log("Component Selector Name:", selectorName);
-                    const obj = {
-                        selectorName,
-                        folderPath: test,
-                    };
-                    selectorNames.push(obj);
-                }
-            }
-            objTracker[name] = {
-                type,
-                path: item.path,
-            };
-        }
-    }
-    console.log(selectorNames);
-    console.log("OUTPUT HERE =====>", output);
-    return output;
-    // console.log("JSON STRINGIFIED OUTPUT", JSON.stringify(output));
-}
+// console.log("JSON STRINGIFIED OUTPUT", JSON.stringify(output))
 function getWebViewContent(stylesUri, runtimeUri, polyfillsUri, scriptUri, imageUris) {
     const imageTags = imageUris
         .map((uri) => `<img src="${uri}" alt="Image" />`)
