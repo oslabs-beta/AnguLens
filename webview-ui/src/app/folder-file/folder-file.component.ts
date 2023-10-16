@@ -81,18 +81,9 @@ export class FolderFileComponent implements OnInit {
     },
   };
 
-  // ngOnInit(): void {}
-
   ngOnInit() {
-    //catch URIS
-    // this.loadNetwork();
-
     window.addEventListener('message', (event) => {
       const message: ExtensionMessage = event.data;
-      console.log('caught message?', message);
-
-      //handle different commands from extension
-      // const reloadState = vscode.setState({networkData: data, options: this.options,});
 
       switch (message.command) {
         case 'updateState': {
@@ -128,8 +119,6 @@ export class FolderFileComponent implements OnInit {
             };
 
             const container = this.networkContainer.nativeElement;
-            //store network onstate?
-            //store functions on state?
             this.network = new Network(container, data, this.options);
           }
           break;
@@ -166,8 +155,6 @@ export class FolderFileComponent implements OnInit {
             edges: newEdges,
           };
 
-          //store network onstate?
-          //store functions on state?
           this.network = new Network(container, data, this.options);
           vscode.setState({ fsItems: this.fsItems, uris: this.uris });
           break;
@@ -208,18 +195,15 @@ export class FolderFileComponent implements OnInit {
             fsItems: this.fsItems,
             uris: this.uris,
           });
-          console.log(
-            'STATE OF UPDATE PATH SET HERE:  ',
-            JSON.stringify(updateState)
-          );
+          console.log('SETTING STATE OF UPDATE PATH ');
           break;
         }
 
         // reupdate screen
         case 'reloadFolderFile': {
-          console.log('SERVICES :D FS ITEMS', this.fileSystemService.fsItems);
+          // console.log('SERVICES :D FS ITEMS', this.fileSystemService.fsItems);
           this.fsItems = this.fileSystemService.fsItems;
-          console.log('FSITEMS in Reload Folder File', this.fsItems);
+          // console.log('FSITEMS in Reload Folder File', this.fsItems);
           // set fsItems nodes and edges from services
           this.uris = this.fileSystemService.uris;
           const { nodes, edges } = this.createNodesAndEdges(
@@ -229,11 +213,10 @@ export class FolderFileComponent implements OnInit {
 
           this.nodes = nodes;
           this.edges = edges;
-          console.log('BEFORE SETTING DATASET');
           const newNodes = new DataSet(nodes);
           const newEdges = new DataSet(edges);
-          console.log('newNodes', newNodes);
-          console.log('newEdges', newEdges);
+          // console.log('newNodes', newNodes);
+          // console.log('newEdges', newEdges);
 
           // create a network
           const container = this.networkContainer.nativeElement;
@@ -250,10 +233,10 @@ export class FolderFileComponent implements OnInit {
             fsItems: this.fsItems,
             uris: this.uris,
           });
-          console.log(
-            'STATE OF RELOAD STATE SET HERE:  ',
-            JSON.stringify(reloadState)
-          );
+          // console.log(
+          //   'STATE OF RELOAD STATE SET HERE:  ',
+          //   JSON.stringify(reloadState)
+          // );
 
           break;
         }
@@ -294,8 +277,6 @@ export class FolderFileComponent implements OnInit {
         // Add the current item as a node
         let fileImg: string = '';
         let selectedImg: string = '';
-        //console.log('id:', id);
-        console.log('type type type', item.type);
         switch (item.type) {
           case 'gitkeep':
             fileImg = uris[6];
@@ -345,8 +326,8 @@ export class FolderFileComponent implements OnInit {
       addNodesAndEdges(rootItem);
     }
 
-    console.log('NODES', nodes);
-    console.log('EDGES', edges);
+    // console.log('NODES', nodes);
+    // console.log('EDGES', edges);
     return { nodes, edges };
   }
 
@@ -404,7 +385,7 @@ export class FolderFileComponent implements OnInit {
       },
       'styles.css': {
         type: 'css',
-        path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/styles.css',
+        path: '/Users/daielkim/CodeSmith/osp/AnguLens/webview-ui/src/styles.css',
       },
     },
   };
@@ -425,7 +406,7 @@ export class FolderFileComponent implements OnInit {
           children: [],
           folderParent: parentFolder,
         };
-        console.log('FOLDER HAS BEEN CREATED', folder);
+        // console.log('FOLDER HAS BEEN CREATED', folder);
 
         // Iterate over the properties of the folder
         for (const key in obj) {
@@ -474,8 +455,6 @@ export class FolderFileComponent implements OnInit {
 
     // Call the populateGraph function to start the population process
     populateGraph(obj);
-
-    console.log('ITEMS HERE', items);
 
     // Return the final result array
     return items;

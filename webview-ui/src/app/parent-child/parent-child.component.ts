@@ -45,10 +45,6 @@ export class ParentChildComponent implements OnInit {
 
     nodes: {
       shape: 'circle',
-      // image: {
-      //   selected: '../assets/scottytoohotty.png',
-      //   unselected: '../assets/folder-svgrepo-com.svg',
-      // },
       shadow: {
         enabled: true,
         color: 'rgba(0,0,0,0.5)',
@@ -76,7 +72,6 @@ export class ParentChildComponent implements OnInit {
   };
 
   ngOnInit(): void {
-
     window.addEventListener('message', (event) => {
       const message: ExtensionMessage = event.data;
       console.log('caught message?', message);
@@ -185,8 +180,6 @@ export class ParentChildComponent implements OnInit {
         // Add the current item as a node
         let fileImg: string = '';
         let selectedImg: string = '';
-        //console.log('id:', id);
-        console.log('type type type', item.type);
         nodes.push({
           id: item.id,
           label: item.label,
@@ -306,10 +299,6 @@ export class ParentChildComponent implements OnInit {
       },
     ],
   };
-
-  // children present
-
-  // network layout needs ->
 
   populate(obj: any, items: PcItem[] = []): PcItem[] {
     // let firstKey = Object.keys(obj)[0];
