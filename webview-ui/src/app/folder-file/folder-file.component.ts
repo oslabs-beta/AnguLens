@@ -11,7 +11,6 @@ import { FsItem } from '../../models/FileSystem';
 import { PcItem } from '../../models/FileSystem';
 import { ExtensionMessage } from '../../models/message';
 import { URIObj } from 'src/models/uri';
-
 import { vscode } from '../utilities/vscode';
 
 import { FileSystemService } from 'src/services/FileSystemService';
@@ -102,6 +101,7 @@ export class FolderFileComponent implements OnInit {
             this.uris = state.uris;
             this.fileSystemService.fsItems = state.fsItems;
             this.fileSystemService.uris = state.uris;
+
             const { nodes, edges } = this.createNodesAndEdges(
               this.fsItems,
               this.uris
@@ -167,8 +167,8 @@ export class FolderFileComponent implements OnInit {
           });
           break;
         }
-
-        case 'updatePath': {
+        //updatePath
+        case 'generateFolderFile': {
           this.fsItems = this.populate(message.data.src);
 
           this.fileSystemService.updateState(
@@ -198,11 +198,14 @@ export class FolderFileComponent implements OnInit {
             nodes: newNodes,
             edges: newEdges,
           };
+
           this.network = new Network(container, data, this.options);
           vscode.setState({
             fsItems: this.fsItems,
             uris: this.uris,
             pcItems: this.pcItems,
+            fsData: data,
+            pcData: {},
           });
           console.log('SETTING STATE OF UPDATEPATH: fsITEMS ===', this.fsItems);
           console.log('SETTING STATE OF UPDATE PATH ');
@@ -219,41 +222,44 @@ export class FolderFileComponent implements OnInit {
             fsItems: FsItem[];
             pcItems: PcItem[];
             uris: any;
+            pcData: any;
+            fsData: any;
           };
-
+          console.log('RELOAD FS STATE', state);
           this.fsItems = state.fsItems;
           // console.log('FSITEMS in Reload Folder File', this.fsItems);
           // set fsItems nodes and edges from services
           this.uris = state.uris;
-          const { nodes, edges } = this.createNodesAndEdges(
-            this.fsItems,
-            this.uris
-          );
+          // const { nodes, edges } = this.createNodesAndEdges(
+          //   this.fsItems,
+          //   this.uris
+          // );
 
-          this.nodes = nodes;
-          this.edges = edges;
-          const newNodes = new DataSet(nodes);
-          const newEdges = new DataSet(edges);
-          // console.log('newNodes', newNodes);
-          // console.log('newEdges', newEdges);
+          // this.nodes = nodes;
+          // this.edges = edges;
+          // const newNodes = new DataSet(nodes);
+          // const newEdges = new DataSet(edges);
+          // // console.log('newNodes', newNodes);
+          // // console.log('newEdges', newEdges);
 
-          // create a network
+          // // create a network
+          // // const data = { newNodes, newEdges };
+          // const data: {
+          //   nodes: DataSet<any, 'id'>;
+          //   edges: DataSet<any, 'id'>;
+          // } = {
+          //   nodes: newNodes,
+          //   edges: newEdges,
+          // };
           const container = this.networkContainer.nativeElement;
-          // const data = { newNodes, newEdges };
-          const data: {
-            nodes: DataSet<any, 'id'>;
-            edges: DataSet<any, 'id'>;
-          } = {
-            nodes: newNodes,
-            edges: newEdges,
-          };
-          this.network = new Network(container, data, this.options);
-          console.log('PC ITEMS', this.pcItems);
-          vscode.setState({
-            fsItems: this.fsItems,
-            uris: this.uris,
-            pcItems: this.pcItems,
-          });
+          this.network = new Network(container, state.fsData, this.options);
+          // console.log('PC ITEMS', this.pcItems);
+          // vscode.setState({
+          //   fsItems: this.fsItems,
+          //   uris: this.uris,
+          //   pcItems: this.pcItems,
+          //   pcData: state.pcData,
+          // });
           break;
         }
 

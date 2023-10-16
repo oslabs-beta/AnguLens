@@ -66,7 +66,7 @@ export function activate(context: vscode.ExtensionContext) {
         path.join(
           __dirname,
           "../webview-ui/dist/webview-ui",
-          "main.d1ab5d850b78367d.js"
+          "main.b2690204348e795a.js"
         )
       )
     );
@@ -133,7 +133,7 @@ export function activate(context: vscode.ExtensionContext) {
                 fsObject = populateStructure(items, selectorNames);
 
                 const sendNewPathObj: Message = {
-                  command: "updatePath",
+                  command: "generateFolderFile",
                   data: fsObject,
                 };
                 pcObject = populatePCView(selectorNames);
@@ -153,6 +153,15 @@ export function activate(context: vscode.ExtensionContext) {
             const pcMessage: Message = {
               command: "updatePC",
               data: pcObject,
+            };
+            panel.webview.postMessage(pcMessage);
+            break;
+          }
+
+          case "reloadPC": {
+            const pcMessage: Message = {
+              command: "reloadPC",
+              data: {},
             };
             panel.webview.postMessage(pcMessage);
             break;

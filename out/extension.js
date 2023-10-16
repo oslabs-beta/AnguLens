@@ -31,7 +31,7 @@ function activate(context) {
         );
         const runtimeUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "runtime.01fe1d460628a1d3.js")));
         const polyfillsUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "polyfills.ef3261c6791c905c.js")));
-        const scriptUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "main.d1ab5d850b78367d.js")));
+        const scriptUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "main.b2690204348e795a.js")));
         const stylesUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "styles.ef46db3751d8e999.css")));
         // START URIS
         // added this
@@ -74,7 +74,7 @@ function activate(context) {
                         .on("end", () => {
                         fsObject = (0, populateAlgos_1.populateStructure)(items, selectorNames);
                         const sendNewPathObj = {
-                            command: "updatePath",
+                            command: "generateFolderFile",
                             data: fsObject,
                         };
                         pcObject = (0, populateAlgos_1.populatePCView)(selectorNames);
@@ -91,6 +91,14 @@ function activate(context) {
                     const pcMessage = {
                         command: "updatePC",
                         data: pcObject,
+                    };
+                    panel.webview.postMessage(pcMessage);
+                    break;
+                }
+                case "reloadPC": {
+                    const pcMessage = {
+                        command: "reloadPC",
+                        data: {},
                     };
                     panel.webview.postMessage(pcMessage);
                     break;

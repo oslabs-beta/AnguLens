@@ -8,7 +8,7 @@ import { ExtensionMessage } from '../models/message';
 })
 export class AppComponent implements OnInit {
   currentView: string = '';
-
+  generatedPc: boolean = false;
   ngOnInit() {
     //start view as the folder-file hierarchy graph
     this.currentView = 'folder-file';
@@ -16,27 +16,31 @@ export class AppComponent implements OnInit {
 
   loadFolderFile() {
     if (this.currentView === 'parent-child') {
-
       this.currentView = 'folder-file';
-      
+
       vscode.postMessage({
         command: 'reloadFolderFile',
         data: {},
       });
-    
     }
   }
 
   loadParentChild() {
     if (this.currentView === 'folder-file') {
-
       this.currentView = 'parent-child';
 
-      vscode.postMessage({
-        command: 'loadParentChild',
-        data: {},
-      });
-    
+      if (this.generatedPc === true) {
+        vscode.postMessage({
+          command: 'reloadPC',
+          data: {},
+        });
+      } else {
+        vscode.postMessage({
+          command: 'loadParentChild',
+          data: {},
+        });
+        this.generatedPc = true;
+      }
     }
   }
 
