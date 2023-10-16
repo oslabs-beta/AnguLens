@@ -8,6 +8,7 @@ import {
 import { DataSet } from 'vis-data';
 import { Network } from 'vis-network';
 import { FsItem } from '../../models/FileSystem';
+import { PcItem } from '../../models/FileSystem';
 import { ExtensionMessage } from '../../models/message';
 import { URIObj } from 'src/models/uri';
 
@@ -34,6 +35,7 @@ export class FolderFileComponent implements OnInit {
   nodes: any[] = [];
   edges: any[] = [];
   fsItems: FsItem[] = [];
+  pcItems: PcItem[] = [];
   uris: any;
   filePath: string = '';
   options = {
@@ -86,14 +88,16 @@ export class FolderFileComponent implements OnInit {
       const message: ExtensionMessage = event.data;
 
       switch (message.command) {
-        case 'updateState': {
+        case 'loadState': {
           const state = vscode.getState() as {
             fsItems: FsItem[];
+            pcItems: PcItem[];
             uris: any;
           } | null;
           if (state) {
             console.log('STATE NETWORK', state);
 
+            this.pcItems = state.pcItems;
             this.fsItems = state.fsItems;
             this.uris = state.uris;
             this.fileSystemService.fsItems = state.fsItems;
@@ -156,7 +160,11 @@ export class FolderFileComponent implements OnInit {
           };
 
           this.network = new Network(container, data, this.options);
-          vscode.setState({ fsItems: this.fsItems, uris: this.uris });
+          vscode.setState({
+            fsItems: this.fsItems,
+            uris: this.uris,
+            pcItems: this.pcItems,
+          });
           break;
         }
 
@@ -191,10 +199,12 @@ export class FolderFileComponent implements OnInit {
             edges: newEdges,
           };
           this.network = new Network(container, data, this.options);
-          const updateState = vscode.setState({
+          vscode.setState({
             fsItems: this.fsItems,
             uris: this.uris,
+            pcItems: this.pcItems,
           });
+          console.log('SETTING STATE OF UPDATEPATH: fsITEMS ===', this.fsItems);
           console.log('SETTING STATE OF UPDATE PATH ');
           break;
         }
@@ -202,10 +212,19 @@ export class FolderFileComponent implements OnInit {
         // reupdate screen
         case 'reloadFolderFile': {
           // console.log('SERVICES :D FS ITEMS', this.fileSystemService.fsItems);
-          this.fsItems = this.fileSystemService.fsItems;
+          //this.fsItems = this.fileSystemService.fsItems;
+          // this.fsItems = this.populate(message.data.src);
+
+          const state = vscode.getState() as {
+            fsItems: FsItem[];
+            pcItems: PcItem[];
+            uris: any;
+          };
+
+          this.fsItems = state.fsItems;
           // console.log('FSITEMS in Reload Folder File', this.fsItems);
           // set fsItems nodes and edges from services
-          this.uris = this.fileSystemService.uris;
+          this.uris = state.uris;
           const { nodes, edges } = this.createNodesAndEdges(
             this.fsItems,
             this.uris
@@ -229,15 +248,12 @@ export class FolderFileComponent implements OnInit {
             edges: newEdges,
           };
           this.network = new Network(container, data, this.options);
-          const reloadState = vscode.setState({
+          console.log('PC ITEMS', this.pcItems);
+          vscode.setState({
             fsItems: this.fsItems,
             uris: this.uris,
+            pcItems: this.pcItems,
           });
-          // console.log(
-          //   'STATE OF RELOAD STATE SET HERE:  ',
-          //   JSON.stringify(reloadState)
-          // );
-
           break;
         }
 

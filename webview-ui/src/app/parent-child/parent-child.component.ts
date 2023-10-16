@@ -12,8 +12,9 @@ import { ExtensionMessage } from '../../models/message';
 import { URIObj } from 'src/models/uri';
 
 import { vscode } from '../utilities/vscode';
-import { PcItem } from 'src/models/FileSystem';
+import { FsItem, PcItem } from 'src/models/FileSystem';
 import { ParentChildServices } from 'src/services/ParentChildServices';
+import { FileSystemService } from 'src/services/FileSystemService';
 
 @Component({
   selector: 'parent-child',
@@ -23,12 +24,16 @@ import { ParentChildServices } from 'src/services/ParentChildServices';
 export class ParentChildComponent implements OnInit {
   @ViewChild('networkContainer') networkContainer!: ElementRef;
 
-  constructor(private parentChildServices: ParentChildServices) {}
+  constructor(
+    private parentChildServices: ParentChildServices,
+    private fileSystemService: FileSystemService
+  ) {}
 
   nodes: any[] = [];
   edges: any[] = [];
   uris: any[] = [];
   pcItems: PcItem[] = [];
+  fsItems: FsItem[] = [];
   private network: any;
   options = {
     layout: {
@@ -78,53 +83,110 @@ export class ParentChildComponent implements OnInit {
 
       //handle different commands from extension
       switch (message.command) {
+        case 'loadState': {
+          const state = vscode.getState() as {
+            fsItems: FsItem[];
+            pcItems: PcItem[];
+            uris: any;
+          } | null;
+          if (state) {
+            this.pcItems = state.pcItems;
+            this.fsItems = state.fsItems;
+            this.uris = state.uris;
+            this.parentChildServices.pcItems = state.pcItems;
+            this.fileSystemService.fsItems = state.fsItems;
+
+            const { nodes, edges } = this.createNodesAndEdges(
+              this.pcItems,
+              this.uris
+            );
+            this.nodes = nodes;
+            this.edges = edges;
+
+            const newNodes = new DataSet(nodes);
+            const newEdges = new DataSet(edges);
+
+            // const data = { newNodes, newEdges };
+            const data: {
+              nodes: DataSet<any, 'id'>;
+              edges: DataSet<any, 'id'>;
+            } = {
+              nodes: newNodes,
+              edges: newEdges,
+            };
+
+            const container = this.networkContainer.nativeElement;
+            this.network = new Network(container, data, this.options);
+            vscode.setState({
+              fsItems: this.fsItems,
+              pcItems: this.pcItems,
+              uris: this.uris,
+            });
+          }
+          break;
+        }
         //load icon URI's
         case 'updateUris': {
           this.uris = message.data;
-          console.log('URISSSSSSSSS', this.uris);
+          vscode.setState({
+            fsItems: this.fsItems,
+            pcItems: this.pcItems,
+            uris: this.uris,
+          });
+          // console.log('URISSSSSSSSS', this.uris);
 
-          this.pcItems = this.populate(this.App);
-          console.log('fsItems', this.pcItems);
+          // this.pcItems = this.populate(this.App);
+          // console.log('fsItems', this.pcItems);
 
-          this.parentChildServices.updateState(
-            this.pcItems,
-            this.uris,
-            this.App
-          );
+          // this.parentChildServices.updateState(
+          //   this.pcItems,
+          //   this.uris,
+          //   this.App
+          // );
 
-          const { nodes, edges } = this.createNodesAndEdges(
-            this.pcItems,
-            this.uris
-          );
-          this.nodes = nodes;
-          this.edges = edges;
-          console.log('BEFORE SETTING DATASET');
-          const newNodes = new DataSet(nodes);
-          const newEdges = new DataSet(edges);
-          console.log('newNodes', newNodes);
-          console.log('newEdges', newEdges);
+          // const { nodes, edges } = this.createNodesAndEdges(
+          //   this.pcItems,
+          //   this.uris
+          // );
+          // this.nodes = nodes;
+          // this.edges = edges;
+          // console.log('BEFORE SETTING DATASET');
+          // const newNodes = new DataSet(nodes);
+          // const newEdges = new DataSet(edges);
+          // console.log('newNodes', newNodes);
+          // console.log('newEdges', newEdges);
 
-          // create a network
-          const container = this.networkContainer.nativeElement;
-          // const data = { newNodes, newEdges };
-          const data: {
-            nodes: DataSet<any, 'id'>;
-            edges: DataSet<any, 'id'>;
-          } = {
-            nodes: newNodes,
-            edges: newEdges,
-          };
+          // // create a network
+          // const container = this.networkContainer.nativeElement;
+          // // const data = { newNodes, newEdges };
+          // const data: {
+          //   nodes: DataSet<any, 'id'>;
+          //   edges: DataSet<any, 'id'>;
+          // } = {
+          //   nodes: newNodes,
+          //   edges: newEdges,
+          // };
 
-          console.log('Data:', data);
-          console.log('Options:', this.options);
-          this.network = new Network(container, data, this.options);
+          // console.log('Data:', data);
+          // console.log('Options:', this.options);
+          // this.network = new Network(container, data, this.options);
+          // vscode.setState({
+          //   fsItems: this.fsItems,
+          //   pcItems: this.pcItems,
+          //   uris: this.uris,
+          // });
           break;
         }
 
         case 'updatePC': {
           this.pcItems = this.populate(message.data);
-          console.log('fsItems', this.pcItems);
-
+          const { fsItems, uris } = vscode.getState() as {
+            fsItems: FsItem[];
+            uris: any;
+          };
+          this.fsItems = fsItems;
+          this.uris = uris;
+          console.log('pcItems', this.pcItems);
           this.parentChildServices.updateState(
             this.pcItems,
             this.uris,
@@ -137,11 +199,11 @@ export class ParentChildComponent implements OnInit {
           );
           this.nodes = nodes;
           this.edges = edges;
-          console.log('BEFORE SETTING DATASET');
+          // console.log('BEFORE SETTING DATASET');
           const newNodes = new DataSet(nodes);
           const newEdges = new DataSet(edges);
-          console.log('newNodes', newNodes);
-          console.log('newEdges', newEdges);
+          // console.log('newNodes', newNodes);
+          // console.log('newEdges', newEdges);
 
           // create a network
           const container = this.networkContainer.nativeElement;
@@ -153,21 +215,25 @@ export class ParentChildComponent implements OnInit {
             nodes: newNodes,
             edges: newEdges,
           };
-
-          console.log('Data:', data);
-          console.log('Options:', this.options);
+          //update state
+          vscode.setState({
+            fsItems: this.fsItems,
+            pcItems: this.pcItems,
+            uris: this.uris,
+          });
+          console.log('IN PC COMPONENT, UPDATEPC fsItems', this.fsItems);
           this.network = new Network(container, data, this.options);
           break;
         }
         default:
-          console.log('unknown comand ->', message.command);
+          console.log('PC DEFAULT CASE unknown command ->', message.command);
           break;
       }
     });
   }
 
   createNodesAndEdges(
-    fsItems: PcItem[],
+    pcItems: PcItem[],
     uris: string[]
   ): { nodes: any[]; edges: any[] } {
     const nodes: any[] = [];
@@ -189,7 +255,7 @@ export class ParentChildComponent implements OnInit {
         if (item.children && item.children.length > 0) {
           for (const childId of item.children) {
             edges.push({ from: item.id, to: childId });
-            const child = fsItems.find((fsItem) => fsItem.id === childId);
+            const child = pcItems.find((pcItem) => pcItem.id === childId);
             if (child) {
               // Recursively add nodes and edges for children
               addNodesAndEdges(child, item.id);
@@ -200,7 +266,7 @@ export class ParentChildComponent implements OnInit {
     }
 
     // Iterate through the root items and start the process
-    for (const rootItem of fsItems) {
+    for (const rootItem of pcItems) {
       addNodesAndEdges(rootItem);
     }
 
@@ -208,97 +274,6 @@ export class ParentChildComponent implements OnInit {
     console.log('EDGES', edges);
     return { nodes, edges };
   }
-
-  App = {
-    name: 'App',
-    path: '/App',
-    router: true,
-    children: [
-      {
-        name: 'header',
-        path: '/app/components/header',
-        children: [
-          {
-            name: 'button',
-            path: 'app/components/button',
-            children: [],
-            inputs: [
-              {
-                name: 'text',
-                pathFrom: '/app/components/header',
-                pathTo: 'app/components/button',
-              },
-              {
-                name: 'color',
-                pathFrom: '/app/components/header', //what are we adding for input's path?
-                pathTo: 'app/components/button',
-              },
-            ],
-            outputs: [
-              {
-                name: 'buttonClick',
-                pathFrom: 'app/components/button', //what are we adding for output's path?
-                pathTo: '/app/components/header',
-              },
-            ],
-          },
-        ],
-      },
-      {
-        name: 'footer',
-        path: 'app/component/footer',
-        children: [],
-      },
-    ],
-    routerOutlet: [
-      {
-        name: 'tasks',
-        path: 'app/component/tasks',
-        children: [
-          {
-            name: 'add-task',
-            path: 'app/component/add-task',
-            children: [], // added this
-            outputs: [
-              {
-                name: 'onAddTask',
-                pathFrom: 'app/component/add-task',
-                pathTo: 'app/component/tasks',
-              },
-            ],
-          },
-          {
-            name: 'task-item',
-            path: 'app/component/task-item',
-            children: [], // added this
-            inputs: [
-              {
-                name: 'task',
-                pathFrom: 'app/component/tasks',
-                pathTo: 'app/component/task-item',
-              },
-            ],
-            outputs: [
-              {
-                name: 'onDeleteTask',
-                pathFrom: 'app/component/task-item',
-                pathTo: 'app/component/tasks',
-              },
-              {
-                name: 'onToggleReminder',
-                pathFrom: 'app/component/task-item',
-                pathTo: 'app/component/tasks',
-              },
-            ],
-          },
-        ],
-      },
-      {
-        name: 'app-about',
-        path: 'app/component/about',
-      },
-    ],
-  };
 
   populate(obj: any, items: PcItem[] = []): PcItem[] {
     // let firstKey = Object.keys(obj)[0];
@@ -317,7 +292,6 @@ export class ParentChildComponent implements OnInit {
           children: [],
         };
         items.push(currentNode);
-        console.log('CURRENT NODE', currentNode);
 
         // check if object has children
         if (obj.children) {
@@ -341,3 +315,94 @@ export class ParentChildComponent implements OnInit {
     return items;
   }
 }
+
+// App = {
+//   name: 'App',
+//   path: '/App',
+//   router: true,
+//   children: [
+//     {
+//       name: 'header',
+//       path: '/app/components/header',
+//       children: [
+//         {
+//           name: 'button',
+//           path: 'app/components/button',
+//           children: [],
+//           inputs: [
+//             {
+//               name: 'text',
+//               pathFrom: '/app/components/header',
+//               pathTo: 'app/components/button',
+//             },
+//             {
+//               name: 'color',
+//               pathFrom: '/app/components/header', //what are we adding for input's path?
+//               pathTo: 'app/components/button',
+//             },
+//           ],
+//           outputs: [
+//             {
+//               name: 'buttonClick',
+//               pathFrom: 'app/components/button', //what are we adding for output's path?
+//               pathTo: '/app/components/header',
+//             },
+//           ],
+//         },
+//       ],
+//     },
+//     {
+//       name: 'footer',
+//       path: 'app/component/footer',
+//       children: [],
+//     },
+//   ],
+//   routerOutlet: [
+//     {
+//       name: 'tasks',
+//       path: 'app/component/tasks',
+//       children: [
+//         {
+//           name: 'add-task',
+//           path: 'app/component/add-task',
+//           children: [], // added this
+//           outputs: [
+//             {
+//               name: 'onAddTask',
+//               pathFrom: 'app/component/add-task',
+//               pathTo: 'app/component/tasks',
+//             },
+//           ],
+//         },
+//         {
+//           name: 'task-item',
+//           path: 'app/component/task-item',
+//           children: [], // added this
+//           inputs: [
+//             {
+//               name: 'task',
+//               pathFrom: 'app/component/tasks',
+//               pathTo: 'app/component/task-item',
+//             },
+//           ],
+//           outputs: [
+//             {
+//               name: 'onDeleteTask',
+//               pathFrom: 'app/component/task-item',
+//               pathTo: 'app/component/tasks',
+//             },
+//             {
+//               name: 'onToggleReminder',
+//               pathFrom: 'app/component/task-item',
+//               pathTo: 'app/component/tasks',
+//             },
+//           ],
+//         },
+//       ],
+//     },
+//     {
+//       name: 'app-about',
+//       path: 'app/component/about',
+//     },
+//   ],
+// };

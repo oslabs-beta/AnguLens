@@ -66,7 +66,7 @@ export function activate(context: vscode.ExtensionContext) {
         path.join(
           __dirname,
           "../webview-ui/dist/webview-ui",
-          "main.c897ecbd8f314c6c.js"
+          "main.d1ab5d850b78367d.js"
         )
       )
     );
@@ -108,6 +108,10 @@ export function activate(context: vscode.ExtensionContext) {
     const items: any = [];
     const selectorNames: object[] = [];
     let currentFilePath: string = "";
+    let pcObject: object = {};
+    let fsObject: object = {};
+
+    // FS OBject
     panel.webview.onDidReceiveMessage(
       (message: Message) => {
         switch (message.command) {
@@ -126,47 +130,38 @@ export function activate(context: vscode.ExtensionContext) {
             klaw(rootPath)
               .on("data", (item) => items.push(item))
               .on("end", () => {
+                fsObject = populateStructure(items, selectorNames);
+
                 const sendNewPathObj: Message = {
                   command: "updatePath",
-                  data: populateStructure(items, selectorNames),
+                  data: fsObject,
                 };
+                pcObject = populatePCView(selectorNames);
 
-                const pcObject = populatePCView(selectorNames);
+                // const pcMessage: Message = {
+                //   command: "updatePC",
+                //   data: pcObject,
+                // };
 
-                const pcMessage: Message = {
-                  command: "updatePC",
-                  data: pcObject,
-                };
-
-                panel.webview.postMessage(pcMessage);
-
+                //panel.webview.postMessage(pcMessage);
                 panel.webview.postMessage(sendNewPathObj);
               });
             break;
           }
 
           case "loadParentChild": {
-            klaw(currentFilePath)
-              .on("data", (item) => items.push(item))
-              .on("end", () => {
-                const pcObject = populatePCView(selectorNames);
-                console.log("PC OBJECT!!!! : ", pcObject);
-
-                const pcMessage: Message = {
-                  command: "updatePC",
-                  data: pcObject,
-                };
-
-                panel.webview.postMessage(pcMessage);
-              });
-
+            const pcMessage: Message = {
+              command: "updatePC",
+              data: pcObject,
+            };
+            panel.webview.postMessage(pcMessage);
             break;
           }
 
           case "reloadFolderFile": {
             panel.webview.postMessage({
               command: "reloadFolderFile",
-              data: {},
+              data: fsObject,
             });
             break;
           }
@@ -188,10 +183,13 @@ export function activate(context: vscode.ExtensionContext) {
       imageUris
     );
 
+    /*
+      Leaving 
+    */
     panel.onDidChangeViewState((e) => {
       if (e.webviewPanel.visible) {
         panel.webview.postMessage({
-          command: "updateState",
+          command: "loadState",
           data: {},
         });
       }
