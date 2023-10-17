@@ -66,7 +66,7 @@ export function activate(context: vscode.ExtensionContext) {
         path.join(
           __dirname,
           "../webview-ui/dist/webview-ui",
-          "main.6d2a46959febf9a3.js"
+          "main.6d17fdd88c5c5f85.js"
         )
       )
     );
@@ -170,7 +170,7 @@ export function activate(context: vscode.ExtensionContext) {
           case "reloadFolderFile": {
             panel.webview.postMessage({
               command: "reloadFolderFile",
-              data: fsObject,
+              data: {},
             });
             break;
           }

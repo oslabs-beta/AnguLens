@@ -1,9 +1,9 @@
 import {
   Component,
+  ChangeDetectionStrategy,
   ElementRef,
   OnInit,
   ViewChild,
-  AfterViewInit,
 } from '@angular/core';
 import { DataSet } from 'vis-data';
 import { Network } from 'vis-network';
@@ -13,27 +13,25 @@ import { URIObj } from 'src/models/uri';
 
 import { vscode } from '../utilities/vscode';
 import { FsItem, PcItem } from 'src/models/FileSystem';
-import { ParentChildServices } from 'src/services/ParentChildServices';
-import { FileSystemService } from 'src/services/FileSystemService';
+// import { ParentChildServices } from 'src/services/ParentChildServices';
+// import { FileSystemService } from 'src/services/FileSystemService';
 
 @Component({
   selector: 'parent-child',
   templateUrl: './parent-child.component.html',
   styleUrls: ['./parent-child.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ParentChildComponent implements OnInit {
   @ViewChild('networkContainer') networkContainer!: ElementRef;
 
-  constructor(
-    private parentChildServices: ParentChildServices,
-    private fileSystemService: FileSystemService
-  ) {}
+  constructor() {}
 
   nodes: any[] = [];
   edges: any[] = [];
   uris: any[] = [];
   pcItems: PcItem[] = [];
-  fsItems: FsItem[] = [];
+  // fsItems: FsItem[] = [];
   private network: any;
   options = {
     layout: {
@@ -83,7 +81,7 @@ export class ParentChildComponent implements OnInit {
 
       //handle different commands from extension
       switch (message.command) {
-        case 'loadState': {
+        case 'stop': {
           const state = vscode.getState() as {
             fsItems: FsItem[];
             pcItems: PcItem[];
@@ -93,32 +91,13 @@ export class ParentChildComponent implements OnInit {
           };
           if (state) {
             this.pcItems = state.pcItems;
-            this.fsItems = state.fsItems;
+            // this.fsItems = state.fsItems;
             this.uris = state.uris;
-            
-            // const { nodes, edges } = this.createNodesAndEdges(
-            //   this.pcItems,
-            //   this.uris
-            // );
-            // this.nodes = nodes;
-            // this.edges = edges;
-
-            // const newNodes = new DataSet(nodes);
-            // const newEdges = new DataSet(edges);
-
-            // // const data = { newNodes, newEdges };
-            // const data: {
-            //   nodes: DataSet<any, 'id'>;
-            //   edges: DataSet<any, 'id'>;
-            // } = {
-            //   nodes: newNodes,
-            //   edges: newEdges,
-            // };
 
             const container = this.networkContainer.nativeElement;
             this.network = new Network(container, state.pcData, this.options);
             vscode.setState({
-              fsItems: this.fsItems,
+              // fsItems: this.fsItems,
               pcItems: this.pcItems,
               uris: this.uris,
               pcData: state.pcData,
@@ -127,35 +106,27 @@ export class ParentChildComponent implements OnInit {
           }
           break;
         }
-        //load icon URI's
 
         case 'updatePC': {
           this.pcItems = this.populate(message.data);
-          const { fsItems, uris, fsData } = vscode.getState() as {
+          const state = vscode.getState() as {
             fsItems: FsItem[];
+            pcItems: PcItem[];
             uris: any;
+            pcData: any;
             fsData: any;
+            fsNodes: any;
+            fsEdges: any;
           };
-          this.fsItems = fsItems;
-          this.uris = uris;
-          console.log('pcItems', this.pcItems);
-          this.parentChildServices.updateState(
-            this.pcItems,
-            this.uris,
-            message.data
-          );
-
+          this.uris = state.uris;
           const { nodes, edges } = this.createNodesAndEdges(
             this.pcItems,
             this.uris
           );
           this.nodes = nodes;
           this.edges = edges;
-          // console.log('BEFORE SETTING DATASET');
           const newNodes = new DataSet(nodes);
           const newEdges = new DataSet(edges);
-          // console.log('newNodes', newNodes);
-          // console.log('newEdges', newEdges);
 
           // create a network
           const container = this.networkContainer.nativeElement;
@@ -168,37 +139,42 @@ export class ParentChildComponent implements OnInit {
             edges: newEdges,
           };
           //update state
+
           vscode.setState({
-            fsItems: this.fsItems,
-            pcItems: this.pcItems,
+            fsItems: state.fsItems,
+            pcItems: state.pcItems,
             uris: this.uris,
             pcData: data,
-            fsData: fsData,
+            fsData: state.fsData,
+            fsNodes: state.fsNodes,
+            fsEdges: state.fsEdges,
           });
-          console.log('==== IN PC COMPONENT, UPDATEPC data ====', data);
           this.network = new Network(container, data, this.options);
           break;
         }
 
         case 'reloadPC': {
-          // this.pcItems = this.populate(message.data);
-          // const { fsItems, uris, pcItems, pcData } = vscode.getState() as {
-          //   fsItems: FsItem[];
-          //   uris: any;
-          //   pcItems: PcItem[];
-          //   pcData: any;
-          // };
-
           const state = vscode.getState() as {
             fsItems: FsItem[];
             pcItems: PcItem[];
             uris: any;
             pcData: any;
+            fsData: any;
+            fsNodes: any;
+            fsEdges: any;
           };
-          console.log('STATE IN RELOADPC -> ', state);
-          console.log('RELOADPC PCDATA', state.pcData);
           const container = this.networkContainer.nativeElement;
           this.network = new Network(container, state.pcData, this.options);
+
+          // vscode.setState({
+          //   fsItems: this.fsItems,
+          //   pcItems: this.pcItems,
+          //   uris: this.uris,
+          //   pcData: state.pcData,
+          //   fsData: state.fsData,
+          //   fsNodes: state.fsNodes,
+          //   fsEdges: state.fsEdges,
+          // });
           break;
         }
 
@@ -247,8 +223,6 @@ export class ParentChildComponent implements OnInit {
       addNodesAndEdges(rootItem);
     }
 
-    // console.log('NODES', nodes);
-    // console.log('EDGES', edges);
     return { nodes, edges };
   }
 
@@ -256,7 +230,6 @@ export class ParentChildComponent implements OnInit {
     // let firstKey = Object.keys(obj)[0];
 
     function populateGraph(obj: any, parentComponent?: string): PcItem | void {
-      console.log('in populate graph');
       // if current object has a name -> create a node for it
       if (obj.hasOwnProperty('name')) {
         const currentNode: PcItem = {
