@@ -88,47 +88,61 @@ export class FolderFileComponent implements OnInit {
 
       switch (message.command) {
         case 'loadState': {
+          // const { fsItems, pcItems, uris, fsData, pcData } =
+          //   vscode.getState() as {
+          //     fsItems: FsItem[];
+          //     pcItems: PcItem[];
+          //     uris: any;
+          //     fsData: any;
+          //     pcData: any;
+          //   };
           const state = vscode.getState() as {
             fsItems: FsItem[];
             pcItems: PcItem[];
             uris: any;
-          } | null;
+            pcData: any;
+            fsData: any;
+          };
+
+          console.log(state.fsData, 'FS DATA IN LOAD STATE');
+          // console.log('STATE NETWORK', state);
+
+          // this.pcItems = state.pcItems;
+          // this.fsItems = state.fsItems;
+          // this.uris = state.uris;
+
+          // const { nodes, edges } = this.createNodesAndEdges(
+          //   this.fsItems,
+          //   this.uris
+          // );
+
+          // this.nodes = nodes;
+          // this.edges = edges;
+
+          // const newNodes = new DataSet(nodes);
+          // const newEdges = new DataSet(edges);
+
+          // // const data = { newNodes, newEdges };
+          // const data: {
+          //   nodes: DataSet<any, 'id'>;
+          //   edges: DataSet<any, 'id'>;
+          // } = {
+          //   nodes: newNodes,
+          //   edges: newEdges,
+          // };
           if (state) {
-            console.log('STATE NETWORK', state);
-
-            this.pcItems = state.pcItems;
-            this.fsItems = state.fsItems;
-            this.uris = state.uris;
-            this.fileSystemService.fsItems = state.fsItems;
-            this.fileSystemService.uris = state.uris;
-
-            const { nodes, edges } = this.createNodesAndEdges(
-              this.fsItems,
-              this.uris
-            );
-
-            this.nodes = nodes;
-            this.edges = edges;
-
-            const newNodes = new DataSet(nodes);
-            const newEdges = new DataSet(edges);
-
-            // const data = { newNodes, newEdges };
-            const data: {
-              nodes: DataSet<any, 'id'>;
-              edges: DataSet<any, 'id'>;
-            } = {
-              nodes: newNodes,
-              edges: newEdges,
-            };
-
+            console.log('ABOUT TO CREATE THE NETWORK');
             const container = this.networkContainer.nativeElement;
-            this.network = new Network(container, data, this.options);
+            this.network = new Network(container, state.fsData, this.options);
+            console.log('NETWORK FS DATA', state.fsData);
+            console.log('THIS.NETWORK', this.network);
           }
+
           break;
         }
         //load icon URI's
         case 'updateUris': {
+          console.log('RUNNING UPDATEURIS');
           this.uris = message.data;
           this.fsItems = this.populate(this.source.src);
 
@@ -200,14 +214,18 @@ export class FolderFileComponent implements OnInit {
           };
 
           this.network = new Network(container, data, this.options);
-          vscode.setState({
+          const state = vscode.setState({
             fsItems: this.fsItems,
             uris: this.uris,
             pcItems: this.pcItems,
             fsData: data,
             pcData: {},
           });
-          console.log('SETTING STATE OF UPDATEPATH: fsITEMS ===', this.fsItems);
+          console.log(
+            'SETTING STATE OF UPDATEPATH: fsITEMS ===',
+            state.fsItems
+          );
+          console.log('STATE FSDATA', state.fsData);
           console.log('SETTING STATE OF UPDATE PATH ');
           break;
         }
@@ -226,6 +244,7 @@ export class FolderFileComponent implements OnInit {
             fsData: any;
           };
           console.log('RELOAD FS STATE', state);
+          console.log(state.fsData, 'FSDATA IN RELOAD');
           this.fsItems = state.fsItems;
           // console.log('FSITEMS in Reload Folder File', this.fsItems);
           // set fsItems nodes and edges from services

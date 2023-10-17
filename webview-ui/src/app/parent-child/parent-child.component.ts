@@ -88,15 +88,14 @@ export class ParentChildComponent implements OnInit {
             fsItems: FsItem[];
             pcItems: PcItem[];
             uris: any;
-            pcData: { nodes: DataSet<any, 'id'>; edges: DataSet<any, 'id'> };
+            pcData: any;
+            fsData: any;
           };
           if (state) {
             this.pcItems = state.pcItems;
             this.fsItems = state.fsItems;
             this.uris = state.uris;
-            this.parentChildServices.pcItems = state.pcItems;
-            this.fileSystemService.fsItems = state.fsItems;
-
+            
             // const { nodes, edges } = this.createNodesAndEdges(
             //   this.pcItems,
             //   this.uris
@@ -123,6 +122,7 @@ export class ParentChildComponent implements OnInit {
               pcItems: this.pcItems,
               uris: this.uris,
               pcData: state.pcData,
+              fsData: state.fsData,
             });
           }
           break;
@@ -168,16 +168,14 @@ export class ParentChildComponent implements OnInit {
             edges: newEdges,
           };
           //update state
-          const updateState = vscode.setState({
+          vscode.setState({
             fsItems: this.fsItems,
             pcItems: this.pcItems,
             uris: this.uris,
             pcData: data,
             fsData: fsData,
           });
-          console.log('=== UPDATE STATE ===', updateState);
           console.log('==== IN PC COMPONENT, UPDATEPC data ====', data);
-          console.log('IN PC COMPONENT, UPDATEPC fsItems', this.fsItems);
           this.network = new Network(container, data, this.options);
           break;
         }
