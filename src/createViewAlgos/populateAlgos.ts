@@ -11,29 +11,19 @@ export function populateStructure(array: any, selectorNames: object[]): object {
   let rootPath: string = "";
   let omitIndeces;
   for (const item of array) {
-    // if its the first iteration of the for loop
+
+    let pathArray = item.path.split("/");
+    let name = pathArray.pop();
+
     if (rootPath.length === 0) {
-      // console.log('item.path: 'item.path);
-      let pathArray = item.path.split("/");
-      // console.log('pathArray: ', pathArray);
-      let rootFolder = pathArray.pop();
-      // console.log('pathArray: ', pathArray);
-      rootPath = rootFolder;
-      // console.log('root path is : ', rootPath);
-      output[rootFolder] = {
+      rootPath = name; //resetting our default, from rootpath = '', so that our else conditional on line 25 will hit
+      output[name] = {
         type: "folder",
         path: item.path,
       };
       omitIndeces = pathArray.length;
-      // console.log('omitIndeces: ', omitIndeces);
     } else {
-      //checking elements after the 1st one / root directory
-      let pathArray = item.path.split("/");
-
       pathArray.splice(0, omitIndeces);
-      let name = pathArray.pop();
-
-      // locating through nested output object logic
       let objTracker = output;
       for (const key of pathArray) {
         objTracker = objTracker[key];
@@ -56,19 +46,51 @@ export function populateStructure(array: any, selectorNames: object[]): object {
           sourceFile,
           "PropertyAssignment > Identifier[name=selector]"
         );
-        console.log("component name: ", name);
-        const testArray = filePath.split("/");
-        testArray.pop();
-        const test = testArray.join("/");
+        let tempArray = filePath.split("/");
+        tempArray.pop();
+        const folderPath = tempArray.join("/");
+
+       
 
         // Check if selectorProperties is not empty and log the selector name
         if (selectorProperties.length > 0) {
           const selectorName = selectorProperties[0].parent.initializer.text;
-          
+        
           const obj = {
             selectorName,
-            folderPath: test,
+            folderPath,
+            inputs: [],
+            outputs: []
           };
+
+          const inputProperties = tsquery (
+            sourceFile,
+            "PropertyDeclaration:has(Identifier[name=Input])"
+          ) as ts.PropertyDeclaration[];
+  
+          inputProperties.forEach(variable => {
+            const variableName = (variable.name as ts.Identifier).text;
+            const input = {
+              name: variableName,
+              pathTo: folderPath,
+            }
+            obj.inputs.push(input);
+          });
+
+          const outputProperties = tsquery(
+            sourceFile,
+            'PropertyDeclaration:has(Decorator > CallExpression > Identifier[name=Output])'
+          ) as ts.PropertyDeclaration[];
+          
+          outputProperties.forEach(variable => {
+            const variableName = (variable.name as ts.Identifier).text;
+            const output = {
+              name: variableName,
+              pathFrom: folderPath,
+            };
+            obj.outputs.push(output);
+          });
+
           selectorNames.push(obj);
         }
       }
@@ -82,6 +104,9 @@ export function populateStructure(array: any, selectorNames: object[]): object {
   return output;
 }
 
+
+
+
 function generateAST(filePath: string) {
   // Read the TypeScript file content
   const fileContent = fs.readFileSync(filePath, "utf-8");
@@ -93,11 +118,13 @@ function generateAST(filePath: string) {
     ts.ScriptTarget.Latest,
     true
   );
-
-  // Return the AST (abstract syntax tree) of the source file
+  // Return the AST of the source file
   return sourceFile;
 }
 
+
+
+// populates Parent Child object to send to Angular App
 export function populatePCView(selectorNames: object[]): object {
   // step 1: build initial object with information about app component
   let appPath: string;
@@ -107,35 +134,59 @@ export function populatePCView(selectorNames: object[]): object {
       appPath = selectorName.folderPath;
     }
   }
-  const output = {
+  const pcObject = {
     name: "app-root",
     path: appPath,
     children: [],
   };
 
-  populateChildren(output, selectorNames);
-  return output;
+  populateChildren(pcObject, selectorNames);
+
+  return pcObject;
 }
+
+//CHANGED to "pcObject" from "output" ij the 3 instances above... make sure it didn't break anything!
 
 function populateChildren(pcObject: object, selectorNames: object[]): object {
   // Step 1: populating current object's children array
   const filePath = convertToHtml(pcObject.path);
+
   for (const selectorName of selectorNames) {
+    const obj = {
+      name: '',
+      path: '',
+      inputs: [],
+      children: [],
+      outputs: []
+    }
+
     if (selectorCheck(filePath, selectorName.selectorName)) {
-      const obj = {
-        name: selectorName.selectorName,
-        path: selectorName.folderPath,
-        children: [],
-      };
+      obj.name = selectorName.selectorName;
+      obj.path = selectorName.folderPath;
+      selectorName.inputs.forEach(input => {
+        if (inputCheck(filePath, input.name)){
+          input.pathFrom = pcObject.path;
+          obj.inputs.push(input);
+        }
+      });
+      selectorName.outputs.forEach(output =>{
+        if (outputCheck(filePath, output.name)){
+          output.pathTo = pcObject.path;
+          obj.outputs.push(output);
+        }
+      });
       pcObject.children.push(obj);
     }
   }
-  // Step 2: Recursively call this function on each obj of children array
+
+  //Recursively call this function on each obj of children array
   pcObject.children.forEach((child) =>
     populateChildren(child, selectorNames)
   );
+  console.log('NEWUPDATED pcobject: ',pcObject);
   return pcObject;
 }
+
 
 function convertToHtml(folderPath: string): string {
   let path = folderPath.split("/");
@@ -143,6 +194,7 @@ function convertToHtml(folderPath: string): string {
   const htmlFile = component + ".component.html";
   return folderPath + "/" + htmlFile;
 }
+
 
 function selectorCheck(filePath: string, selectorName: string): boolean {
   const parsed = fs.readFileSync(filePath, "utf-8");
@@ -154,10 +206,31 @@ function selectorCheck(filePath: string, selectorName: string): boolean {
 
   //if it found a match (variable foundElement has length) return true
   if (foundElement.length) {
+    console.log('SELECTORCHECKfilePath: ', filePath);
+    console.log('selectorName: ', selectorName);
     return true;
   }
   return false;
 }
 
-  // console.log("JSON STRINGIFIED OUTPUT", JSON.stringify(output));
+function inputCheck(templatePath, inputName) {
+  const templateContent = fs.readFileSync(templatePath, "utf-8");
+  const regex = new RegExp(`\\[${inputName}\\]`, 'g');
+  const matches = templateContent.match(regex);
+  if (matches) {
+    return true;
+  } else {
+    return false;
+  }
+}
 
+function outputCheck(templatePath, outputName) {
+  const templateContent = fs.readFileSync(templatePath, "utf-8");
+  const regex = new RegExp(`\\(${outputName}\\)`, 'g');
+  const matches = templateContent.match(regex);
+  if (matches) {
+    return true;
+  } else {
+    return false;
+  }
+}
