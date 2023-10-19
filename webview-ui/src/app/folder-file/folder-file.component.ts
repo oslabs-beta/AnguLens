@@ -223,7 +223,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.setupMessageListener();
-    this.network.on('doubleClick', (params) => {
+    this.network.on('doubleClick', (params:any) => {
       if (params.nodes.length > 0) {
         const nodeId = params.nodes[0];
         
