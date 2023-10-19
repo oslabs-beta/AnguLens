@@ -22,9 +22,9 @@ export class PcItem {
 export interface Node {
   id: string;
   label: string;
-  image: {
-    unselected: string;
-    selected: string;
+  image?: {
+    unselected?: string;
+    selected?: string;
   };
 }
 

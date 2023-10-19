@@ -4,6 +4,7 @@ import {
   ElementRef,
   OnInit,
   ViewChild,
+  OnDestroy,
 } from '@angular/core';
 import { DataSet } from 'vis-data';
 import { Network } from 'vis-network';
@@ -36,7 +37,7 @@ interface File {
   styleUrls: ['./folder-file.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class FolderFileComponent implements OnInit {
+export class FolderFileComponent implements OnInit, OnDestroy {
   @ViewChild('networkContainer') networkContainer!: ElementRef;
 
   constructor(private fileSystemService: FileSystemService) {}
@@ -46,7 +47,7 @@ export class FolderFileComponent implements OnInit {
   edges: Edge[] = [];
   fsItems: FsItem[] = [];
   pcItems: PcItem[] = [];
-  uris: any;
+  uris: string[] = [];
   filePath: string = '';
   options = {
     layout: {
@@ -63,10 +64,6 @@ export class FolderFileComponent implements OnInit {
 
     nodes: {
       shape: 'image',
-      // image: {
-      //   selected: '../assets/scottytoohotty.png',
-      //   unselected: '../assets/folder-svgrepo-com.svg',
-      // },
       shadow: {
         enabled: true,
         color: 'rgba(0,0,0,0.5)',
@@ -92,135 +89,141 @@ export class FolderFileComponent implements OnInit {
       },
     },
   };
+  private handleMessageEvent = (event: MessageEvent) => {
+    const message: ExtensionMessage = event.data;
+    console.log('caught message?', message);
+    switch (message.command) {
+      case 'loadState': {
+        const state = vscode.getState() as {
+          // fsItems: FsItem[];
+          // pcItems: PcItem[];
+          uris: string[];
+          pcData: any;
+          fsNodes: Node[];
+          fsEdges: Edge[];
+        };
 
-  ngOnInit() {
-    window.addEventListener('message', (event) => {
-      const message: ExtensionMessage = event.data;
+        const newNodes = new DataSet(state.fsNodes);
+        const newEdges = new DataSet(state.fsEdges);
+        const data: {
+          nodes: DataSet<any, 'id'>;
+          edges: DataSet<any, 'id'>;
+        } = {
+          nodes: newNodes,
+          edges: newEdges,
+        };
+        const container = this.networkContainer.nativeElement;
+        this.network = new Network(container, data, this.options);
 
-      switch (message.command) {
-        case 'loadState': {
-          const state = vscode.getState() as {
-            fsItems: FsItem[];
-            pcItems: PcItem[];
-            uris: any;
-            pcData: any;
-            fsNodes: Node[];
-            fsEdges: Edge[];
-          };
+        vscode.setState({
+          // fsItems: state.fsItems,
+          uris: state.uris,
+          // pcItems: state.pcItems,
+          fsData: data,
+          fsNodes: state.fsNodes,
+          fsEdges: state.fsEdges,
+          pcData: state.pcData,
+        });
 
-          const newNodes = new DataSet(state.fsNodes);
-          const newEdges = new DataSet(state.fsEdges);
-          const data: {
-            nodes: DataSet<any, 'id'>;
-            edges: DataSet<any, 'id'>;
-          } = {
-            nodes: newNodes,
-            edges: newEdges,
-          };
-          const container = this.networkContainer.nativeElement;
-          this.network = new Network(container, data, this.options);
-
-          vscode.setState({
-            fsItems: state.fsItems,
-            uris: state.uris,
-            pcItems: state.pcItems,
-            fsData: data,
-            fsNodes: state.fsNodes,
-            fsEdges: state.fsEdges,
-            pcData: state.pcData,
-          });
-
-          break;
-        }
-        //load icon URI's
-        case 'updateUris': {
-          console.log('RUNNING UPDATEURIS');
-          this.uris = message.data;
-          this.fsItems = this.populate(this.source.src);
-
-          this.fileSystemService.updateState(
-            this.fsItems,
-            this.uris,
-            this.source.src
-          );
-          vscode.setState({
-            fsItems: this.fsItems,
-            uris: this.uris,
-            pcItems: this.pcItems,
-          });
-          break;
-        }
-        //updatePath
-        case 'generateFolderFile': {
-          this.fsItems = this.populate(message.data.src);
-
-          const { nodes, edges } = this.createNodesAndEdges(
-            this.fsItems,
-            this.uris
-          );
-
-          const edgesWithIds: Edge[] = edges.map((edge) => ({
-            ...edge,
-            from: edge.from,
-            to: edge.to,
-          }));
-          this.edges = edgesWithIds;
-          this.nodes = nodes;
-
-          const newNodes = new DataSet(nodes);
-          const newEdges = new DataSet(edgesWithIds);
-
-          // create a network
-          const container = this.networkContainer.nativeElement;
-          // const data = { newNodes, newEdges };
-          const data: {
-            nodes: DataSet<any>;
-            edges: DataSet<any>;
-          } = {
-            nodes: newNodes,
-            edges: newEdges,
-          };
-
-          this.network = new Network(container, data, this.options);
-          vscode.setState({
-            fsItems: this.fsItems,
-            uris: this.uris,
-            pcItems: this.pcItems,
-            fsData: data,
-            fsNodes: this.nodes,
-            fsEdges: this.edges,
-            pcData: {},
-          });
-          break;
-        }
-
-        // reupdate screen
-        case 'reloadFolderFile': {
-          const state = vscode.getState() as {
-            fsItems: FsItem[];
-            pcItems: PcItem[];
-            uris: any;
-            pcData: any;
-            fsData: any;
-            fsNodes: Node[];
-            fsEdges: Edge[];
-          };
-
-          this.fsItems = state.fsItems;
-          this.uris = state.uris;
-
-          const container = this.networkContainer.nativeElement;
-          this.network = new Network(container, state.fsData, this.options);
-
-          break;
-        }
-
-        //default
-        default:
-          console.log('unknown comand ->', message.command);
-          break;
+        break;
       }
-    });
+      //load icon URI's
+      case 'updateUris': {
+        console.log('RUNNING UPDATEURIS');
+        this.uris = message.data;
+        // this.fsItems = this.populate(this.source.src);
+
+        // this.fileSystemService.updateState(
+        //   this.fsItems,
+        //   this.uris,
+        //   // this.source.src
+        // );
+        vscode.setState({
+          // fsItems: this.fsItems,
+          uris: this.uris,
+          // pcItems: this.pcItems,
+        });
+        break;
+      }
+      //updatePath
+      case 'generateFolderFile': {
+        this.fsItems = this.populate(message.data.src);
+
+        const { nodes, edges } = this.createNodesAndEdges(
+          this.fsItems,
+          this.uris
+        );
+
+        const edgesWithIds: Edge[] = edges.map((edge) => ({
+          ...edge,
+          from: edge.from,
+          to: edge.to,
+        }));
+        this.edges = edgesWithIds;
+        this.nodes = nodes;
+
+        const newNodes = new DataSet(nodes);
+        const newEdges = new DataSet(edgesWithIds);
+
+        // create a network
+        const container = this.networkContainer.nativeElement;
+        // const data = { newNodes, newEdges };
+        const data: {
+          nodes: DataSet<any>;
+          edges: DataSet<any>;
+        } = {
+          nodes: newNodes,
+          edges: newEdges,
+        };
+
+        this.network = new Network(container, data, this.options);
+        vscode.setState({
+          // fsItems: this.fsItems,
+          uris: this.uris,
+          // pcItems: this.pcItems,
+          fsData: data,
+          fsNodes: this.nodes,
+          fsEdges: this.edges,
+          pcData: {},
+        });
+        break;
+      }
+
+      // reupdate screen
+      case 'reloadFolderFile': {
+        const state = vscode.getState() as {
+          // fsItems: FsItem[];
+          // pcItems: PcItem[];
+          uris: string[];
+          pcData: any;
+          fsData: any;
+          fsNodes: Node[];
+          fsEdges: Edge[];
+        };
+
+        const container = this.networkContainer.nativeElement;
+        this.network = new Network(container, state.fsData, this.options);
+        break;
+      }
+
+      //default
+      default:
+        console.log('unknown comand ->', message.command);
+        break;
+    }
+  };
+
+  setupMessageListener(): void {
+    window.addEventListener('message', this.handleMessageEvent);
+  }
+
+  ngOnInit(): void {
+    this.setupMessageListener();
+  }
+
+  ngOnDestroy(): void {
+    console.log('DESTROYED');
+    window.removeEventListener('message', this.handleMessageEvent);
   }
 
   /*
@@ -310,64 +313,6 @@ export class FolderFileComponent implements OnInit {
     return { nodes, edges };
   }
 
-  source = {
-    src: {
-      type: 'folder',
-      path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src',
-      app: {
-        type: 'folder',
-        path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app',
-        'app-routing.module.ts': {
-          type: 'ts',
-          path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app/app-routing.module.ts',
-        },
-        'app.component.css': {
-          type: 'css',
-          path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app/app.component.css',
-        },
-        'app.component.html': {
-          type: 'html',
-          path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app/app.component.html',
-        },
-        'app.component.spec.ts': {
-          type: 'ts',
-          path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app/app.component.spec.ts',
-        },
-        'app.component.ts': {
-          type: 'ts',
-          path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app/app.component.ts',
-        },
-        'app.module.ts': {
-          type: 'ts',
-          path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app/app.module.ts',
-        },
-      },
-      assets: {
-        type: 'folder',
-        path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/assets',
-        '.gitkeep': {
-          type: 'gitkeep',
-          path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/assets/.gitkeep',
-        },
-      },
-      'favicon.ico': {
-        type: 'ico',
-        path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/favicon.ico',
-      },
-      'index.html': {
-        type: 'html',
-        path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/index.html',
-      },
-      'main.ts': {
-        type: 'ts',
-        path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/main.ts',
-      },
-      'styles.css': {
-        type: 'css',
-        path: '/Users/daielkim/CodeSmith/osp/AnguLens/webview-ui/src/styles.css',
-      },
-    },
-  };
   populate(obj: Folder | File, items: FsItem[] = []): FsItem[] {
     // Helper function to recursively populate the file system hierarchy
 
@@ -425,72 +370,61 @@ export class FolderFileComponent implements OnInit {
   }
 }
 
-// populate(obj: object, items: FsItem[] = []): FsItem[] {
-//   // Helper function to recursively populate the file system hierarchy
-//   function populateGraph(
-//     obj: any,
-//     parentFolder?: string
-//   ): FsItem | undefined {
-//     // If the current object is a folder
-//     if (obj.type === 'folder') {
-//       // Create a folder item
-//       const folder: FsItem = {
-//         id: obj.path,
-//         label: obj.path.split('/').pop(),
-//         type: obj.type,
-//         children: [],
-//         folderParent: parentFolder,
-//       };
-//       // console.log('FOLDER HAS BEEN CREATED', folder);
-
-//       // Iterate over the properties of the folder
-//       for (const key in obj) {
-//         // If the property is not 'type' or 'path' and represents a file
-//         if (key !== 'type' && key !== 'path' && obj[key].type !== 'folder') {
-//           // Recursively populate for files
-//           const fileChild = populateGraph(obj[key], folder.id);
-//           // Add file IDs to the folder's children and to the result array
-//           if (fileChild) {
-//             folder.children.push(fileChild.id);
-//             fileChild.folderParent = folder.id;
-//           }
-//           // console.log('FILE CHILDREN FOR THIS FOLDER', folder);
-//         }
-//         // If the property is not 'type' or 'path' and represents a subfolder
-//         else if (
-//           key !== 'type' &&
-//           key !== 'path' &&
-//           obj[key].type === 'folder'
-//         ) {
-//           folder.children.push(obj[key].path);
-//           // Recursively populate for subfolders
-//           populateGraph(obj[key]);
-//         }
-//       }
-//       // Add the folder item to the result array
-//       items.push(folder);
-//       // If the current object is a file
-//       return folder;
-//     } else {
-//       // Create a file item
-//       const fsItem: FsItem = {
-//         id: obj.path,
-//         label: obj.path.split('/').pop(),
-//         type: obj.type,
-//         children: [],
-//       };
-
-//       // Add the file item to the result array
-//       items.push(fsItem);
-
-//       // console.log('FILE HAS BEEN CREATED', fsItem);
-//       return fsItem;
-//     }
-//   }
-
-//   // Call the populateGraph function to start the population process
-//   populateGraph(obj);
-
-//   // Return the final result array
-//   return items;
-// }
+// source = {
+//   src: {
+//     type: 'folder',
+//     path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src',
+//     app: {
+//       type: 'folder',
+//       path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app',
+//       'app-routing.module.ts': {
+//         type: 'ts',
+//         path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app/app-routing.module.ts',
+//       },
+//       'app.component.css': {
+//         type: 'css',
+//         path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app/app.component.css',
+//       },
+//       'app.component.html': {
+//         type: 'html',
+//         path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app/app.component.html',
+//       },
+//       'app.component.spec.ts': {
+//         type: 'ts',
+//         path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app/app.component.spec.ts',
+//       },
+//       'app.component.ts': {
+//         type: 'ts',
+//         path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app/app.component.ts',
+//       },
+//       'app.module.ts': {
+//         type: 'ts',
+//         path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app/app.module.ts',
+//       },
+//     },
+//     assets: {
+//       type: 'folder',
+//       path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/assets',
+//       '.gitkeep': {
+//         type: 'gitkeep',
+//         path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/assets/.gitkeep',
+//       },
+//     },
+//     'favicon.ico': {
+//       type: 'ico',
+//       path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/favicon.ico',
+//     },
+//     'index.html': {
+//       type: 'html',
+//       path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/index.html',
+//     },
+//     'main.ts': {
+//       type: 'ts',
+//       path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/main.ts',
+//     },
+//     'styles.css': {
+//       type: 'css',
+//       path: '/Users/daielkim/CodeSmith/osp/AnguLens/webview-ui/src/styles.css',
+//     },
+//   },
+// };
