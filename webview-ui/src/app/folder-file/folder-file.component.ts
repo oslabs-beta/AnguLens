@@ -223,6 +223,21 @@ export class FolderFileComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.setupMessageListener();
+    this.network.on('doubleClick', (params) => {
+      if (params.nodes.length > 0) {
+        const nodeId = params.nodes[0];
+        
+        // Check if the double-clicked node represents a file
+        const fileNode = this.nodes.find((node) => node.id === nodeId);
+        if (fileNode) {
+          // Send a message to your VS Code extension to open the file
+          vscode.postMessage({
+            command: 'openFile',
+            data: { filePath: fileNode.id },
+          });
+        }
+      }
+    });
   }
 
   ngOnDestroy(): void {
