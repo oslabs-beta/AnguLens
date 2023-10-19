@@ -11,6 +11,7 @@ import { Network } from 'vis-network';
 import { FsItem, PcItem, Node, Edge } from '../../models/FileSystem';
 import { ExtensionMessage } from '../../models/message';
 import { URIObj } from 'src/models/uri';
+//import { CustomNode } from 'src/models/CustomNode';
 import { vscode } from '../utilities/vscode';
 
 import { FileSystemService } from 'src/services/FileSystemService';
@@ -19,6 +20,11 @@ type AppState = {
   networkData: any; // Use the appropriate data type for 'networkData'
   options: any; // Use the appropriate data type for 'options'
 };
+interface CustomNode extends Node {
+  hidden?: boolean;
+  open?: boolean;
+  onFolderClick?: () => void;
+}
 
 interface Folder {
   type: 'folder';
@@ -43,7 +49,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
   constructor(private fileSystemService: FileSystemService) {}
 
   network: any;
-  nodes: Node[] = [];
+  nodes: CustomNode[] = [];
   edges: Edge[] = [];
   fsItems: FsItem[] = [];
   pcItems: PcItem[] = [];
@@ -114,7 +120,13 @@ export class FolderFileComponent implements OnInit, OnDestroy {
         };
         const container = this.networkContainer.nativeElement;
         this.network = new Network(container, data, this.options);
+        this.network.on('click', (event: {nodes: Node[]}) => {
+          const { nodes: clickedNodes } = event;
 
+          clickedNodes.forEach((nodeId) => {
+            console.log(nodeId);
+          });
+        });
         vscode.setState({
           // fsItems: state.fsItems,
           uris: state.uris,
@@ -197,7 +209,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           uris: string[];
           pcData: any;
           fsData: any;
-          fsNodes: Node[];
+          fsNodes: CustomNode[];
           fsEdges: Edge[];
         };
 
@@ -243,8 +255,8 @@ export class FolderFileComponent implements OnInit, OnDestroy {
   createNodesAndEdges(
     fsItems: FsItem[],
     uris: string[]
-  ): { nodes: Node[]; edges: Edge[] } {
-    const nodes: Node[] = [];
+  ): { nodes: CustomNode[]; edges: Edge[] } {
+    const nodes: CustomNode[] = [];
     const edges: Edge[] = [];
     // Helper function to recursively add nodes and edges
     function addNodesAndEdges(item: FsItem, parentFolder?: string) {
@@ -282,6 +294,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
             unselected: fileImg,
             selected: selectedImg === '' ? fileImg : selectedImg,
           },
+          
         });
 
         // If the item has children (files or subfolders), add edges to them
