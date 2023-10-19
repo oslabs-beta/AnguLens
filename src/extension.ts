@@ -135,6 +135,7 @@ export function activate(context: vscode.ExtensionContext) {
                   data: fsObject,
                 };
                 pcObject = populatePCView(selectorNames);
+                console.log('THIS PC OBJECT: ', pcObject);
 
                 // const pcMessage: Message = {
                 //   command: "updatePC",

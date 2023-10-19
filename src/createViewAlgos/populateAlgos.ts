@@ -59,8 +59,8 @@ export function populateStructure(array: any, selectorNames: object[]): object {
           const obj = {
             selectorName,
             folderPath,
-            inputs: []
-            //store another variable for oututs on each component
+            inputs: [],
+            outputs: []
           };
 
           const inputProperties = tsquery (
@@ -75,6 +75,20 @@ export function populateStructure(array: any, selectorNames: object[]): object {
               pathTo: folderPath,
             }
             obj.inputs.push(input);
+          });
+
+          const outputProperties = tsquery(
+            sourceFile,
+            'PropertyDeclaration:has(Decorator > CallExpression > Identifier[name=Output])'
+          ) as ts.PropertyDeclaration[];
+          
+          outputProperties.forEach(variable => {
+            const variableName = (variable.name as ts.Identifier).text;
+            const output = {
+              name: variableName,
+              pathFrom: folderPath,
+            };
+            obj.outputs.push(output);
           });
 
           selectorNames.push(obj);
@@ -133,17 +147,9 @@ export function populatePCView(selectorNames: object[]): object {
 
 //CHANGED to "pcObject" from "output" ij the 3 instances above... make sure it didn't break anything!
 
-
-
-
-
-
-
-
 function populateChildren(pcObject: object, selectorNames: object[]): object {
   // Step 1: populating current object's children array
   const filePath = convertToHtml(pcObject.path);
-
 
   for (const selectorName of selectorNames) {
     const obj = {
@@ -151,21 +157,26 @@ function populateChildren(pcObject: object, selectorNames: object[]): object {
       path: '',
       inputs: [],
       children: [],
-    };
+      outputs: []
+    }
 
     if (selectorCheck(filePath, selectorName.selectorName)) {
       obj.name = selectorName.selectorName;
       obj.path = selectorName.folderPath;
       selectorName.inputs.forEach(input => {
         if (inputCheck(filePath, input.name)){
-          input.pathFrom = filePath;
+          input.pathFrom = pcObject.path;
           obj.inputs.push(input);
         }
-        console.log('INPUT IS:   ', input);
+      });
+      selectorName.outputs.forEach(output =>{
+        if (outputCheck(filePath, output.name)){
+          output.pathTo = pcObject.path;
+          obj.outputs.push(output);
+        }
       });
       pcObject.children.push(obj);
     }
-
   }
 
   //Recursively call this function on each obj of children array
@@ -205,6 +216,17 @@ function selectorCheck(filePath: string, selectorName: string): boolean {
 function inputCheck(templatePath, inputName) {
   const templateContent = fs.readFileSync(templatePath, "utf-8");
   const regex = new RegExp(`\\[${inputName}\\]`, 'g');
+  const matches = templateContent.match(regex);
+  if (matches) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+function outputCheck(templatePath, outputName) {
+  const templateContent = fs.readFileSync(templatePath, "utf-8");
+  const regex = new RegExp(`\\(${outputName}\\)`, 'g');
   const matches = templateContent.match(regex);
   if (matches) {
     return true;

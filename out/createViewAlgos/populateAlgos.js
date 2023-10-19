@@ -50,17 +50,26 @@ function populateStructure(array, selectorNames) {
                     const obj = {
                         selectorName,
                         folderPath,
-                        inputs: []
-                        //store another variable for oututs on each component
+                        inputs: [],
+                        outputs: []
                     };
                     const inputProperties = (0, tsquery_1.tsquery)(sourceFile, "PropertyDeclaration:has(Identifier[name=Input])");
                     inputProperties.forEach(variable => {
                         const variableName = variable.name.text;
                         const input = {
                             name: variableName,
-                            pathTo: filePath,
+                            pathTo: folderPath,
                         };
                         obj.inputs.push(input);
+                    });
+                    const outputProperties = (0, tsquery_1.tsquery)(sourceFile, 'PropertyDeclaration:has(Decorator > CallExpression > Identifier[name=Output])');
+                    outputProperties.forEach(variable => {
+                        const variableName = variable.name.text;
+                        const output = {
+                            name: variableName,
+                            pathFrom: folderPath,
+                        };
+                        obj.outputs.push(output);
                     });
                     selectorNames.push(obj);
                 }
@@ -111,16 +120,22 @@ function populateChildren(pcObject, selectorNames) {
             path: '',
             inputs: [],
             children: [],
+            outputs: []
         };
         if (selectorCheck(filePath, selectorName.selectorName)) {
             obj.name = selectorName.selectorName;
             obj.path = selectorName.folderPath;
             selectorName.inputs.forEach(input => {
                 if (inputCheck(filePath, input.name)) {
-                    input.pathFrom = filePath;
+                    input.pathFrom = pcObject.path;
                     obj.inputs.push(input);
                 }
-                console.log('INPUT IS:   ', input);
+            });
+            selectorName.outputs.forEach(output => {
+                if (outputCheck(filePath, output.name)) {
+                    output.pathTo = pcObject.path;
+                    obj.outputs.push(output);
+                }
             });
             pcObject.children.push(obj);
         }
@@ -151,50 +166,26 @@ function selectorCheck(filePath, selectorName) {
     }
     return false;
 }
-function inputCheck(filePath, inputName) {
-    const parsed = fs.readFileSync(filePath, "utf-8");
-    // creates AST of angular template (--> check up on what fs.readFileSync is doing: may be turning file into a STRING)
-    console.log('inputName in INPUT CHECK:   ', inputName);
-    const $ = cheerio.load(parsed);
-    //console.log($.html())
-    const pathFrom = $(`[${inputName}]`);
-    //do we need to add in extra logic to double check inputName is being used as input?
-    //(ie. it's not returning true for some random variable in the template with the same name...)
-    if (pathFrom.length) {
-        console.log('INPUTCHECKfilePath: ', filePath);
-        console.log('inputName: ', inputName);
+function inputCheck(templatePath, inputName) {
+    const templateContent = fs.readFileSync(templatePath, "utf-8");
+    const regex = new RegExp(`\\[${inputName}\\]`, 'g');
+    const matches = templateContent.match(regex);
+    if (matches) {
         return true;
     }
-    return false;
+    else {
+        return false;
+    }
 }
-// console.log("JSON STRINGIFIED OUTPUT", JSON.stringify(output));
-// function populateChildren(pcObject: object, selectorNames: object[]): object {
-//   // Step 1: populating current object's children array
-//   const filePath = convertToHtml(pcObject.path);
-// for (const selectorName of selectorNames) {
-// const obj = {
-//   name: '',
-//   path: '',
-//   inputs: [],
-//   children: [],
-// };
-// if (selectorCheck(filePath, selectorName.selectorName)) {
-//   obj.name = selectorName.selectorName;
-//   obj.path = selectorName.folderPath;
-// }
-// selectorName.inputs.forEach(input => {
-//   if (inputCheck(filePath, input.name)){
-//     input.pathFrom = filePath;
-//     obj.inputs.push(input);
-//   }
-// });
-//     pcObject.children.push(obj);
-//   }
-//   //Recursively call this function on each obj of children array
-//   pcObject.children.forEach((child) =>
-//     populateChildren(child, selectorNames)
-//   );
-//   console.log('NEWUPDATED pcobject: ',pcObject);
-//   return pcObject;
-// }
+function outputCheck(templatePath, outputName) {
+    const templateContent = fs.readFileSync(templatePath, "utf-8");
+    const regex = new RegExp(`\\(${outputName}\\)`, 'g');
+    const matches = templateContent.match(regex);
+    if (matches) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
 //# sourceMappingURL=populateAlgos.js.map
