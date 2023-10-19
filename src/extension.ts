@@ -7,9 +7,6 @@ import * as fs from "fs";
 import { getVSCodeDownloadUrl } from "@vscode/test-electron/out/util";
 import * as klaw from "klaw";
 import { send } from "process";
-import * as ts from "typescript";
-import { tsquery } from "@phenomnomnominal/tsquery";
-import cheerio = require("cheerio");
 import {
   populateStructure,
   populatePCView,
@@ -115,6 +112,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     panel.webview.postMessage(message);
     //END URIS
+
 
     const items: any = [];
     const selectorNames: object[] = [];
