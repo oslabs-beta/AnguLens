@@ -7,7 +7,7 @@ import {
   OnDestroy,
 } from '@angular/core';
 import { DataSet } from 'vis-data';
-import { Network } from 'vis-network';
+import { Network } from 'vis-network/standalone';
 import { FsItem, PcItem, Node, Edge } from '../../models/FileSystem';
 import { ExtensionMessage } from '../../models/message';
 import { URIObj } from 'src/models/uri';
@@ -50,6 +50,10 @@ export class FolderFileComponent implements OnInit, OnDestroy {
   uris: string[] = [];
   filePath: string = '';
   options = {
+    interaction: {
+      navigationButtons: true,
+      keyboard: true,
+    },
     layout: {
       hierarchical: {
         direction: 'UD', // Up-Down direction

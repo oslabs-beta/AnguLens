@@ -134,6 +134,10 @@ export class ParentChildComponent implements OnInit, OnDestroy {
 
   options = {
     layout: {
+      interaction: {
+        navigationButtons: true,
+        keyboard: true,
+      },
       hierarchical: {
         direction: 'UD', // Up-Down direction
         nodeSpacing: 1000,
