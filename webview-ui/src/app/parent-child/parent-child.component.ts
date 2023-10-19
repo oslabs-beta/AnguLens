@@ -7,7 +7,7 @@ import {
   OnDestroy,
 } from '@angular/core';
 import { DataSet } from 'vis-data';
-import { Network } from 'vis-network';
+import { Network } from 'vis-network/standalone';
 // import { FsItem } from '../../models/FileSystem';
 import { ExtensionMessage } from '../../models/message';
 import { URIObj } from 'src/models/uri';
