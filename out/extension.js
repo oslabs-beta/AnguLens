@@ -29,19 +29,9 @@ function activate(context) {
         vscode.ViewColumn.One, // showOptions
         { enableScripts: true } // options
         );
-        console.log("workspaceFolders -> ", vscode.workspace.workspaceFolders);
-        // Read the contents of your Angular app's index.html file
-        // const indexPath = path.join(
-        //   __dirname,
-        //   "../webview-ui/dist/webview-ui",
-        //   "index.html"
-        // );
-        // const htmlContent = fs.readFileSync(indexPath, "utf-8");
-        // console.log(htmlContent);
-        // panel.webview.html = htmlContent;
         const runtimeUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "runtime.01fe1d460628a1d3.js")));
         const polyfillsUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "polyfills.ef3261c6791c905c.js")));
-        const scriptUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "main.6dc108e9dd13e7d0.js")));
+        const scriptUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "main.e2beaed47a145d02.js")));
         const stylesUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "styles.ef46db3751d8e999.css")));
         // START URIS
         // added this
@@ -60,6 +50,9 @@ function activate(context) {
         const items = [];
         const selectorNames = [];
         let currentFilePath = "";
+        let pcObject = {};
+        let fsObject = {};
+        // FS OBject
         panel.webview.onDidReceiveMessage((message) => {
             switch (message.command) {
                 case "loadNetwork": {
@@ -79,32 +72,35 @@ function activate(context) {
                     klaw(rootPath)
                         .on("data", (item) => items.push(item))
                         .on("end", () => {
+                        fsObject = (0, populateAlgos_1.populateStructure)(items, selectorNames);
                         const sendNewPathObj = {
-                            command: "updatePath",
-                            data: (0, populateAlgos_1.populateStructure)(items, selectorNames),
+                            command: "generateFolderFile",
+                            data: fsObject,
                         };
-                        const pcObject = (0, populateAlgos_1.populatePCView)(selectorNames);
-                        const pcMessage = {
-                            command: "updatePC",
-                            data: pcObject,
-                        };
-                        panel.webview.postMessage(pcMessage);
+                        pcObject = (0, populateAlgos_1.populatePCView)(selectorNames);
+                        // const pcMessage: Message = {
+                        //   command: "updatePC",
+                        //   data: pcObject,
+                        // };
+                        //panel.webview.postMessage(pcMessage);
                         panel.webview.postMessage(sendNewPathObj);
                     });
                     break;
                 }
                 case "loadParentChild": {
-                    klaw(currentFilePath)
-                        .on("data", (item) => items.push(item))
-                        .on("end", () => {
-                        const pcObject = (0, populateAlgos_1.populatePCView)(selectorNames);
-                        console.log("PC OBJECT!!!! : ", pcObject);
-                        const pcMessage = {
-                            command: "updatePC",
-                            data: pcObject,
-                        };
-                        panel.webview.postMessage(pcMessage);
-                    });
+                    const pcMessage = {
+                        command: "updatePC",
+                        data: pcObject,
+                    };
+                    panel.webview.postMessage(pcMessage);
+                    break;
+                }
+                case "reloadPC": {
+                    const pcMessage = {
+                        command: "reloadPC",
+                        data: {},
+                    };
+                    panel.webview.postMessage(pcMessage);
                     break;
                 }
                 case "reloadFolderFile": {
@@ -120,6 +116,17 @@ function activate(context) {
             }
         }, undefined, context.subscriptions);
         panel.webview.html = getWebViewContent(stylesUri, runtimeUri, polyfillsUri, scriptUri, imageUris);
+        /*
+          Leaving
+        */
+        panel.onDidChangeViewState((e) => {
+            if (e.webviewPanel.visible) {
+                panel.webview.postMessage({
+                    command: "loadState",
+                    data: {},
+                });
+            }
+        });
     });
     context.subscriptions.push(disposable, runWebView);
 }

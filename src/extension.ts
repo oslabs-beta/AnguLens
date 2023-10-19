@@ -43,17 +43,6 @@ export function activate(context: vscode.ExtensionContext) {
       { enableScripts: true } // options
     );
 
-    console.log("workspaceFolders -> ", vscode.workspace.workspaceFolders);
-    // Read the contents of your Angular app's index.html file
-    // const indexPath = path.join(
-    //   __dirname,
-    //   "../webview-ui/dist/webview-ui",
-    //   "index.html"
-    // );
-    // const htmlContent = fs.readFileSync(indexPath, "utf-8");
-    // console.log(htmlContent);
-    // panel.webview.html = htmlContent;
-
     const runtimeUri = panel.webview.asWebviewUri(
       vscode.Uri.file(
         path.join(
@@ -77,7 +66,7 @@ export function activate(context: vscode.ExtensionContext) {
         path.join(
           __dirname,
           "../webview-ui/dist/webview-ui",
-          "main.6dc108e9dd13e7d0.js"
+          "main.e2beaed47a145d02.js"
         )
       )
     );
@@ -119,6 +108,10 @@ export function activate(context: vscode.ExtensionContext) {
     const items: any = [];
     const selectorNames: object[] = [];
     let currentFilePath: string = "";
+    let pcObject: object = {};
+    let fsObject: object = {};
+
+    // FS OBject
     panel.webview.onDidReceiveMessage(
       (message: Message) => {
         switch (message.command) {
@@ -137,40 +130,40 @@ export function activate(context: vscode.ExtensionContext) {
             klaw(rootPath)
               .on("data", (item) => items.push(item))
               .on("end", () => {
+                fsObject = populateStructure(items, selectorNames);
+
                 const sendNewPathObj: Message = {
-                  command: "updatePath",
-                  data: populateStructure(items, selectorNames),
+                  command: "generateFolderFile",
+                  data: fsObject,
                 };
+                pcObject = populatePCView(selectorNames);
 
-                const pcObject = populatePCView(selectorNames);
+                // const pcMessage: Message = {
+                //   command: "updatePC",
+                //   data: pcObject,
+                // };
 
-                const pcMessage: Message = {
-                  command: "updatePC",
-                  data: pcObject,
-                };
-
-                panel.webview.postMessage(pcMessage);
-
+                //panel.webview.postMessage(pcMessage);
                 panel.webview.postMessage(sendNewPathObj);
               });
             break;
           }
 
           case "loadParentChild": {
-            klaw(currentFilePath)
-              .on("data", (item) => items.push(item))
-              .on("end", () => {
-                const pcObject = populatePCView(selectorNames);
-                console.log("PC OBJECT!!!! : ", pcObject);
+            const pcMessage: Message = {
+              command: "updatePC",
+              data: pcObject,
+            };
+            panel.webview.postMessage(pcMessage);
+            break;
+          }
 
-                const pcMessage: Message = {
-                  command: "updatePC",
-                  data: pcObject,
-                };
-
-                panel.webview.postMessage(pcMessage);
-              });
-
+          case "reloadPC": {
+            const pcMessage: Message = {
+              command: "reloadPC",
+              data: {},
+            };
+            panel.webview.postMessage(pcMessage);
             break;
           }
 
@@ -198,6 +191,18 @@ export function activate(context: vscode.ExtensionContext) {
       scriptUri,
       imageUris
     );
+
+    /*
+      Leaving 
+    */
+    panel.onDidChangeViewState((e) => {
+      if (e.webviewPanel.visible) {
+        panel.webview.postMessage({
+          command: "loadState",
+          data: {},
+        });
+      }
+    });
   });
 
   context.subscriptions.push(disposable, runWebView);

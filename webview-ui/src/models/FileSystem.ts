@@ -15,6 +15,21 @@ export class PcItem {
     public type: string,
     public inputs: string[] = [],
     public outputs: string[] = [],
-    public children: string[] = [],
+    public children: string[] = []
   ) {}
+}
+
+export interface Node {
+  id: string;
+  label: string;
+  image?: {
+    unselected?: string;
+    selected?: string;
+  };
+}
+
+export interface Edge {
+  id: string;
+  from: string;
+  to: string;
 }
