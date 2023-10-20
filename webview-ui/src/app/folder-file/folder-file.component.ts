@@ -120,12 +120,14 @@ export class FolderFileComponent implements OnInit, OnDestroy {
         this.network = new Network(container, data, this.options);
         this.network.on('doubleClick', (params:any) => {
           console.log('double click')
-          console.log('double click params', params)
+          console.log('double click params1', params)
           if (params.nodes.length > 0) {
             const nodeId = params.nodes[0];
+            console.log('nodeID', nodeId)
             
             // Check if the double-clicked node represents a file
             const fileNode = this.nodes.find((node) => node.id === nodeId);
+            console.log('filenode', fileNode)
             if (fileNode) {
               // Send a message to your VS Code extension to open the file
               vscode.postMessage({
@@ -200,12 +202,13 @@ export class FolderFileComponent implements OnInit, OnDestroy {
         this.network = new Network(container, data, this.options);
         this.network.on('doubleClick', (params:any) => {
           console.log('double click')
+          console.log('double click params2', params)
           if (params.nodes.length > 0) {
             const nodeId = params.nodes[0];
-            console.log('double click params', params)
             
             // Check if the double-clicked node represents a file
             const fileNode = this.nodes.find((node) => node.id === nodeId);
+            console.log('filenode', fileNode)
             if (fileNode) {
               // Send a message to your VS Code extension to open the file
               vscode.postMessage({
@@ -215,6 +218,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
             }
           }
         });
+        
         vscode.setState({
           // fsItems: this.fsItems,
           uris: this.uris,
@@ -243,12 +247,13 @@ export class FolderFileComponent implements OnInit, OnDestroy {
         this.network = new Network(container, state.fsData, this.options);
         this.network.on('doubleClick', (params:any) => {
           console.log('double click')
-          console.log('double click params', params)
+          console.log('double click params3', params)
           if (params.nodes.length > 0) {
             const nodeId = params.nodes[0];
             
             // Check if the double-clicked node represents a file
             const fileNode = this.nodes.find((node) => node.id === nodeId);
+            console.log('filenode', fileNode)
             if (fileNode) {
               // Send a message to your VS Code extension to open the file
               vscode.postMessage({
@@ -258,6 +263,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
             }
           }
         });
+        
         break;
       }
 
