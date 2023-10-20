@@ -12,6 +12,7 @@ import {
   populatePCView,
 } from "./createViewAlgos/populateAlgos";
 
+
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -31,8 +32,21 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
+  // Register the command for opening files in a new tab
+  const openFileDisposable = vscode.commands.registerCommand("angulens.openFile", (data) => {
+    // Handle opening the file in a new tab
+    vscode.workspace.openTextDocument(vscode.Uri.file(data.filePath)).then((document) => {
+      vscode.window.showTextDocument(document);
+    });
+  });
+
+  context.subscriptions.push(openFileDisposable);
+  
+
   // create a webview panel and sets the html to the getWebViewContent function
   const runWebView = vscode.commands.registerCommand("angulens.start", () => {
+     
+
     const panel = vscode.window.createWebviewPanel(
       "AnguLensPanel", // viewType, unique identifier
       "AnguLens", // name of tab in vsCode
@@ -63,7 +77,7 @@ export function activate(context: vscode.ExtensionContext) {
         path.join(
           __dirname,
           "../webview-ui/dist/webview-ui",
-          "main.e2beaed47a145d02.js"
+          "main.a94140717aa5145a.js"
         )
       )
     );
@@ -174,6 +188,11 @@ export function activate(context: vscode.ExtensionContext) {
             break;
           }
 
+          case 'openFile': {
+            vscode.commands.executeCommand('angulens.openFile', message.data);
+            break;
+          }
+
           default:
             console.error("Unknown command", message.command);
             break;
@@ -196,6 +215,7 @@ export function activate(context: vscode.ExtensionContext) {
     */
     panel.onDidChangeViewState((e) => {
       if (e.webviewPanel.visible) {
+        console.log('visible')
         panel.webview.postMessage({
           command: "loadState",
           data: {},
