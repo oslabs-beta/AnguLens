@@ -21,7 +21,7 @@ type AppState = {
   options: any; // Use the appropriate data type for 'options'
 };
 interface CustomNode extends Node {
-  hidden?: boolean;
+  hidden: boolean;
   open?: boolean;
   onFolderClick?: () => void;
 }
@@ -193,6 +193,10 @@ export class FolderFileComponent implements OnInit, OnDestroy {
       
           console.log('clicked nodes -> ', clickedNodes);
       
+          function hide():void {
+
+          }
+
           // Perform actions on the clicked nodes if needed
           clickedNodes.forEach(clickedNode => {
               if (clickedNode && clickedNode.onFolderClick) {
@@ -205,13 +209,16 @@ export class FolderFileComponent implements OnInit, OnDestroy {
 
                       const nodeItem: CustomNode | undefined = this.nodes.find(node => node.id === item); 
 
-                      if (nodeItem && nodeItem.hidden) {
+                      if (nodeItem) {
                         nodeItem.hidden = !nodeItem.hidden;
                       }
+                      console.log('node item:', nodeItem);
                     });
                   }
               }
+              //reload 
           });
+          this.reRenderComponents();
       });
 
         vscode.setState({
@@ -278,7 +285,13 @@ export class FolderFileComponent implements OnInit, OnDestroy {
   }
 
   reRenderComponents() {
-
+    this.renderedNodes = this.nodes.filter((node: CustomNode) => !node.hidden);
+    console.log('base nodes :) -->', this.nodes);
+    console.log('rendered nodes :( -->', this.renderedNodes);
+    this.network.setData({
+      nodes: this.renderedNodes,
+      edges: this.edges
+    });
   }
 
   createNodesAndEdges(
