@@ -31,7 +31,7 @@ function activate(context) {
         );
         const runtimeUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "runtime.01fe1d460628a1d3.js")));
         const polyfillsUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "polyfills.ef3261c6791c905c.js")));
-        const scriptUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "main.e2beaed47a145d02.js")));
+        const scriptUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "main.80ff0097cff4ada7.js")));
         const stylesUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "styles.ef46db3751d8e999.css")));
         // START URIS
         // added this
@@ -78,7 +78,7 @@ function activate(context) {
                             data: fsObject,
                         };
                         pcObject = (0, populateAlgos_1.populatePCView)(selectorNames);
-                        console.log('THIS PC OBJECT: ', pcObject);
+                        console.log("THIS PC OBJECT: ", pcObject);
                         // const pcMessage: Message = {
                         //   command: "updatePC",
                         //   data: pcObject,

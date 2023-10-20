@@ -63,7 +63,7 @@ export function activate(context: vscode.ExtensionContext) {
         path.join(
           __dirname,
           "../webview-ui/dist/webview-ui",
-          "main.e2beaed47a145d02.js"
+          "main.80ff0097cff4ada7.js"
         )
       )
     );
@@ -102,7 +102,6 @@ export function activate(context: vscode.ExtensionContext) {
     panel.webview.postMessage(message);
     //END URIS
 
-
     const items: any = [];
     const selectorNames: object[] = [];
     let currentFilePath: string = "";
@@ -135,7 +134,7 @@ export function activate(context: vscode.ExtensionContext) {
                   data: fsObject,
                 };
                 pcObject = populatePCView(selectorNames);
-                console.log('THIS PC OBJECT: ', pcObject);
+                console.log("THIS PC OBJECT: ", pcObject);
 
                 // const pcMessage: Message = {
                 //   command: "updatePC",

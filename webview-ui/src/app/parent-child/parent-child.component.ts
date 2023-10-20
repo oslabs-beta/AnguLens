@@ -6,7 +6,7 @@ import {
   ViewChild,
   OnDestroy,
 } from '@angular/core';
-import { DataSet } from 'vis-data';
+import { DataSet, DataView } from 'vis-data';
 import { Network } from 'vis-network';
 // import { FsItem } from '../../models/FileSystem';
 import { ExtensionMessage } from '../../models/message';
@@ -66,7 +66,9 @@ export class ParentChildComponent implements OnInit, OnDestroy {
       }
 
       case 'updatePC': {
+        console.log('REAL OBJECT', message.data);
         this.pcItems = this.populate(message.data);
+        console.log('PC ITEMS', this.pcItems);
         const state = vscode.getState() as {
           // fsItems: FsItem[];
           // pcItems: PcItem[];
@@ -85,6 +87,8 @@ export class ParentChildComponent implements OnInit, OnDestroy {
         this.edges = edges;
         const newNodes = new DataSet(nodes);
         const newEdges = new DataSet(edges);
+
+        console.log('EDGES', this.edges);
 
         // create a network
         const container = this.networkContainer.nativeElement;
@@ -136,12 +140,12 @@ export class ParentChildComponent implements OnInit, OnDestroy {
     layout: {
       hierarchical: {
         direction: 'UD', // Up-Down direction
-        nodeSpacing: 1000,
+        // nodeSpacing: 1000,
         // levelSeparation: 300,
         parentCentralization: true,
         edgeMinimization: true,
         shakeTowards: 'roots', // Tweak the layout algorithm to get better results
-        sortMethod: 'directed', // Sort based on the hierarchical structure
+        // sortMethod: 'directed', // Sort based on the hierarchical structure
       },
     },
 
@@ -207,6 +211,45 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           // },
         });
 
+        if (item.inputs.length > 0) {
+          // iterate through inputs array
+          for (let inputItem in item.inputs) {
+            const edge: Edge = {
+              id: `${item.id}-${item.inputs[inputItem].pathFrom}`,
+              from: item.inputs[inputItem].pathFrom,
+              to: item.id,
+              color: { color: 'green' },
+              // endPointOffset: {
+              //   to: -50,
+              //   from: -50,
+              // },
+              // arrowStrikethrough: true,
+              smooth: { type: 'curvedCCW', roundness: 0.4 },
+            };
+            edges.push(edge);
+            console.log('INPUT EDGE', edge);
+          }
+        }
+
+        if (item.outputs.length > 0) {
+          for (let outputItem in item.outputs) {
+            const edge: Edge = {
+              id: `${item.id}-${item.outputs[outputItem].pathTo}`,
+              from: item.id,
+              to: item.outputs[outputItem].pathTo,
+              color: { color: 'red' },
+              // arrowStrikethrough: true,
+              // endPointOffset: {
+              //   to: 50,
+              //   from: 50,
+              // },
+              smooth: { type: 'curvedCCW', roundness: 0.2 },
+            };
+            edges.push(edge);
+            console.log('OUTPUT EDGE', edge);
+          }
+        }
+
         // If the item has children (files or subfolders), add edges to them
         if (item.children && item.children.length > 0) {
           for (const childId of item.children) {
@@ -249,6 +292,9 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           children: [],
         };
         items.push(currentNode);
+
+        if (obj.inputs) currentNode.inputs = obj.inputs;
+        if (obj.outputs) currentNode.outputs = obj.outputs;
 
         // check if object has children
         if (obj.children) {
