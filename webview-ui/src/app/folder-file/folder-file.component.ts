@@ -118,14 +118,10 @@ export class FolderFileComponent implements OnInit, OnDestroy {
         };
         const container = this.networkContainer.nativeElement;
         this.network = new Network(container, data, this.options);
+        //event listener for double click to open file
         this.network.on('doubleClick', (params:any) => {
-          console.log('double click')
-          console.log('double click params1', params)
           if (params.nodes.length > 0) {
             const nodeId = params.nodes[0];
-            console.log('nodeID', nodeId)
-            
-            
             if (nodeId) {
               // Send a message to your VS Code extension to open the file
               vscode.postMessage({
@@ -198,20 +194,15 @@ export class FolderFileComponent implements OnInit, OnDestroy {
         };
 
         this.network = new Network(container, data, this.options);
-        this.network.on('doubleClick', (params:any) => {
-          console.log('double click')
-          console.log('double click params2', params)
+         //event listener for double click to open file
+         this.network.on('doubleClick', (params:any) => {
           if (params.nodes.length > 0) {
             const nodeId = params.nodes[0];
-            
-            // Check if the double-clicked node represents a file
-            const fileNode = this.nodes.find((node) => node.id === nodeId);
-            console.log('filenode', fileNode)
-            if (fileNode) {
+            if (nodeId) {
               // Send a message to your VS Code extension to open the file
               vscode.postMessage({
                 command: 'openFile',
-                data: { filePath: fileNode.id },
+                data: { filePath: nodeId },
               });
             }
           }
@@ -243,20 +234,15 @@ export class FolderFileComponent implements OnInit, OnDestroy {
 
         const container = this.networkContainer.nativeElement;
         this.network = new Network(container, state.fsData, this.options);
-        this.network.on('doubleClick', (params:any) => {
-          console.log('double click')
-          console.log('double click params3', params)
+         //event listener for double click to open file
+         this.network.on('doubleClick', (params:any) => {
           if (params.nodes.length > 0) {
             const nodeId = params.nodes[0];
-            
-            // Check if the double-clicked node represents a file
-            const fileNode = this.nodes.find((node) => node.id === nodeId);
-            console.log('filenode', fileNode)
-            if (fileNode) {
+            if (nodeId) {
               // Send a message to your VS Code extension to open the file
               vscode.postMessage({
                 command: 'openFile',
-                data: { filePath: fileNode.id },
+                data: { filePath: nodeId },
               });
             }
           }

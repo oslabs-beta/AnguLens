@@ -35,7 +35,6 @@ export function activate(context: vscode.ExtensionContext) {
   // Register the command for opening files in a new tab
   const openFileDisposable = vscode.commands.registerCommand("angulens.openFile", (data) => {
     // Handle opening the file in a new tab
-    console.log('vscommandhitttt')
     vscode.workspace.openTextDocument(vscode.Uri.file(data.filePath)).then((document) => {
       vscode.window.showTextDocument(document);
     });
@@ -78,7 +77,7 @@ export function activate(context: vscode.ExtensionContext) {
         path.join(
           __dirname,
           "../webview-ui/dist/webview-ui",
-          "main.46de7286288cbe92.js"
+          "main.a94140717aa5145a.js"
         )
       )
     );
@@ -127,7 +126,6 @@ export function activate(context: vscode.ExtensionContext) {
     // FS OBject
     panel.webview.onDidReceiveMessage(
       (message: Message) => {
-        console.log(message, "message hit")
         switch (message.command) {
           case "loadNetwork": {
             const srcRootPath = message.data.filePath;
@@ -191,9 +189,7 @@ export function activate(context: vscode.ExtensionContext) {
           }
 
           case 'openFile': {
-            console.log('openFile liostener hit')
             vscode.commands.executeCommand('angulens.openFile', message.data);
-            console.log('openfile hit', message.data);
             break;
           }
 
@@ -224,9 +220,6 @@ export function activate(context: vscode.ExtensionContext) {
           command: "loadState",
           data: {},
         });
-        console.log('changeview hitttt')
-       
-
       }
     });
   });
