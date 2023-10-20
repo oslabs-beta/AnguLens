@@ -118,6 +118,23 @@ export class FolderFileComponent implements OnInit, OnDestroy {
         };
         const container = this.networkContainer.nativeElement;
         this.network = new Network(container, data, this.options);
+        this.network.on('doubleClick', (params:any) => {
+          console.log('double click')
+          console.log('double click params', params)
+          if (params.nodes.length > 0) {
+            const nodeId = params.nodes[0];
+            
+            // Check if the double-clicked node represents a file
+            const fileNode = this.nodes.find((node) => node.id === nodeId);
+            if (fileNode) {
+              // Send a message to your VS Code extension to open the file
+              vscode.postMessage({
+                command: 'openFile',
+                data: { filePath: fileNode.id },
+              });
+            }
+          }
+        });
 
         vscode.setState({
           // fsItems: state.fsItems,
@@ -181,6 +198,23 @@ export class FolderFileComponent implements OnInit, OnDestroy {
         };
 
         this.network = new Network(container, data, this.options);
+        this.network.on('doubleClick', (params:any) => {
+          console.log('double click')
+          if (params.nodes.length > 0) {
+            const nodeId = params.nodes[0];
+            console.log('double click params', params)
+            
+            // Check if the double-clicked node represents a file
+            const fileNode = this.nodes.find((node) => node.id === nodeId);
+            if (fileNode) {
+              // Send a message to your VS Code extension to open the file
+              vscode.postMessage({
+                command: 'openFile',
+                data: { filePath: fileNode.id },
+              });
+            }
+          }
+        });
         vscode.setState({
           // fsItems: this.fsItems,
           uris: this.uris,
@@ -207,6 +241,23 @@ export class FolderFileComponent implements OnInit, OnDestroy {
 
         const container = this.networkContainer.nativeElement;
         this.network = new Network(container, state.fsData, this.options);
+        this.network.on('doubleClick', (params:any) => {
+          console.log('double click')
+          console.log('double click params', params)
+          if (params.nodes.length > 0) {
+            const nodeId = params.nodes[0];
+            
+            // Check if the double-clicked node represents a file
+            const fileNode = this.nodes.find((node) => node.id === nodeId);
+            if (fileNode) {
+              // Send a message to your VS Code extension to open the file
+              vscode.postMessage({
+                command: 'openFile',
+                data: { filePath: fileNode.id },
+              });
+            }
+          }
+        });
         break;
       }
 
@@ -223,21 +274,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.setupMessageListener();
-    this.network.on('doubleClick', (params:any) => {
-      if (params.nodes.length > 0) {
-        const nodeId = params.nodes[0];
-        
-        // Check if the double-clicked node represents a file
-        const fileNode = this.nodes.find((node) => node.id === nodeId);
-        if (fileNode) {
-          // Send a message to your VS Code extension to open the file
-          vscode.postMessage({
-            command: 'openFile',
-            data: { filePath: fileNode.id },
-          });
-        }
-      }
-    });
+   
   }
 
   ngOnDestroy(): void {

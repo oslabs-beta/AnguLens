@@ -12,6 +12,7 @@ import {
   populatePCView,
 } from "./createViewAlgos/populateAlgos";
 
+
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -74,7 +75,7 @@ export function activate(context: vscode.ExtensionContext) {
         path.join(
           __dirname,
           "../webview-ui/dist/webview-ui",
-          "main.f7da6059c71b492a.js"
+          "main.ce3e9127e1c7d4be.js"
         )
       )
     );
@@ -123,6 +124,7 @@ export function activate(context: vscode.ExtensionContext) {
     // FS OBject
     panel.webview.onDidReceiveMessage(
       (message: Message) => {
+        console.log(message, "message hit")
         switch (message.command) {
           case "loadNetwork": {
             const srcRootPath = message.data.filePath;
@@ -186,7 +188,9 @@ export function activate(context: vscode.ExtensionContext) {
           }
 
           case 'openFile': {
-            vscode.commands.executeCommand('extension.openFile', message.data);
+            console.log('openFile liostener hit')
+            vscode.commands.executeCommand('angulens.openFile', message.data);
+            console.log('openfile hit', message.data);
             break;
           }
 
