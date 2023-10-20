@@ -63,7 +63,7 @@ export function activate(context: vscode.ExtensionContext) {
         path.join(
           __dirname,
           "../webview-ui/dist/webview-ui",
-          "main.80ff0097cff4ada7.js"
+          "main.2130df977f353f79.js"
         )
       )
     );
@@ -241,7 +241,6 @@ function getWebViewContent(
       <title>Hello World</title>
     </head>
     <body>
-      <div>AnguLens</div>
      <app-root></app-root>
       <script type="module" src="${runtimeUri}"></script>
       <script type="module" src="${polyfillsUri}"></script>
