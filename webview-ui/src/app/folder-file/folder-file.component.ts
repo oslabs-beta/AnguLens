@@ -120,13 +120,6 @@ export class FolderFileComponent implements OnInit, OnDestroy {
         };
         const container = this.networkContainer.nativeElement;
         this.network = new Network(container, data, this.options);
-        this.network.on('click', (event: {nodes: Node[]}) => {
-          const { nodes: clickedNodes } = event;
-
-          clickedNodes.forEach((nodeId) => {
-            console.log(nodeId);
-          });
-        });
         vscode.setState({
           // fsItems: state.fsItems,
           uris: state.uris,
@@ -189,6 +182,24 @@ export class FolderFileComponent implements OnInit, OnDestroy {
         };
 
         this.network = new Network(container, data, this.options);
+        this.network.on('click', (event: { nodes: string[] }) => {
+          const { nodes: nodeIds } = event;
+          console.log('click event');
+          console.log('node IDs -> ', nodeIds);
+      
+          // Get the corresponding node objects from your 'nodes' array
+          const clickedNodes = nodeIds.map(nodeId => this.nodes.find(node => node.id === nodeId)).filter(Boolean);
+      
+          console.log('clicked nodes -> ', clickedNodes);
+      
+          // Perform actions on the clicked nodes if needed
+          clickedNodes.forEach(clickedNode => {
+              if (clickedNode && clickedNode.onFolderClick) {
+                  clickedNode.onFolderClick();
+              }
+          });
+      });
+
         vscode.setState({
           // fsItems: this.fsItems,
           uris: this.uris,
@@ -287,15 +298,28 @@ export class FolderFileComponent implements OnInit, OnDestroy {
             fileImg = uris[4];
             break;
         }
-        nodes.push({
+        
+        const newNode: CustomNode = {
           id: item.id,
           label: item.label,
           image: {
             unselected: fileImg,
             selected: selectedImg === '' ? fileImg : selectedImg,
           },
-          
-        });
+          hidden: false
+        };
+
+        if (item.type === 'folder') {
+          newNode.open = true;
+          newNode.onFolderClick = function() {
+            this.open = !this.open;
+            console.log('folder clicked');
+          };
+        }
+
+
+
+        nodes.push(newNode);
 
         // If the item has children (files or subfolders), add edges to them
         if (item.children && item.children.length > 0) {
