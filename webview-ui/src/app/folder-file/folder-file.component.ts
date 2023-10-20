@@ -125,14 +125,12 @@ export class FolderFileComponent implements OnInit, OnDestroy {
             const nodeId = params.nodes[0];
             console.log('nodeID', nodeId)
             
-            // Check if the double-clicked node represents a file
-            const fileNode = this.nodes.find((node) => node.id === nodeId);
-            console.log('filenode', fileNode)
-            if (fileNode) {
+            
+            if (nodeId) {
               // Send a message to your VS Code extension to open the file
               vscode.postMessage({
                 command: 'openFile',
-                data: { filePath: fileNode.id },
+                data: { filePath: nodeId },
               });
             }
           }
