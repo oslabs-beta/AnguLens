@@ -189,35 +189,32 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           console.log('node IDs -> ', nodeIds);
       
           // Get the corresponding node objects from your 'nodes' array
-          const clickedNodes = nodeIds.map(nodeId => this.nodes.find(node => node.id === nodeId)).filter(Boolean);
+          // const clickedNodes = nodeIds.map(nodeId => this.nodes.find(node => node.id === nodeId)).filter(Boolean);
       
-          console.log('clicked nodes -> ', clickedNodes);
-      
-          function hide():void {
+          // console.log('clicked nodes -> ', clickedNodes);
 
-          }
+          // // Perform actions on the clicked nodes if needed
+          // clickedNodes.forEach(clickedNode => {
+          //     if (clickedNode && clickedNode.onFolderClick) {
+          //         clickedNode.onFolderClick();
+          //         const clickedFsItem = this.fsItems.find(item => item.id === clickedNode.id);
 
-          // Perform actions on the clicked nodes if needed
-          clickedNodes.forEach(clickedNode => {
-              if (clickedNode && clickedNode.onFolderClick) {
-                  clickedNode.onFolderClick();
-                  const clickedFsItem = this.fsItems.find(item => item.id === clickedNode.id);
+          //         if (clickedFsItem && clickedFsItem.children) {
 
-                  if (clickedFsItem && clickedFsItem.children) {
+          //           clickedFsItem.children.forEach((item) => {
 
-                    clickedFsItem.children.forEach((item) => {
+          //             const nodeItem: CustomNode | undefined = this.nodes.find(node => node.id === item); 
 
-                      const nodeItem: CustomNode | undefined = this.nodes.find(node => node.id === item); 
-
-                      if (nodeItem) {
-                        nodeItem.hidden = !nodeItem.hidden;
-                      }
-                      console.log('node item:', nodeItem);
-                    });
-                  }
-              }
-              //reload 
-          });
+          //             if (nodeItem) {
+          //               nodeItem.hidden = !nodeItem.hidden;
+          //             }
+          //             console.log('node item:', nodeItem);
+          //           });
+          //         }
+          //     }
+          //     //reload 
+          // });
+          this.hide(nodeIds);
           this.reRenderComponents();
       });
 
@@ -291,6 +288,37 @@ export class FolderFileComponent implements OnInit, OnDestroy {
     this.network.setData({
       nodes: this.renderedNodes,
       edges: this.edges
+    });
+  }
+
+  hide(nodes: String[]) {
+
+
+
+    const clickedNodes = nodes.map(nodeId => this.nodes.find(node => node.id === nodeId)).filter(Boolean);
+      
+    console.log('clicked nodes -> ', clickedNodes);
+
+    // Perform actions on the clicked nodes if needed
+    clickedNodes.forEach(clickedNode => {
+        if (clickedNode && clickedNode.onFolderClick) {
+            clickedNode.onFolderClick();
+            const clickedFsItem = this.fsItems.find(item => item.id === clickedNode.id);
+
+            if (clickedFsItem && clickedFsItem.children) {
+              this.hide(clickedFsItem.children);
+              clickedFsItem.children.forEach((item) => {
+
+                const nodeItem: CustomNode | undefined = this.nodes.find(node => node.id === item); 
+
+                if (nodeItem) {
+                  nodeItem.hidden = !nodeItem.hidden;
+                }
+                console.log('node item:', nodeItem);
+              });
+            }
+        }
+        //reload 
     });
   }
 
