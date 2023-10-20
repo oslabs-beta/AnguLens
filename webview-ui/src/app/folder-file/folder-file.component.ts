@@ -50,6 +50,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
 
   network: any;
   nodes: CustomNode[] = [];
+  renderedNodes: CustomNode[] = [];
   edges: Edge[] = [];
   fsItems: FsItem[] = [];
   pcItems: PcItem[] = [];
@@ -196,6 +197,19 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           clickedNodes.forEach(clickedNode => {
               if (clickedNode && clickedNode.onFolderClick) {
                   clickedNode.onFolderClick();
+                  const clickedFsItem = this.fsItems.find(item => item.id === clickedNode.id);
+
+                  if (clickedFsItem && clickedFsItem.children) {
+
+                    clickedFsItem.children.forEach((item) => {
+
+                      const nodeItem: CustomNode | undefined = this.nodes.find(node => node.id === item); 
+
+                      if (nodeItem && nodeItem.hidden) {
+                        nodeItem.hidden = !nodeItem.hidden;
+                      }
+                    });
+                  }
               }
           });
       });
@@ -261,6 +275,10 @@ export class FolderFileComponent implements OnInit, OnDestroy {
         filePath: this.filePath,
       },
     });
+  }
+
+  reRenderComponents() {
+
   }
 
   createNodesAndEdges(
