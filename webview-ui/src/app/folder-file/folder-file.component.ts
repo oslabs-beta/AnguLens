@@ -264,17 +264,13 @@ export class FolderFileComponent implements OnInit, OnDestroy {
   }
 
   hide(nodes: String[], firstRun: Boolean = true) {
-
-
-
     const clickedNodes = nodes.map(nodeId => this.nodes.find(node => node.id === nodeId)).filter(Boolean);
-      
-    console.log('clicked nodes -> ', clickedNodes);
 
-    // Perform actions on the clicked nodes if needed
     clickedNodes.forEach(clickedNode => {
         if (clickedNode && clickedNode.onFolderClick && (clickedNode.open || firstRun === true)) {
-            clickedNode.onFolderClick();
+            if (firstRun) {
+              clickedNode.onFolderClick();
+            }
             const clickedFsItem = this.fsItems.find(item => item.id === clickedNode.id);
             if (clickedFsItem && clickedFsItem.children) {
               this.hide(clickedFsItem.children, false);
@@ -285,7 +281,6 @@ export class FolderFileComponent implements OnInit, OnDestroy {
                 if (nodeItem) {
                   nodeItem.hidden = !nodeItem.hidden;
                 }
-                console.log('node item:', nodeItem);
               });
             }
         } 
