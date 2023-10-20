@@ -15,6 +15,7 @@ import { URIObj } from 'src/models/uri';
 import { vscode } from '../utilities/vscode';
 
 import { FileSystemService } from 'src/services/FileSystemService';
+import { first } from 'rxjs';
 
 type AppState = {
   networkData: any; // Use the appropriate data type for 'networkData'
@@ -185,37 +186,10 @@ export class FolderFileComponent implements OnInit, OnDestroy {
         this.network = new Network(container, data, this.options);
         this.network.on('click', (event: { nodes: string[] }) => {
           const { nodes: nodeIds } = event;
-          console.log('click event');
-          console.log('node IDs -> ', nodeIds);
-      
-          // Get the corresponding node objects from your 'nodes' array
-          // const clickedNodes = nodeIds.map(nodeId => this.nodes.find(node => node.id === nodeId)).filter(Boolean);
-      
-          // console.log('clicked nodes -> ', clickedNodes);
-
-          // // Perform actions on the clicked nodes if needed
-          // clickedNodes.forEach(clickedNode => {
-          //     if (clickedNode && clickedNode.onFolderClick) {
-          //         clickedNode.onFolderClick();
-          //         const clickedFsItem = this.fsItems.find(item => item.id === clickedNode.id);
-
-          //         if (clickedFsItem && clickedFsItem.children) {
-
-          //           clickedFsItem.children.forEach((item) => {
-
-          //             const nodeItem: CustomNode | undefined = this.nodes.find(node => node.id === item); 
-
-          //             if (nodeItem) {
-          //               nodeItem.hidden = !nodeItem.hidden;
-          //             }
-          //             console.log('node item:', nodeItem);
-          //           });
-          //         }
-          //     }
-          //     //reload 
-          // });
-          this.hide(nodeIds);
-          this.reRenderComponents();
+          if (nodeIds.length > 0) {
+            this.hide(nodeIds);
+            this.reRenderComponents();
+          }
       });
 
         vscode.setState({
@@ -283,15 +257,13 @@ export class FolderFileComponent implements OnInit, OnDestroy {
 
   reRenderComponents() {
     this.renderedNodes = this.nodes.filter((node: CustomNode) => !node.hidden);
-    console.log('base nodes :) -->', this.nodes);
-    console.log('rendered nodes :( -->', this.renderedNodes);
     this.network.setData({
       nodes: this.renderedNodes,
       edges: this.edges
     });
   }
 
-  hide(nodes: String[]) {
+  hide(nodes: String[], firstRun: Boolean = true) {
 
 
 
@@ -301,12 +273,11 @@ export class FolderFileComponent implements OnInit, OnDestroy {
 
     // Perform actions on the clicked nodes if needed
     clickedNodes.forEach(clickedNode => {
-        if (clickedNode && clickedNode.onFolderClick) {
+        if (clickedNode && clickedNode.onFolderClick && (clickedNode.open || firstRun === true)) {
             clickedNode.onFolderClick();
             const clickedFsItem = this.fsItems.find(item => item.id === clickedNode.id);
-
             if (clickedFsItem && clickedFsItem.children) {
-              this.hide(clickedFsItem.children);
+              this.hide(clickedFsItem.children, false);
               clickedFsItem.children.forEach((item) => {
 
                 const nodeItem: CustomNode | undefined = this.nodes.find(node => node.id === item); 
@@ -317,8 +288,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
                 console.log('node item:', nodeItem);
               });
             }
-        }
-        //reload 
+        } 
     });
   }
 
