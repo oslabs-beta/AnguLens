@@ -10,6 +10,8 @@ import { send } from "process";
 import {
   populateStructure,
   populatePCView,
+  // inLineCheck,
+  // generateAST
 } from "./createViewAlgos/populateAlgos";
 
 
@@ -77,7 +79,7 @@ export function activate(context: vscode.ExtensionContext) {
         path.join(
           __dirname,
           "../webview-ui/dist/webview-ui",
-          "main.a94140717aa5145a.js"
+          "main.144d51c04937f251.js"
         )
       )
     );
@@ -115,6 +117,12 @@ export function activate(context: vscode.ExtensionContext) {
 
     panel.webview.postMessage(message);
     //END URIS
+
+    // const testy = '/Users/danielkim/personal-projects/tic-tac-toe/src/app/square/square.component.ts';
+    // const balls = generateAST(testy)
+    // console.log(balls);
+    // inLineCheck(balls, {});
+
 
 
     const items: any = [];
