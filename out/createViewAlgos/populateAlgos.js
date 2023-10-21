@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.populatePCView = exports.populateStructure = void 0;
+exports.populatePCView = exports.inLineCheck = exports.generateAST = exports.populateStructure = void 0;
 const ts = require("typescript");
 const fs = require("fs");
 const tsquery_1 = require("@phenomnomnominal/tsquery");
@@ -38,12 +38,12 @@ function populateStructure(array, selectorNames) {
             }
             if (type === "ts") {
                 const filePath = item.path;
-                const sourceFile = generateAST(filePath);
-                // Query for PropertyAssignment nodes with an Identifier name of 'selector'
-                const selectorProperties = (0, tsquery_1.tsquery)(sourceFile, "PropertyAssignment > Identifier[name=selector]");
                 let tempArray = filePath.split("/");
                 tempArray.pop();
                 const folderPath = tempArray.join("/");
+                const sourceFile = generateAST(filePath);
+                // Query for PropertyAssignment nodes with an Identifier name of 'selector'
+                const selectorProperties = (0, tsquery_1.tsquery)(sourceFile, "PropertyAssignment > Identifier[name=selector]");
                 // Check if selectorProperties is not empty and log the selector name
                 if (selectorProperties.length > 0) {
                     const selectorName = selectorProperties[0].parent.initializer.text;
@@ -53,24 +53,10 @@ function populateStructure(array, selectorNames) {
                         inputs: [],
                         outputs: []
                     };
-                    const inputProperties = (0, tsquery_1.tsquery)(sourceFile, "PropertyDeclaration:has(Identifier[name=Input])");
-                    inputProperties.forEach(variable => {
-                        const variableName = variable.name.text;
-                        const input = {
-                            name: variableName,
-                            pathTo: folderPath,
-                        };
-                        obj.inputs.push(input);
-                    });
-                    const outputProperties = (0, tsquery_1.tsquery)(sourceFile, 'PropertyDeclaration:has(Decorator > CallExpression > Identifier[name=Output])');
-                    outputProperties.forEach(variable => {
-                        const variableName = variable.name.text;
-                        const output = {
-                            name: variableName,
-                            pathFrom: folderPath,
-                        };
-                        obj.outputs.push(output);
-                    });
+                    populateInputs(sourceFile, obj, folderPath);
+                    populateOutputs(sourceFile, obj, folderPath);
+                    inLineCheck(sourceFile, obj);
+                    // if(obj.template) console.log('THIS IS IN LINE TEMP: ', template);
                     selectorNames.push(obj);
                 }
             }
@@ -91,6 +77,43 @@ function generateAST(filePath) {
     // Return the AST of the source file
     return sourceFile;
 }
+exports.generateAST = generateAST;
+function populateInputs(sourceFile, obj, folderPath) {
+    const inputProperties = (0, tsquery_1.tsquery)(sourceFile, "PropertyDeclaration:has(Identifier[name=Input])");
+    inputProperties.forEach(variable => {
+        const variableName = variable.name.text;
+        const input = {
+            name: variableName,
+            pathTo: folderPath,
+        };
+        obj.inputs.push(input);
+    });
+}
+function populateOutputs(sourceFile, obj, folderPath) {
+    const outputProperties = (0, tsquery_1.tsquery)(sourceFile, 'PropertyDeclaration:has(Decorator > CallExpression > Identifier[name=Output])');
+    outputProperties.forEach(variable => {
+        const variableName = variable.name.text;
+        const output = {
+            name: variableName,
+            pathFrom: folderPath,
+        };
+        obj.outputs.push(output);
+    });
+}
+function inLineCheck(sourceFile, obj) {
+    const templateProperties = (0, tsquery_1.tsquery)(sourceFile, "NoSubstitutionTemplateLiteral");
+    console.log(sourceFile);
+    console.log("TEMPLATE PROPERTIES FROM AST: ", templateProperties);
+    // Component is using an inline template
+    if (templateProperties.length > 0) {
+        const temp = templateProperties[0]; //ts.StringLiteral;
+        obj.template = temp.text.trim();
+        console.log('OBJ HERE: ', obj);
+        console.log("Obj.template HERE: ", obj.template);
+        console.log("and the temp.text being assigned to Obj.template: ", temp.text);
+    }
+}
+exports.inLineCheck = inLineCheck;
 // populates Parent Child object to send to Angular App
 function populatePCView(selectorNames) {
     // step 1: build initial object with information about app component
@@ -110,11 +133,28 @@ function populatePCView(selectorNames) {
     return pcObject;
 }
 exports.populatePCView = populatePCView;
-//CHANGED to "pcObject" from "output" ij the 3 instances above... make sure it didn't break anything!
 function populateChildren(pcObject, selectorNames) {
-    // Step 1: populating current object's children array
-    const filePath = convertToHtml(pcObject.path);
+    let templateContent;
     for (const selectorName of selectorNames) {
+        if (selectorName.folderPath === pcObject.path) {
+            if (!selectorName.template) {
+                const filePath = convertToHtml(pcObject.path);
+                templateContent = fs.readFileSync(filePath, "utf-8");
+            }
+            else {
+                templateContent = selectorName.template;
+                //console.log('children TEMPLATE: ', selectorName.template);
+            }
+        }
+    }
+    //const filePath = convertToHtml(pcObject.path)
+    for (const selectorName of selectorNames) {
+        // if(selectorName.folderPath === pcObject.path) {
+        //   if(selectorName.template){
+        //     templateContent = selectorName.template;
+        //   }
+        //    else templateContent = fs.readFileSync(filePath, "utf-8");
+        // }
         const obj = {
             name: '',
             path: '',
@@ -122,17 +162,17 @@ function populateChildren(pcObject, selectorNames) {
             children: [],
             outputs: []
         };
-        if (selectorCheck(filePath, selectorName.selectorName)) {
+        if (selectorCheck(templateContent, selectorName.selectorName)) {
             obj.name = selectorName.selectorName;
             obj.path = selectorName.folderPath;
             selectorName.inputs.forEach(input => {
-                if (inputCheck(filePath, input.name)) {
+                if (inputCheck(templateContent, input.name)) {
                     input.pathFrom = pcObject.path;
                     obj.inputs.push(input);
                 }
             });
             selectorName.outputs.forEach(output => {
-                if (outputCheck(filePath, output.name)) {
+                if (outputCheck(templateContent, output.name)) {
                     output.pathTo = pcObject.path;
                     obj.outputs.push(output);
                 }
@@ -142,7 +182,6 @@ function populateChildren(pcObject, selectorNames) {
     }
     //Recursively call this function on each obj of children array
     pcObject.children.forEach((child) => populateChildren(child, selectorNames));
-    console.log('NEWUPDATED pcobject: ', pcObject);
     return pcObject;
 }
 function convertToHtml(folderPath) {
@@ -151,8 +190,7 @@ function convertToHtml(folderPath) {
     const htmlFile = component + ".component.html";
     return folderPath + "/" + htmlFile;
 }
-function selectorCheck(filePath, selectorName) {
-    const parsed = fs.readFileSync(filePath, "utf-8");
+function selectorCheck(parsed, selectorName) {
     // creates AST of angular template (--> check up on what fs.readFileSync is doing: may be turning file into a STRING)
     const $ = cheerio.load(parsed);
     // $ is variable name (?) --> using cheerio to ".load" parsed... is THIS creating the AST actually?
@@ -160,14 +198,11 @@ function selectorCheck(filePath, selectorName) {
     const foundElement = $(selectorName);
     //if it found a match (variable foundElement has length) return true
     if (foundElement.length) {
-        console.log('SELECTORCHECKfilePath: ', filePath);
-        console.log('selectorName: ', selectorName);
         return true;
     }
     return false;
 }
-function inputCheck(templatePath, inputName) {
-    const templateContent = fs.readFileSync(templatePath, "utf-8");
+function inputCheck(templateContent, inputName) {
     const regex = new RegExp(`\\[${inputName}\\]`, 'g');
     const matches = templateContent.match(regex);
     if (matches) {
@@ -177,8 +212,7 @@ function inputCheck(templatePath, inputName) {
         return false;
     }
 }
-function outputCheck(templatePath, outputName) {
-    const templateContent = fs.readFileSync(templatePath, "utf-8");
+function outputCheck(templateContent, outputName) {
     const regex = new RegExp(`\\(${outputName}\\)`, 'g');
     const matches = templateContent.match(regex);
     if (matches) {

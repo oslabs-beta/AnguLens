@@ -47,20 +47,6 @@ function activate(context) {
         };
         panel.webview.postMessage(message);
         //END URIS
-        function findInputInTemplate(templateContent, inputName) {
-            const regex = new RegExp(`\\[${inputName}\\]`, 'g');
-            const matches = templateContent.match(regex);
-            if (matches) {
-                console.log(matches);
-                return matches.length;
-            }
-            else {
-                return 0;
-            }
-        }
-        const testy = '/Users/danielkim/personal-projects/task-tracker/src/app/components/header/header.component.html';
-        const testi = fs.readFileSync(testy, 'utf-8');
-        console.log(findInputInTemplate(testi, 'color'));
         const items = [];
         const selectorNames = [];
         let currentFilePath = "";
@@ -92,14 +78,13 @@ function activate(context) {
                             data: fsObject,
                         };
                         pcObject = (0, populateAlgos_1.populatePCView)(selectorNames);
+                        console.log('THIS PC OBJECT: ', pcObject);
                         // const pcMessage: Message = {
                         //   command: "updatePC",
                         //   data: pcObject,
                         // };
                         //panel.webview.postMessage(pcMessage);
                         panel.webview.postMessage(sendNewPathObj);
-        
-                        */
                     });
                     break;
                 }

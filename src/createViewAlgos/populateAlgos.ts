@@ -39,6 +39,9 @@ export function populateStructure(array: any, selectorNames: object[]): object {
 
       if (type === "ts") {
         const filePath = item.path;
+        let tempArray = filePath.split("/");
+        tempArray.pop();
+        const folderPath = tempArray.join("/");
         const sourceFile = generateAST(filePath);
 
         // Query for PropertyAssignment nodes with an Identifier name of 'selector'
@@ -46,12 +49,6 @@ export function populateStructure(array: any, selectorNames: object[]): object {
           sourceFile,
           "PropertyAssignment > Identifier[name=selector]"
         );
-        let tempArray = filePath.split("/");
-        tempArray.pop();
-        const folderPath = tempArray.join("/");
-
-       
-
         // Check if selectorProperties is not empty and log the selector name
         if (selectorProperties.length > 0) {
           const selectorName = selectorProperties[0].parent.initializer.text;
@@ -63,33 +60,12 @@ export function populateStructure(array: any, selectorNames: object[]): object {
             outputs: []
           };
 
-          const inputProperties = tsquery (
-            sourceFile,
-            "PropertyDeclaration:has(Identifier[name=Input])"
-          ) as ts.PropertyDeclaration[];
-  
-          inputProperties.forEach(variable => {
-            const variableName = (variable.name as ts.Identifier).text;
-            const input = {
-              name: variableName,
-              pathTo: folderPath,
-            }
-            obj.inputs.push(input);
-          });
-
-          const outputProperties = tsquery(
-            sourceFile,
-            'PropertyDeclaration:has(Decorator > CallExpression > Identifier[name=Output])'
-          ) as ts.PropertyDeclaration[];
+          populateInputs(sourceFile, obj, folderPath);
           
-          outputProperties.forEach(variable => {
-            const variableName = (variable.name as ts.Identifier).text;
-            const output = {
-              name: variableName,
-              pathFrom: folderPath,
-            };
-            obj.outputs.push(output);
-          });
+          populateOutputs(sourceFile, obj, folderPath);
+
+          inLineCheck(sourceFile, obj);
+          // if(obj.template) console.log('THIS IS IN LINE TEMP: ', template);
 
           selectorNames.push(obj);
         }
@@ -104,10 +80,7 @@ export function populateStructure(array: any, selectorNames: object[]): object {
   return output;
 }
 
-
-
-
-function generateAST(filePath: string) {
+export function generateAST(filePath: string) {
   // Read the TypeScript file content
   const fileContent = fs.readFileSync(filePath, "utf-8");
 
@@ -122,7 +95,54 @@ function generateAST(filePath: string) {
   return sourceFile;
 }
 
+function populateInputs(sourceFile, obj, folderPath) {
+  const inputProperties = tsquery (
+    sourceFile,
+    "PropertyDeclaration:has(Identifier[name=Input])"
+  ) as ts.PropertyDeclaration[];
 
+  inputProperties.forEach(variable => {
+    const variableName = (variable.name as ts.Identifier).text;
+    const input = {
+      name: variableName,
+      pathTo: folderPath,
+    }
+    obj.inputs.push(input);
+  });
+}
+
+function populateOutputs(sourceFile, obj, folderPath) {
+  const outputProperties = tsquery(
+    sourceFile,
+    'PropertyDeclaration:has(Decorator > CallExpression > Identifier[name=Output])'
+  ) as ts.PropertyDeclaration[];
+  
+  outputProperties.forEach(variable => {
+    const variableName = (variable.name as ts.Identifier).text;
+    const output = {
+      name: variableName,
+      pathFrom: folderPath,
+    };
+    obj.outputs.push(output);
+  });
+}
+
+export function inLineCheck(sourceFile: ts.SourceFile, obj: object) {
+  const templateProperties = tsquery(
+    sourceFile,
+    "NoSubstitutionTemplateLiteral"
+  );
+  console.log(sourceFile);
+  console.log("TEMPLATE PROPERTIES FROM AST: ", templateProperties);
+  // Component is using an inline template
+  if (templateProperties.length > 0) {
+    const temp = templateProperties[0] as ts.NoSubstitutionTemplateLiteral; //ts.StringLiteral;
+    obj.template = temp.text.trim();
+    console.log('OBJ HERE: ', obj);
+    console.log("Obj.template HERE: ", obj.template);
+    console.log("and the temp.text being assigned to Obj.template: ", temp.text);
+  } 
+}
 
 // populates Parent Child object to send to Angular App
 export function populatePCView(selectorNames: object[]): object {
@@ -145,32 +165,51 @@ export function populatePCView(selectorNames: object[]): object {
   return pcObject;
 }
 
-//CHANGED to "pcObject" from "output" ij the 3 instances above... make sure it didn't break anything!
-
 function populateChildren(pcObject: object, selectorNames: object[]): object {
-  // Step 1: populating current object's children array
-  const filePath = convertToHtml(pcObject.path);
+  let templateContent: string;
 
+  for(const selectorName of selectorNames) {
+    if(selectorName.folderPath === pcObject.path) {
+      if(!selectorName.template) {
+        const filePath = convertToHtml(pcObject.path);
+        templateContent = fs.readFileSync(filePath, "utf-8");
+      } else {
+        templateContent = selectorName.template;
+        //console.log('children TEMPLATE: ', selectorName.template);
+      }
+    }
+  }
+
+  //const filePath = convertToHtml(pcObject.path)
+  
   for (const selectorName of selectorNames) {
+    // if(selectorName.folderPath === pcObject.path) {
+    //   if(selectorName.template){
+    //     templateContent = selectorName.template;
+    //   }
+    //    else templateContent = fs.readFileSync(filePath, "utf-8");
+    // }
+    
+
     const obj = {
       name: '',
       path: '',
       inputs: [],
       children: [],
       outputs: []
-    }
+    };
 
-    if (selectorCheck(filePath, selectorName.selectorName)) {
+    if (selectorCheck(templateContent, selectorName.selectorName)) {
       obj.name = selectorName.selectorName;
       obj.path = selectorName.folderPath;
       selectorName.inputs.forEach(input => {
-        if (inputCheck(filePath, input.name)){
+        if (inputCheck(templateContent, input.name)){
           input.pathFrom = pcObject.path;
           obj.inputs.push(input);
         }
       });
       selectorName.outputs.forEach(output =>{
-        if (outputCheck(filePath, output.name)){
+        if (outputCheck(templateContent, output.name)){
           output.pathTo = pcObject.path;
           obj.outputs.push(output);
         }
@@ -183,7 +222,6 @@ function populateChildren(pcObject: object, selectorNames: object[]): object {
   pcObject.children.forEach((child) =>
     populateChildren(child, selectorNames)
   );
-  console.log('NEWUPDATED pcobject: ',pcObject);
   return pcObject;
 }
 
@@ -196,8 +234,7 @@ function convertToHtml(folderPath: string): string {
 }
 
 
-function selectorCheck(filePath: string, selectorName: string): boolean {
-  const parsed = fs.readFileSync(filePath, "utf-8");
+function selectorCheck(parsed: string, selectorName: string): boolean {
   // creates AST of angular template (--> check up on what fs.readFileSync is doing: may be turning file into a STRING)
   const $ = cheerio.load(parsed);
   // $ is variable name (?) --> using cheerio to ".load" parsed... is THIS creating the AST actually?
@@ -206,15 +243,12 @@ function selectorCheck(filePath: string, selectorName: string): boolean {
 
   //if it found a match (variable foundElement has length) return true
   if (foundElement.length) {
-    console.log('SELECTORCHECKfilePath: ', filePath);
-    console.log('selectorName: ', selectorName);
     return true;
   }
   return false;
 }
 
-function inputCheck(templatePath, inputName) {
-  const templateContent = fs.readFileSync(templatePath, "utf-8");
+function inputCheck(templateContent: string, inputName: string) {
   const regex = new RegExp(`\\[${inputName}\\]`, 'g');
   const matches = templateContent.match(regex);
   if (matches) {
@@ -224,8 +258,7 @@ function inputCheck(templatePath, inputName) {
   }
 }
 
-function outputCheck(templatePath, outputName) {
-  const templateContent = fs.readFileSync(templatePath, "utf-8");
+function outputCheck(templateContent: string, outputName: string) {
   const regex = new RegExp(`\\(${outputName}\\)`, 'g');
   const matches = templateContent.match(regex);
   if (matches) {
@@ -234,3 +267,5 @@ function outputCheck(templatePath, outputName) {
     return false;
   }
 }
+
+
