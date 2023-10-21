@@ -11,7 +11,6 @@ import { Network } from 'vis-network';
 import { FsItem, PcItem, Node, Edge } from '../../models/FileSystem';
 import { ExtensionMessage } from '../../models/message';
 import { URIObj } from 'src/models/uri';
-//import { CustomNode } from 'src/models/CustomNode';
 import { vscode } from '../utilities/vscode';
 
 import { FileSystemService } from 'src/services/FileSystemService';
@@ -21,12 +20,6 @@ type AppState = {
   networkData: any; // Use the appropriate data type for 'networkData'
   options: any; // Use the appropriate data type for 'options'
 };
-interface CustomNode extends Node {
-  hidden: boolean;
-  open?: boolean;
-  onFolderClick?: () => void;
-}
-
 interface Folder {
   type: 'folder';
   path: string;
@@ -50,8 +43,8 @@ export class FolderFileComponent implements OnInit, OnDestroy {
   constructor(private fileSystemService: FileSystemService) {}
 
   network: any;
-  nodes: CustomNode[] = [];
-  renderedNodes: CustomNode[] = [];
+  nodes: Node[] = [];
+  renderedNodes: Node[] = [];
   edges: Edge[] = [];
   fsItems: FsItem[] = [];
   pcItems: PcItem[] = [];
@@ -107,21 +100,32 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           // pcItems: PcItem[];
           uris: string[];
           pcData: any;
+          fsData: any;
           fsNodes: Node[];
           fsEdges: Edge[];
         };
+        console.log('fs nodes in reload ->', state.fsNodes);
+        console.log('fs edges in reload ->', state.fsEdges);
+        this.nodes = state.fsNodes;
+        this.edges = state.fsEdges;
+        this.renderedNodes = this.nodes.filter((node: Node) => !node.hidden);
 
-        const newNodes = new DataSet(state.fsNodes);
-        const newEdges = new DataSet(state.fsEdges);
         const data: {
-          nodes: DataSet<any, 'id'>;
-          edges: DataSet<any, 'id'>;
+          nodes: DataSet<any>;
+          edges: DataSet<any>;
         } = {
-          nodes: newNodes,
-          edges: newEdges,
+          nodes: new DataSet(this.renderedNodes),
+          edges: new DataSet(this.edges),
         };
         const container = this.networkContainer.nativeElement;
         this.network = new Network(container, data, this.options);
+        this.network.on('click', (event: { nodes: string[] }) => {
+          const { nodes: nodeIds } = event;
+          if (nodeIds.length > 0) {
+            this.hide(nodeIds);
+            this.reRenderComponents();
+          }
+        });
         vscode.setState({
           // fsItems: state.fsItems,
           uris: state.uris,
@@ -171,7 +175,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
 
         const newNodes = new DataSet(nodes);
         const newEdges = new DataSet(edgesWithIds);
-
+        console.log('edges in generate ->', edgesWithIds);
         // create a network
         const container = this.networkContainer.nativeElement;
         // const data = { newNodes, newEdges };
@@ -190,7 +194,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
             this.hide(nodeIds);
             this.reRenderComponents();
           }
-      });
+        });
 
         vscode.setState({
           // fsItems: this.fsItems,
@@ -212,12 +216,31 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           uris: string[];
           pcData: any;
           fsData: any;
-          fsNodes: CustomNode[];
+          fsNodes: Node[];
           fsEdges: Edge[];
         };
+        console.log('fs nodes in reload ->', state.fsNodes);
+        console.log('fs edges in reload ->', state.fsEdges);
+        this.nodes = state.fsNodes;
+        this.edges = state.fsEdges;
+        this.renderedNodes = this.nodes.filter((node: Node) => !node.hidden);
 
+        const data: {
+          nodes: DataSet<any>;
+          edges: DataSet<any>;
+        } = {
+          nodes: new DataSet(this.renderedNodes),
+          edges: new DataSet(this.edges),
+        };
         const container = this.networkContainer.nativeElement;
-        this.network = new Network(container, state.fsData, this.options);
+        this.network = new Network(container, data, this.options);
+        this.network.on('click', (event: { nodes: string[] }) => {
+          const { nodes: nodeIds } = event;
+          if (nodeIds.length > 0) {
+            this.hide(nodeIds);
+            this.reRenderComponents();
+          }
+        });
         break;
       }
 
@@ -256,42 +279,70 @@ export class FolderFileComponent implements OnInit, OnDestroy {
   }
 
   reRenderComponents() {
-    this.renderedNodes = this.nodes.filter((node: CustomNode) => !node.hidden);
+    console.log('rerendering');
+    this.renderedNodes = this.nodes.filter((node: Node) => !node.hidden);
     this.network.setData({
       nodes: this.renderedNodes,
       edges: this.edges
     });
+    const state = vscode.getState();
+    vscode.setState({
+      ...state as object,
+      fsNodes: this.nodes,
+    });
   }
 
   hide(nodes: String[], firstRun: Boolean = true) {
-    const clickedNodes = nodes.map(nodeId => this.nodes.find(node => node.id === nodeId)).filter(Boolean);
-
+    console.log('nodes in hide', nodes);
+    const clickedNodes = nodes.map(nodeId => this.nodes.find(node => node.id === nodeId));
+    console.log('clickedNodes ->', clickedNodes);
     clickedNodes.forEach(clickedNode => {
-        if (clickedNode && clickedNode.onFolderClick && (clickedNode.open || firstRun === true)) {
-            if (firstRun) {
-              clickedNode.onFolderClick();
-            }
-            const clickedFsItem = this.fsItems.find(item => item.id === clickedNode.id);
-            if (clickedFsItem && clickedFsItem.children) {
-              this.hide(clickedFsItem.children, false);
-              clickedFsItem.children.forEach((item) => {
+      console.log('clickedNode', clickedNode);
+      if (clickedNode && clickedNode.open !== undefined && (clickedNode.open || firstRun === true)) {
+        console.log('in hide clickednode conditional');
+        if (firstRun) {
+          clickedNode.open = !clickedNode.open;
+        }
+        const childrenArr: String[] = this.edges.filter(edge => edge.from === clickedNode.id).map(edge => edge.to);
+        console.log('nestedChildrenArr ->', childrenArr);
+        this.hide(childrenArr, false);
+        childrenArr.forEach((item) => {
+          const currentNode: Node | undefined = this.nodes.find((node) => node.id === item);
 
-                const nodeItem: CustomNode | undefined = this.nodes.find(node => node.id === item); 
+          if (currentNode) {
+            currentNode.hidden = !currentNode.hidden;
+          }
+        });
+      }
 
-                if (nodeItem) {
-                  nodeItem.hidden = !nodeItem.hidden;
-                }
-              });
-            }
-        } 
     });
+
+    // clickedNodes.forEach(clickedNode => {
+    //     if (clickedNode && clickedNode.onFolderClick && (clickedNode.open || firstRun === true)) {
+    //         if (firstRun) {
+    //           clickedNode.onFolderClick();
+    //         }
+    //         const clickedFsItem = this.fsItems.find(item => item.id === clickedNode.id);
+    //         if (clickedFsItem && clickedFsItem.children) {
+    //           this.hide(clickedFsItem.children, false);
+    //           clickedFsItem.children.forEach((item) => {
+
+    //             const nodeItem: Node | undefined = this.nodes.find(node => node.id === item); 
+
+    //             if (nodeItem) {
+    //               nodeItem.hidden = !nodeItem.hidden;
+    //             }
+    //           });
+    //         }
+    //     } 
+    // });
   }
 
   createNodesAndEdges(
     fsItems: FsItem[],
     uris: string[]
-  ): { nodes: CustomNode[]; edges: Edge[] } {
-    const nodes: CustomNode[] = [];
+  ): { nodes: Node[]; edges: Edge[] } {
+    const nodes: Node[] = [];
     const edges: Edge[] = [];
     // Helper function to recursively add nodes and edges
     function addNodesAndEdges(item: FsItem, parentFolder?: string) {
@@ -323,7 +374,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
             break;
         }
         
-        const newNode: CustomNode = {
+        const newNode: Node = {
           id: item.id,
           label: item.label,
           image: {

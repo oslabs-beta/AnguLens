@@ -26,6 +26,9 @@ export interface Node {
     unselected?: string;
     selected?: string;
   };
+  hidden?: boolean;
+  open?: boolean;
+  onFolderClick?: () => void;
 }
 
 export interface Edge {
