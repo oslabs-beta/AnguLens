@@ -65,7 +65,7 @@ export function populateStructure(array: any, selectorNames: object[]): object {
           populateOutputs(sourceFile, obj, folderPath);
 
           inLineCheck(sourceFile, obj);
-          // if(obj.template) console.log('THIS IS IN LINE TEMP: ', template);
+          // if(obj.template) console.log('THIS IS IN LINE TEMP: ', template)
 
           selectorNames.push(obj);
         }
@@ -133,14 +133,10 @@ export function inLineCheck(sourceFile: ts.SourceFile, obj: object) {
     "NoSubstitutionTemplateLiteral"
   );
   console.log(sourceFile);
-  console.log("TEMPLATE PROPERTIES FROM AST: ", templateProperties);
   // Component is using an inline template
   if (templateProperties.length > 0) {
     const temp = templateProperties[0] as ts.NoSubstitutionTemplateLiteral; //ts.StringLiteral;
     obj.template = temp.text.trim();
-    console.log('OBJ HERE: ', obj);
-    console.log("Obj.template HERE: ", obj.template);
-    console.log("and the temp.text being assigned to Obj.template: ", temp.text);
   } 
 }
 
@@ -150,7 +146,6 @@ export function populatePCView(selectorNames: object[]): object {
   let appPath: string;
   for (const selectorName of selectorNames) {
     if (selectorName.selectorName === "app-root") {
-      // folderPath = '/Users/danielkim/personal-projects/task-tracker/src/app'
       appPath = selectorName.folderPath;
     }
   }
@@ -162,6 +157,7 @@ export function populatePCView(selectorNames: object[]): object {
 
   populateChildren(pcObject, selectorNames);
 
+  console.log(pcObject);
   return pcObject;
 }
 
@@ -175,22 +171,11 @@ function populateChildren(pcObject: object, selectorNames: object[]): object {
         templateContent = fs.readFileSync(filePath, "utf-8");
       } else {
         templateContent = selectorName.template;
-        //console.log('children TEMPLATE: ', selectorName.template);
       }
     }
   }
-
-  //const filePath = convertToHtml(pcObject.path)
   
   for (const selectorName of selectorNames) {
-    // if(selectorName.folderPath === pcObject.path) {
-    //   if(selectorName.template){
-    //     templateContent = selectorName.template;
-    //   }
-    //    else templateContent = fs.readFileSync(filePath, "utf-8");
-    // }
-    
-
     const obj = {
       name: '',
       path: '',
