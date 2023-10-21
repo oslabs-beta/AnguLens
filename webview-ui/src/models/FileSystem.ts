@@ -44,10 +44,17 @@ export interface Edge {
   from: string;
   to: string;
   color?: {};
+  relation?: string;
   endPointOffset?: {
     to: number;
     from: number;
   };
   arrowStrikethrough?: boolean;
-  smooth?: { type: string; roundness: number };
+  smooth?: { type: string; roundness: number } | boolean;
+  arrows?: {
+    to: object;
+    middle?: object;
+    from?: object;
+  };
 }
+//

@@ -101,6 +101,8 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           pcData: any;
           fsNodes: Node[];
           fsEdges: Edge[];
+          pcNodes: Node[];
+          pcEdges: Edge[];
         };
 
         const newNodes = new DataSet(state.fsNodes);
@@ -116,13 +118,13 @@ export class FolderFileComponent implements OnInit, OnDestroy {
         this.network = new Network(container, data, this.options);
 
         vscode.setState({
-          // fsItems: state.fsItems,
           uris: state.uris,
-          // pcItems: state.pcItems,
           fsData: data,
           fsNodes: state.fsNodes,
           fsEdges: state.fsEdges,
           pcData: state.pcData,
+          pcNodes: state.pcNodes,
+          pcEdges: state.pcEdges,
         });
 
         break;
@@ -131,23 +133,25 @@ export class FolderFileComponent implements OnInit, OnDestroy {
       case 'updateUris': {
         console.log('RUNNING UPDATEURIS');
         this.uris = message.data;
-        // this.fsItems = this.populate(this.source.src);
 
-        // this.fileSystemService.updateState(
-        //   this.fsItems,
-        //   this.uris,
-        //   // this.source.src
-        // );
         vscode.setState({
-          // fsItems: this.fsItems,
           uris: this.uris,
-          // pcItems: this.pcItems,
         });
         break;
       }
       //updatePath
       case 'generateFolderFile': {
         this.fsItems = this.populate(message.data.src);
+        const state = vscode.getState() as {
+          uris: string[];
+          pcData?: any;
+          fsNodes?: Node[];
+          fsEdges?: Edge[];
+          pcNodes?: Node[];
+          pcEdges?: Edge[];
+        };
+
+        this.uris = state.uris;
 
         const { nodes, edges } = this.createNodesAndEdges(
           this.fsItems,
@@ -184,7 +188,9 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           fsData: data,
           fsNodes: this.nodes,
           fsEdges: this.edges,
-          pcData: {},
+          pcData: state.pcData,
+          pcNodes: state.pcNodes,
+          pcEdges: state.pcEdges,
         });
         break;
       }
@@ -238,6 +244,8 @@ export class FolderFileComponent implements OnInit, OnDestroy {
         filePath: this.filePath,
       },
     });
+    this.fileSystemService.setGeneratedPC(false);
+    console.log(this.fileSystemService.getGeneratedPC()); // should log false
   }
 
   createNodesAndEdges(

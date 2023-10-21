@@ -1,4 +1,19 @@
+<div class="center">
+  <div class="dropdown">
+    <button class="dropbtn">Filter Relationships</button>
+    <div class="dropdown-content">
+      <a href="#" (click)="updateFilters('input')">Show Inputs</a>
+      <a href="#" (click)="updateFilters('output')">Show Outputs</a>
+      <a href="#" (click)="updateFilters('all')">Show All Relationships</a>
+    </div>
+  </div>
+</div>
 <div
   #networkContainer
-  style="margin-left: 5rem; width: 2000px; height: 1500px; background-color: white"
+  style="
+    margin-left: 5rem;
+    width: 2000px;
+    height: 1500px;
+    background-color: white;
+  "
 ></div>

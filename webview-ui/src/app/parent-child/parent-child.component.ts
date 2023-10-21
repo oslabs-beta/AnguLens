@@ -39,36 +39,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
     console.log('caught message?', message);
 
     switch (message.command) {
-      case 'stop': {
-        const state = vscode.getState() as {
-          fsItems: FsItem[];
-          pcItems: PcItem[];
-          uris: any;
-          pcData: any;
-          fsData: any;
-        };
-        if (state) {
-          this.pcItems = state.pcItems;
-          // this.fsItems = state.fsItems;
-          this.uris = state.uris;
-
-          const container = this.networkContainer.nativeElement;
-          this.network = new Network(container, state.pcData, this.options);
-          vscode.setState({
-            // fsItems: this.fsItems,
-            pcItems: this.pcItems,
-            uris: this.uris,
-            pcData: state.pcData,
-            fsData: state.fsData,
-          });
-        }
-        break;
-      }
-
-      case 'updatePC': {
-        console.log('REAL OBJECT', message.data);
-        this.pcItems = this.populate(message.data);
-        console.log('PC ITEMS', this.pcItems);
+      case 'loadState': {
         const state = vscode.getState() as {
           // fsItems: FsItem[];
           // pcItems: PcItem[];
@@ -77,18 +48,65 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           fsData: any;
           fsNodes: Node[];
           fsEdges: Edge[];
+          pcNodes: Node[];
+          pcEdges: Edge[];
         };
+        this.nodes = state.pcNodes;
+        this.edges = state.pcEdges;
+        const newNodes = new DataSet(state.pcNodes);
+        const newEdges = new DataSet(state.pcEdges);
+        const data: {
+          nodes: DataSet<any, 'id'>;
+          edges: DataSet<any, 'id'>;
+        } = {
+          nodes: newNodes,
+          edges: newEdges,
+        };
+        const container = this.networkContainer.nativeElement;
+        this.network = new Network(container, data, this.options);
+        vscode.setState({
+          uris: state.uris,
+          pcData: data,
+          fsData: state.fsData,
+          fsNodes: state.fsNodes,
+          fsEdges: state.fsEdges,
+          pcNodes: state.pcNodes,
+          pcEdges: state.pcEdges,
+        });
+        // console.log(state.fsNodes.length, 'FS NODES LENGTH');
+        // console.log(state.fsEdges.length, 'FS EDGES LENGTH');
+
+        break;
+      }
+
+      case 'updatePC': {
+        console.log('REAL OBJECT', message.data);
+        this.pcItems = this.populate(message.data);
+        // console.log('PC ITEMS', this.pcItems);
+        const state = vscode.getState() as {
+          uris: string[];
+          pcData: object;
+          fsData: any;
+          fsNodes: Node[];
+          fsEdges: Edge[];
+          pcNodes: Node[];
+          pcEdges: Edge[];
+        };
+
         this.uris = state.uris;
+        console.log('ABOUT TO CREATE NODES AND EDGES');
+        console.log('SHOULD BE EMPTY EDGES', this.edges); // this should be set to empty state.pcEdges
         const { nodes, edges } = this.createNodesAndEdges(
           this.pcItems,
           this.uris
         );
         this.nodes = nodes;
         this.edges = edges;
+        console.log('EDGES CREATED', this.edges);
         const newNodes = new DataSet(nodes);
         const newEdges = new DataSet(edges);
 
-        console.log('EDGES', this.edges);
+        // console.log('EDGES', this.edges);
 
         // create a network
         const container = this.networkContainer.nativeElement;
@@ -110,6 +128,8 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           fsData: state.fsData,
           fsNodes: state.fsNodes,
           fsEdges: state.fsEdges,
+          pcNodes: this.nodes,
+          pcEdges: this.edges,
         });
         this.network = new Network(container, data, this.options);
         break;
@@ -124,7 +144,14 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           fsData: any;
           fsNodes: Node[];
           fsEdges: Edge[];
+          pcNodes: Node[];
+          pcEdges: Edge[];
         };
+        this.nodes = state.pcNodes;
+        this.edges = state.pcEdges;
+        // console.log('PC NODES', state.pcNodes);
+        // console.log('PC EDGES', state.pcEdges);
+
         const container = this.networkContainer.nativeElement;
         this.network = new Network(container, state.pcData, this.options);
         break;
@@ -188,6 +215,53 @@ export class ParentChildComponent implements OnInit, OnDestroy {
     window.removeEventListener('message', this.handleMessageEvent);
   }
 
+  selectedFilter: string = 'all';
+  edgesDataSet: DataSet<Edge> = new DataSet(this.edges); // Initialize as empty DataSet object
+  edgesView = new DataView(this.edgesDataSet, {
+    filter: (item: Edge) => this.edgesFilter(item),
+  });
+
+  edgesFilter(item: Edge) {
+    switch (this.selectedFilter) {
+      case 'input':
+        console.log('INPUT FILTER');
+        return item.relation !== 'output';
+      case 'output':
+        console.log('OUTPUT FILTER');
+        return item.relation !== 'input';
+      case 'all':
+        console.log('ALL FILTER');
+        return true;
+      default:
+        return true;
+    }
+  }
+
+  updateFilters(filterType: string) {
+    this.selectedFilter = filterType;
+
+    this.edgesDataSet.clear();
+    this.edgesDataSet.add(this.edges);
+
+    this.edgesView.refresh();
+    // console.log('EDGES VIEW', this.edgesView);
+    // console.log('EDGES DATA SET', this.edgesDataSet);
+    if (this.network) {
+      // let newEdges = this.edgesView.get();
+      // console.log(newEdges, 'NEW EDGES');
+      const data: {
+        nodes: DataSet<any, 'id'>;
+        edges: DataView<any, 'id'>;
+      } = {
+        nodes: new DataSet<Node>(this.nodes),
+        edges: this.edgesView,
+      };
+      // console.log('DATA EDGES', data.edges);
+      const container = this.networkContainer.nativeElement;
+      this.network = new Network(container, data, this.options);
+    }
+  }
+
   createNodesAndEdges(
     pcItems: PcItem[],
     uris: string[]
@@ -205,10 +279,6 @@ export class ParentChildComponent implements OnInit, OnDestroy {
         nodes.push({
           id: item.id,
           label: item.label,
-          // image: {
-          //   unselected: '',
-          //   selected: '',
-          // },
         });
 
         if (item.inputs.length > 0) {
@@ -218,16 +288,21 @@ export class ParentChildComponent implements OnInit, OnDestroy {
               id: `${item.id}-${item.inputs[inputItem].pathFrom}`,
               from: item.inputs[inputItem].pathFrom,
               to: item.id,
+              relation: 'input',
               color: { color: 'green' },
-              // endPointOffset: {
-              //   to: -50,
-              //   from: -50,
-              // },
-              // arrowStrikethrough: true,
-              smooth: { type: 'curvedCCW', roundness: 0.4 },
+              smooth: { type: 'curvedCCW', roundness: 0.25 },
+              arrows: {
+                to: {
+                  enabled: true,
+                  type: 'arrow',
+                },
+                middle: {
+                  type: 'arrow',
+                },
+              },
             };
             edges.push(edge);
-            console.log('INPUT EDGE', edge);
+            // console.log('INPUT EDGE', edge);
           }
         }
 
@@ -238,15 +313,20 @@ export class ParentChildComponent implements OnInit, OnDestroy {
               from: item.id,
               to: item.outputs[outputItem].pathTo,
               color: { color: 'red' },
-              // arrowStrikethrough: true,
-              // endPointOffset: {
-              //   to: 50,
-              //   from: 50,
-              // },
+              relation: 'output',
+              arrows: {
+                to: {
+                  enabled: true,
+                  type: 'arrow',
+                },
+                middle: {
+                  type: 'arrow',
+                },
+              },
               smooth: { type: 'curvedCCW', roundness: 0.2 },
             };
             edges.push(edge);
-            console.log('OUTPUT EDGE', edge);
+            // console.log('OUTPUT EDGE', edge);
           }
         }
 
@@ -257,6 +337,8 @@ export class ParentChildComponent implements OnInit, OnDestroy {
               id: `${item.id}-${childId}`,
               from: item.id,
               to: childId,
+              relation: 'all',
+              smooth: false,
             };
             edges.push(edge);
             const child = pcItems.find((pcItem) => pcItem.id === childId);

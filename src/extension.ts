@@ -63,7 +63,7 @@ export function activate(context: vscode.ExtensionContext) {
         path.join(
           __dirname,
           "../webview-ui/dist/webview-ui",
-          "main.2130df977f353f79.js"
+          "main.2d8c70d06b301571.js"
         )
       )
     );
@@ -102,8 +102,8 @@ export function activate(context: vscode.ExtensionContext) {
     panel.webview.postMessage(message);
     //END URIS
 
-    const items: any = [];
-    const selectorNames: object[] = [];
+    let items: any = [];
+    let selectorNames: object[] = [];
     let currentFilePath: string = "";
     let pcObject: object = {};
     let fsObject: object = {};
@@ -113,6 +113,8 @@ export function activate(context: vscode.ExtensionContext) {
       (message: Message) => {
         switch (message.command) {
           case "loadNetwork": {
+            items = [];
+            selectorNames = [];
             const srcRootPath = message.data.filePath;
             currentFilePath = message.data.filePath;
             let rootPath: string = "";
@@ -133,26 +135,25 @@ export function activate(context: vscode.ExtensionContext) {
                   command: "generateFolderFile",
                   data: fsObject,
                 };
-                pcObject = populatePCView(selectorNames);
-                console.log("THIS PC OBJECT: ", pcObject);
 
-                // const pcMessage: Message = {
-                //   command: "updatePC",
-                //   data: pcObject,
-                // };
-
-                //panel.webview.postMessage(pcMessage);
                 panel.webview.postMessage(sendNewPathObj);
               });
             break;
           }
 
           case "loadParentChild": {
+            // klaw(currentFilePath)
+            //   .on("data", (item) => items.push(item))
+            //   .on("end", () => {
+            pcObject = populatePCView(selectorNames);
+            console.log("SELECTOR NAMES", selectorNames);
+            console.log("THIS PC OBJECT: ", pcObject);
             const pcMessage: Message = {
               command: "updatePC",
               data: pcObject,
             };
             panel.webview.postMessage(pcMessage);
+            // });
             break;
           }
 

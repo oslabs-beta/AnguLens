@@ -6,7 +6,7 @@ const fs = require("fs");
 const tsquery_1 = require("@phenomnomnominal/tsquery");
 const cheerio = require("cheerio");
 function populateStructure(array, selectorNames) {
-    console.log("POPULATED STRUCTURE TRIGGERED");
+    //console.log("POPULATED STRUCTURE TRIGGERED");
     // console.log("POPULATE PASSED IN ARRAY====", array);
     const output = {};
     let rootPath = "";
@@ -142,7 +142,7 @@ function populateChildren(pcObject, selectorNames) {
     }
     //Recursively call this function on each obj of children array
     pcObject.children.forEach((child) => populateChildren(child, selectorNames));
-    console.log('NEWUPDATED pcobject: ', pcObject);
+    //console.log('NEWUPDATED pcobject: ',pcObject);
     return pcObject;
 }
 function convertToHtml(folderPath) {
@@ -160,8 +160,8 @@ function selectorCheck(filePath, selectorName) {
     const foundElement = $(selectorName);
     //if it found a match (variable foundElement has length) return true
     if (foundElement.length) {
-        console.log('SELECTORCHECKfilePath: ', filePath);
-        console.log('selectorName: ', selectorName);
+        //console.log('SELECTORCHECKfilePath: ', filePath);
+        //console.log('selectorName: ', selectorName);
         return true;
     }
     return false;

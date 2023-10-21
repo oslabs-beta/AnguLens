@@ -5,7 +5,7 @@ import cheerio = require("cheerio");
 
 
 export function populateStructure(array: any, selectorNames: object[]): object {
-  console.log("POPULATED STRUCTURE TRIGGERED");
+  //console.log("POPULATED STRUCTURE TRIGGERED");
   // console.log("POPULATE PASSED IN ARRAY====", array);
   const output = {};
   let rootPath: string = "";
@@ -183,7 +183,7 @@ function populateChildren(pcObject: object, selectorNames: object[]): object {
   pcObject.children.forEach((child) =>
     populateChildren(child, selectorNames)
   );
-  console.log('NEWUPDATED pcobject: ',pcObject);
+  //console.log('NEWUPDATED pcobject: ',pcObject);
   return pcObject;
 }
 
@@ -206,8 +206,8 @@ function selectorCheck(filePath: string, selectorName: string): boolean {
 
   //if it found a match (variable foundElement has length) return true
   if (foundElement.length) {
-    console.log('SELECTORCHECKfilePath: ', filePath);
-    console.log('selectorName: ', selectorName);
+    //console.log('SELECTORCHECKfilePath: ', filePath);
+    //console.log('selectorName: ', selectorName);
     return true;
   }
   return false;

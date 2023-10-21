@@ -31,7 +31,7 @@ function activate(context) {
         );
         const runtimeUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "runtime.01fe1d460628a1d3.js")));
         const polyfillsUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "polyfills.ef3261c6791c905c.js")));
-        const scriptUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "main.2130df977f353f79.js")));
+        const scriptUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "main.2d8c70d06b301571.js")));
         const stylesUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "styles.ef46db3751d8e999.css")));
         // START URIS
         // added this
@@ -47,8 +47,8 @@ function activate(context) {
         };
         panel.webview.postMessage(message);
         //END URIS
-        const items = [];
-        const selectorNames = [];
+        let items = [];
+        let selectorNames = [];
         let currentFilePath = "";
         let pcObject = {};
         let fsObject = {};
@@ -56,6 +56,8 @@ function activate(context) {
         panel.webview.onDidReceiveMessage((message) => {
             switch (message.command) {
                 case "loadNetwork": {
+                    items = [];
+                    selectorNames = [];
                     const srcRootPath = message.data.filePath;
                     currentFilePath = message.data.filePath;
                     let rootPath = "";
@@ -77,23 +79,23 @@ function activate(context) {
                             command: "generateFolderFile",
                             data: fsObject,
                         };
-                        pcObject = (0, populateAlgos_1.populatePCView)(selectorNames);
-                        console.log("THIS PC OBJECT: ", pcObject);
-                        // const pcMessage: Message = {
-                        //   command: "updatePC",
-                        //   data: pcObject,
-                        // };
-                        //panel.webview.postMessage(pcMessage);
                         panel.webview.postMessage(sendNewPathObj);
                     });
                     break;
                 }
                 case "loadParentChild": {
+                    // klaw(currentFilePath)
+                    //   .on("data", (item) => items.push(item))
+                    //   .on("end", () => {
+                    pcObject = (0, populateAlgos_1.populatePCView)(selectorNames);
+                    console.log("SELECTOR NAMES", selectorNames);
+                    console.log("THIS PC OBJECT: ", pcObject);
                     const pcMessage = {
                         command: "updatePC",
                         data: pcObject,
                     };
                     panel.webview.postMessage(pcMessage);
+                    // });
                     break;
                 }
                 case "reloadPC": {
