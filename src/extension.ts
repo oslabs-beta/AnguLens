@@ -7,13 +7,13 @@ import * as fs from "fs";
 import { getVSCodeDownloadUrl } from "@vscode/test-electron/out/util";
 import * as klaw from "klaw";
 import { send } from "process";
-import * as ts from "typescript";
-import { tsquery } from "@phenomnomnominal/tsquery";
-import cheerio = require("cheerio");
 import {
   populateStructure,
   populatePCView,
+  // inLineCheck,
+  // generateAST
 } from "./createViewAlgos/populateAlgos";
+
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -34,8 +34,21 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
+  // Register the command for opening files in a new tab
+  const openFileDisposable = vscode.commands.registerCommand("angulens.openFile", (data) => {
+    // Handle opening the file in a new tab
+    vscode.workspace.openTextDocument(vscode.Uri.file(data.filePath)).then((document) => {
+      vscode.window.showTextDocument(document);
+    });
+  });
+
+  context.subscriptions.push(openFileDisposable);
+  
+
   // create a webview panel and sets the html to the getWebViewContent function
   const runWebView = vscode.commands.registerCommand("angulens.start", () => {
+     
+
     const panel = vscode.window.createWebviewPanel(
       "AnguLensPanel", // viewType, unique identifier
       "AnguLens", // name of tab in vsCode
@@ -66,7 +79,7 @@ export function activate(context: vscode.ExtensionContext) {
         path.join(
           __dirname,
           "../webview-ui/dist/webview-ui",
-          "main.e2beaed47a145d02.js"
+          "main.144d51c04937f251.js"
         )
       )
     );
@@ -105,6 +118,13 @@ export function activate(context: vscode.ExtensionContext) {
     panel.webview.postMessage(message);
     //END URIS
 
+    // const testy = '/Users/danielkim/personal-projects/tic-tac-toe/src/app/square/square.component.ts';
+    // const balls = generateAST(testy)
+    // console.log(balls);
+    // inLineCheck(balls, {});
+
+
+
     const items: any = [];
     const selectorNames: object[] = [];
     let currentFilePath: string = "";
@@ -137,6 +157,7 @@ export function activate(context: vscode.ExtensionContext) {
                   data: fsObject,
                 };
                 pcObject = populatePCView(selectorNames);
+                console.log('THIS PC OBJECT: ', pcObject);
 
                 // const pcMessage: Message = {
                 //   command: "updatePC",
@@ -175,6 +196,11 @@ export function activate(context: vscode.ExtensionContext) {
             break;
           }
 
+          case 'openFile': {
+            vscode.commands.executeCommand('angulens.openFile', message.data);
+            break;
+          }
+
           default:
             console.error("Unknown command", message.command);
             break;
@@ -197,6 +223,7 @@ export function activate(context: vscode.ExtensionContext) {
     */
     panel.onDidChangeViewState((e) => {
       if (e.webviewPanel.visible) {
+        console.log('visible')
         panel.webview.postMessage({
           command: "loadState",
           data: {},
