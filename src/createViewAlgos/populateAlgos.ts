@@ -49,13 +49,24 @@ export function populateStructure(array: any, selectorNames: object[]): object {
           sourceFile,
           "PropertyAssignment > Identifier[name=selector]"
         );
+
+        const exportClassName = tsquery(
+          sourceFile,
+          "ClassDeclaration[ExportKeyword] > Identifier"
+        )
+
+          //why do we have an if statement? --> selectorProperties should never be empty. it's just querying our
+          //AST to pull out data
         // Check if selectorProperties is not empty and log the selector name
         if (selectorProperties.length > 0) {
+
+          const name = 
           const selectorName = selectorProperties[0].parent.initializer.text;
         
           const obj = {
             selectorName,
             folderPath,
+            name,
             inputs: [],
             outputs: []
           };
@@ -153,13 +164,18 @@ export function populatePCView(selectorNames: object[]): object {
     name: "app-root",
     path: appPath,
     children: [],
+    router: {}
   };
 
   populateChildren(pcObject, selectorNames);
 
+  handleModules(appPath,);
+
   console.log(pcObject);
   return pcObject;
 }
+
+
 
 function populateChildren(pcObject: object, selectorNames: object[]): object {
   let templateContent: string;
@@ -254,3 +270,99 @@ function outputCheck(templateContent: string, outputName: string) {
 }
 
 
+
+function handleModules(appPath, selectorNames) {
+  
+  const routerObject = {
+    name: 'router-outlet',
+    path: 'router-outlet',
+    children: [{},{}]
+  };
+  //checking if app.component.ts is using an inline template, or a template URL
+  const appComponent = appPath + "/app.component.ts";
+  let appTemplate = {};
+  inLineCheck(appComponent, appTemplate);
+  if(!appTemplate.template){
+    //not using inline template in app component
+    appTemplate = fs.readFileSync(convertToHtml(appPath), "utf-8");
+    const $ = cheerio.load(appTemplate);
+    const foundRouter = $("router-outlet");
+    //if(foundRouter.length)
+  } else{
+    const $ = cheerio.load(appTemplate.template);
+    const foundRouter = $("router-outlet");
+    //if(foundRouter.length)
+  };
+
+
+     // we know there is <router-outlet> in app template --> now we need to go check app.module.ts and parse
+    //it's AST to find out which components are called in there. Run populate children on all those components
+
+
+  //ALL OF THE BELOW --> needs to go inside the if statements on 181 / 185 --> find a way to make it DRY
+  const modulePath = appPath+"/app.module.ts";
+  const moduleSource = generateAST(modulePath);
+  console.log("MODULE AST: ", moduleSource);
+
+
+  //checking the AST to find the component names in the "routes" of app.module
+  const routerComponents = tsquery(
+    moduleSource, 
+    'PropertyAssignment Identifier[name="component"] ~ Identifier'
+  );
+  const componentNames = routerComponents.map(node => node.text);
+
+
+  //checking the URL path routing for the components in "routes" of app.module
+  const routerPaths = tsquery(
+    moduleSource, 
+    'PropertyAssignment Identifier[name="path"] ~ StringLiteral'
+  );
+  const componentPaths = routerPaths.map(node => node.text);
+
+
+
+ 
+
+  const relativePaths = tsquery 
+
+
+
+  for (let i = 0; i<componentNames.length; i++){
+    let obj = {};
+    obj.name = componentNames[i];
+    obj.path = '';
+    obj.urlPath = componentPaths[i];
+    obj.children = [];
+    obj.inputs = [];
+    obj.outputs = [];
+
+    selectorNames.forEach(selector => {
+      if (selector.selectorName === obj.name){
+        const filePath = selector.path;
+        //
+      }; 
+    });
+
+    routerObject.children.push(obj);
+  }
+  
+  
+
+  //either add the export name of each component onto selectorNames so we can compare that to our componentName here
+  // in order to grab the full filepath from selectorNames
+  
+  //OR --> look at the import statement (filepath) from the AST of the module + add it to the current 
+  // directory of module filepath
+
+  
+  //BUT we need the full filepath (line 204) because populate children needs to reference that to work
+  routerObject.children.forEach(component => populateChildren(component, selectorNames));
+  
+
+  //generate new object (instead of pcObject) to represent components brought in from router outlet... 
+  // --> routerObject?
+    // then run populate children on that routerObject, to find any children components instantiated on those components
+    // --> return an object from populateChildren, add that onto a "moduleRoutes" property on the top level of our 
+    // pcObject (to represent  app module), then return pcObject as normal 
+}

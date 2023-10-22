@@ -118,12 +118,6 @@ export function activate(context: vscode.ExtensionContext) {
     panel.webview.postMessage(message);
     //END URIS
 
-    // const testy = '/Users/danielkim/personal-projects/tic-tac-toe/src/app/square/square.component.ts';
-    // const balls = generateAST(testy)
-    // console.log(balls);
-    // inLineCheck(balls, {});
-
-
 
     const items: any = [];
     const selectorNames: object[] = [];
