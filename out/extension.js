@@ -31,7 +31,7 @@ function activate(context) {
         );
         const runtimeUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "runtime.01fe1d460628a1d3.js")));
         const polyfillsUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "polyfills.ef3261c6791c905c.js")));
-        const scriptUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "main.5eea4a327dd078ca.js")));
+        const scriptUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "main.dd30019c1c1cc366.js")));
         const stylesUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "styles.ef46db3751d8e999.css")));
         // START URIS
         // added this
@@ -40,13 +40,6 @@ function activate(context) {
         // Create URIs for all image assets in the "assets" folder
         const imageUris = getAssetUris(assetsFolder, panel.webview);
         const stringUris = imageUris.map((uri) => uri.toString());
-        // Send the message to the WebView
-        const message = {
-            command: "updateUris",
-            data: stringUris,
-        };
-        panel.webview.postMessage(message);
-        //END URIS
         let items = [];
         let selectorNames = [];
         let currentFilePath = "";
@@ -112,6 +105,13 @@ function activate(context) {
                         data: {},
                     });
                     break;
+                }
+                case "sendURIs": {
+                    const uriMessage = {
+                        command: "updateUris",
+                        data: stringUris,
+                    };
+                    panel.webview.postMessage(uriMessage);
                 }
                 default:
                     console.error("Unknown command", message.command);

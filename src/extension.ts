@@ -63,7 +63,7 @@ export function activate(context: vscode.ExtensionContext) {
         path.join(
           __dirname,
           "../webview-ui/dist/webview-ui",
-          "main.5eea4a327dd078ca.js"
+          "main.dd30019c1c1cc366.js"
         )
       )
     );
@@ -92,15 +92,6 @@ export function activate(context: vscode.ExtensionContext) {
       command: string;
       data: any;
     }
-
-    // Send the message to the WebView
-    const message: Message = {
-      command: "updateUris",
-      data: stringUris,
-    };
-
-    panel.webview.postMessage(message);
-    //END URIS
 
     let items: any = [];
     let selectorNames: object[] = [];
@@ -172,6 +163,14 @@ export function activate(context: vscode.ExtensionContext) {
               data: {},
             });
             break;
+          }
+
+          case "sendURIs": {
+            const uriMessage: Message = {
+              command: "updateUris",
+              data: stringUris,
+            };
+            panel.webview.postMessage(uriMessage);
           }
 
           default:

@@ -217,41 +217,44 @@ export class ParentChildComponent implements OnInit, OnDestroy {
 
   selectedFilter: string = 'all';
   edgesDataSet: DataSet<Edge> = new DataSet(this.edges); // Initialize as empty DataSet object
-  edgesView = new DataView(this.edgesDataSet, {
-    filter: (item: Edge) => {
-      console.log('ITEM in EDGESVIEW', item);
-      return this.edgesFilter(item);
-    },
-  });
+  edgesView = new DataView(this.edgesDataSet);
 
-  edgesFilter(item: Edge) {
+  edgesFilter(edgesData: DataSet<Edge>) {
     switch (this.selectedFilter) {
       case 'input':
         console.log('INPUT FILTER');
-        return item.relation !== 'output';
+        // const filter = edgesData.forEach((edge) => {
+        //   return edge.relation !== 'output';
+        // })
+        const inputEdges = edgesData.get({
+          filter: (edge) => edge.relation !== 'output',
+        });
+        const inputDataSet = new DataSet(inputEdges);
+        return inputDataSet;
+      // return item.relation === this.selectedFilter;
       case 'output':
         console.log('OUTPUT FILTER');
-        return item.relation !== 'input';
+        const outputEdges = edgesData.get({
+          filter: (edge) => edge.relation !== 'input',
+        });
+        const outputDataSet = new DataSet(outputEdges);
+        return outputDataSet;
       case 'all':
         console.log('ALL FILTER');
-        return true;
+        return edgesData;
       default:
-        return true;
+        return edgesData;
     }
   }
 
   updateFilters(filterType: string) {
     this.selectedFilter = filterType;
-
     this.edgesDataSet.clear();
     this.edgesDataSet.add(this.edges);
+    const result = this.edgesFilter(this.edgesDataSet);
+    this.edgesView = new DataView(result);
 
-    this.edgesView.refresh();
-    console.log('EDGES VIEW', this.edgesView);
-    // console.log('EDGES DATA SET', this.edgesDataSet);
     if (this.network) {
-      // let newEdges = this.edgesView.get();
-      // console.log(newEdges, 'NEW EDGES');
       const data: {
         nodes: DataSet<any, 'id'>;
         edges: DataView<any, 'id'>;
@@ -259,8 +262,8 @@ export class ParentChildComponent implements OnInit, OnDestroy {
         nodes: new DataSet<Node>(this.nodes),
         edges: this.edgesView,
       };
-      console.log('DATA EDGES', data.edges);
-      console.log('ACTUAL TOTAL EDGES', this.edges);
+      // console.log('DATA EDGES', data.edges);
+      // console.log('ACTUAL TOTAL EDGES', this.edges);
       const container = this.networkContainer.nativeElement;
       this.network = new Network(container, data, this.options);
     }

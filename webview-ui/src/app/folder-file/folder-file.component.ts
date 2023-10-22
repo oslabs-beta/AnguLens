@@ -225,6 +225,15 @@ export class FolderFileComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.setupMessageListener();
+    const state = vscode.getState() as {
+      uris: string[] | undefined
+    };
+    if (state === undefined) {
+      vscode.postMessage({
+        command: 'sendURIs',
+        data: {}
+      });
+    }
   }
 
   ngOnDestroy(): void {
