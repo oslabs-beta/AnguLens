@@ -16,6 +16,7 @@ export class AppComponent implements OnInit {
     //start view as the folder-file hierarchy graph
     this.currentView = 'folder-file';
   }
+  
 
   loadFolderFile() {
     if (this.currentView === 'parent-child') {

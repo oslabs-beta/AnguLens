@@ -22,6 +22,14 @@ function activate(context) {
         // Display a message box to the user
         vscode.window.showInformationMessage("Hello World from AnguLens!");
     });
+    // Register the command for opening files in a new tab
+    const openFileDisposable = vscode.commands.registerCommand("angulens.openFile", (data) => {
+        // Handle opening the file in a new tab
+        vscode.workspace.openTextDocument(vscode.Uri.file(data.filePath)).then((document) => {
+            vscode.window.showTextDocument(document);
+        });
+    });
+    context.subscriptions.push(openFileDisposable);
     // create a webview panel and sets the html to the getWebViewContent function
     const runWebView = vscode.commands.registerCommand("angulens.start", () => {
         const panel = vscode.window.createWebviewPanel("AnguLensPanel", // viewType, unique identifier
@@ -124,6 +132,7 @@ function activate(context) {
         */
         panel.onDidChangeViewState((e) => {
             if (e.webviewPanel.visible) {
+                console.log('visible');
                 panel.webview.postMessage({
                     command: "loadState",
                     data: {},

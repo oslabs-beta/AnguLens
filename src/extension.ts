@@ -10,6 +10,8 @@ import { send } from "process";
 import {
   populateStructure,
   populatePCView,
+  // inLineCheck,
+  // generateAST
 } from "./createViewAlgos/populateAlgos";
 
 // This method is called when your extension is activated
@@ -30,6 +32,21 @@ export function activate(context: vscode.ExtensionContext) {
       vscode.window.showInformationMessage("Hello World from AnguLens!");
     }
   );
+
+  // Register the command for opening files in a new tab
+  const openFileDisposable = vscode.commands.registerCommand(
+    "angulens.openFile",
+    (data) => {
+      // Handle opening the file in a new tab
+      vscode.workspace
+        .openTextDocument(vscode.Uri.file(data.filePath))
+        .then((document) => {
+          vscode.window.showTextDocument(document);
+        });
+    }
+  );
+
+  context.subscriptions.push(openFileDisposable);
 
   // create a webview panel and sets the html to the getWebViewContent function
   const runWebView = vscode.commands.registerCommand("angulens.start", () => {
@@ -63,7 +80,7 @@ export function activate(context: vscode.ExtensionContext) {
         path.join(
           __dirname,
           "../webview-ui/dist/webview-ui",
-          "main.dd30019c1c1cc366.js"
+          "main.144d51c04937f251.js"
         )
       )
     );
@@ -92,6 +109,20 @@ export function activate(context: vscode.ExtensionContext) {
       command: string;
       data: any;
     }
+
+    // Send the message to the WebView
+    const message: Message = {
+      command: "updateUris",
+      data: stringUris,
+    };
+
+    panel.webview.postMessage(message);
+    //END URIS
+
+    // const testy = '/Users/danielkim/personal-projects/tic-tac-toe/src/app/square/square.component.ts';
+    // const balls = generateAST(testy)
+    // console.log(balls);
+    // inLineCheck(balls, {});
 
     let items: any = [];
     let selectorNames: object[] = [];
@@ -171,6 +202,12 @@ export function activate(context: vscode.ExtensionContext) {
               data: stringUris,
             };
             panel.webview.postMessage(uriMessage);
+            break;
+          }
+
+          case "openFile": {
+            vscode.commands.executeCommand("angulens.openFile", message.data);
+            break;
           }
 
           default:
@@ -195,6 +232,7 @@ export function activate(context: vscode.ExtensionContext) {
     */
     panel.onDidChangeViewState((e) => {
       if (e.webviewPanel.visible) {
+        console.log("visible");
         panel.webview.postMessage({
           command: "loadState",
           data: {},
