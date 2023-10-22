@@ -110,15 +110,6 @@ export function activate(context: vscode.ExtensionContext) {
       data: any;
     }
 
-    // Send the message to the WebView
-    // const message: Message = {
-    //   command: "updateUris",
-    //   data: stringUris,
-    // };
-
-    // panel.webview.postMessage(message);
-    //END URIS
-
     let items: any = [];
     let selectorNames: object[] = [];
     let currentFilePath: string = "";

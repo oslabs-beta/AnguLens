@@ -32,7 +32,6 @@ export class ParentChildComponent implements OnInit, OnDestroy {
   edges: Edge[] = [];
   uris: string[] = [];
   pcItems: PcItem[] = [];
-  // fsItems: FsItem[] = [];
   private network: Network | undefined;
   private handleMessageEvent = (event: MessageEvent) => {
     const message: ExtensionMessage = event.data;
@@ -41,8 +40,6 @@ export class ParentChildComponent implements OnInit, OnDestroy {
     switch (message.command) {
       case 'loadState': {
         const state = vscode.getState() as {
-          // fsItems: FsItem[];
-          // pcItems: PcItem[];
           uris: string[];
           pcData: any;
           fsData: any;
@@ -208,7 +205,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    console.log('DESTROYED');
+    console.log('VIEW DESTROYED');
     window.removeEventListener('message', this.handleMessageEvent);
   }
 
@@ -219,10 +216,6 @@ export class ParentChildComponent implements OnInit, OnDestroy {
   edgesFilter(edgesData: DataSet<Edge>) {
     switch (this.selectedFilter) {
       case 'input':
-        console.log('INPUT FILTER');
-        // const filter = edgesData.forEach((edge) => {
-        //   return edge.relation !== 'output';
-        // })
         const inputEdges = edgesData.get({
           filter: (edge) => edge.relation !== 'output',
         });
@@ -230,14 +223,12 @@ export class ParentChildComponent implements OnInit, OnDestroy {
         return inputDataSet;
       // return item.relation === this.selectedFilter;
       case 'output':
-        console.log('OUTPUT FILTER');
         const outputEdges = edgesData.get({
           filter: (edge) => edge.relation !== 'input',
         });
         const outputDataSet = new DataSet(outputEdges);
         return outputDataSet;
       case 'all':
-        console.log('ALL FILTER');
         return edgesData;
       default:
         return edgesData;
@@ -259,8 +250,6 @@ export class ParentChildComponent implements OnInit, OnDestroy {
         nodes: new DataSet<Node>(this.nodes),
         edges: this.edgesView,
       };
-      // console.log('DATA EDGES', data.edges);
-      // console.log('ACTUAL TOTAL EDGES', this.edges);
       const container = this.networkContainer.nativeElement;
       this.network = new Network(container, data, this.options);
     }

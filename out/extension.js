@@ -50,13 +50,6 @@ function activate(context) {
         // Create URIs for all image assets in the "assets" folder
         const imageUris = getAssetUris(assetsFolder, panel.webview);
         const stringUris = imageUris.map((uri) => uri.toString());
-        // Send the message to the WebView
-        // const message: Message = {
-        //   command: "updateUris",
-        //   data: stringUris,
-        // };
-        // panel.webview.postMessage(message);
-        //END URIS
         let items = [];
         let selectorNames = [];
         let currentFilePath = "";
