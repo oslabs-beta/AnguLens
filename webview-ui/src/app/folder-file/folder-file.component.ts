@@ -121,7 +121,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
         const container = this.networkContainer.nativeElement;
         this.network = new Network(container, data, this.options);
         //event listener for double click to open file
-        this.network.on('doubleClick', (params:any) => {
+        this.network.on('doubleClick', (params: any) => {
           if (params.nodes.length > 0) {
             const nodeId = params.nodes[0];
             if (nodeId) {
@@ -198,8 +198,8 @@ export class FolderFileComponent implements OnInit, OnDestroy {
         };
 
         this.network = new Network(container, data, this.options);
-         //event listener for double click to open file
-         this.network.on('doubleClick', (params:any) => {
+        //event listener for double click to open file
+        this.network.on('doubleClick', (params: any) => {
           if (params.nodes.length > 0) {
             const nodeId = params.nodes[0];
             if (nodeId) {
@@ -211,7 +211,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
             }
           }
         });
-        
+
         vscode.setState({
           // fsItems: this.fsItems,
           uris: this.uris,
@@ -229,8 +229,6 @@ export class FolderFileComponent implements OnInit, OnDestroy {
       // reupdate screen
       case 'reloadFolderFile': {
         const state = vscode.getState() as {
-          // fsItems: FsItem[];
-          // pcItems: PcItem[];
           uris: string[];
           pcData: any;
           fsData: any;
@@ -240,8 +238,8 @@ export class FolderFileComponent implements OnInit, OnDestroy {
 
         const container = this.networkContainer.nativeElement;
         this.network = new Network(container, state.fsData, this.options);
-         //event listener for double click to open file
-         this.network.on('doubleClick', (params:any) => {
+        //event listener for double click to open file
+        this.network.on('doubleClick', (params: any) => {
           if (params.nodes.length > 0) {
             const nodeId = params.nodes[0];
             if (nodeId) {
@@ -253,7 +251,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
             }
           }
         });
-        
+
         break;
       }
 
@@ -270,7 +268,15 @@ export class FolderFileComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.setupMessageListener();
-   
+    const state = vscode.getState() as {
+      uris: string[] | undefined;
+    };
+    if (state === undefined) {
+      vscode.postMessage({
+        command: 'sendURIs',
+        data: {},
+      });
+    }
   }
 
   ngOnDestroy(): void {

@@ -73,14 +73,11 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           pcNodes: state.pcNodes,
           pcEdges: state.pcEdges,
         });
-        // console.log(state.fsNodes.length, 'FS NODES LENGTH');
-        // console.log(state.fsEdges.length, 'FS EDGES LENGTH');
-
         break;
       }
 
       case 'updatePC': {
-        console.log('REAL OBJECT', message.data);
+        // console.log('REAL OBJECT', message.data);
         this.pcItems = this.populate(message.data);
         // console.log('PC ITEMS', this.pcItems);
         const state = vscode.getState() as {
@@ -94,15 +91,15 @@ export class ParentChildComponent implements OnInit, OnDestroy {
         };
 
         this.uris = state.uris;
-        console.log('ABOUT TO CREATE NODES AND EDGES');
-        console.log('SHOULD BE EMPTY EDGES', this.edges); // this should be set to empty state.pcEdges
+        // console.log('ABOUT TO CREATE NODES AND EDGES');
+        // console.log('SHOULD BE EMPTY EDGES', this.edges); // this should be set to empty state.pcEdges
         const { nodes, edges } = this.createNodesAndEdges(
           this.pcItems,
           this.uris
         );
         this.nodes = nodes;
         this.edges = edges;
-        console.log('EDGES CREATED', this.edges);
+        // console.log('EDGES CREATED', this.edges);
         const newNodes = new DataSet(nodes);
         const newEdges = new DataSet(edges);
 

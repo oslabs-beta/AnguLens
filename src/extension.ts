@@ -80,7 +80,7 @@ export function activate(context: vscode.ExtensionContext) {
         path.join(
           __dirname,
           "../webview-ui/dist/webview-ui",
-          "main.144d51c04937f251.js"
+          "main.2912935a795b5066.js"
         )
       )
     );
@@ -111,18 +111,13 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     // Send the message to the WebView
-    const message: Message = {
-      command: "updateUris",
-      data: stringUris,
-    };
+    // const message: Message = {
+    //   command: "updateUris",
+    //   data: stringUris,
+    // };
 
-    panel.webview.postMessage(message);
+    // panel.webview.postMessage(message);
     //END URIS
-
-    // const testy = '/Users/danielkim/personal-projects/tic-tac-toe/src/app/square/square.component.ts';
-    // const balls = generateAST(testy)
-    // console.log(balls);
-    // inLineCheck(balls, {});
 
     let items: any = [];
     let selectorNames: object[] = [];
