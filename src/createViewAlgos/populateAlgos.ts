@@ -44,25 +44,30 @@ export function populateStructure(array: any, selectorNames: object[]): object {
         const folderPath = tempArray.join("/");
         const sourceFile = generateAST(filePath);
 
-        // Query for PropertyAssignment nodes with an Identifier name of 'selector'
+        // looking for selectorName (the name used to call component, from an angular tempalte)
         const selectorProperties = tsquery(
           sourceFile,
           "PropertyAssignment > Identifier[name=selector]"
         );
 
+        // looking for name (the object class name that's exported from component.ts, and imported elsewhere)
         const exportClassName = tsquery(
           sourceFile,
-          "ClassDeclaration[ExportKeyword] > Identifier"
+          'ClassDeclaration:has(Decorator[expression.expression.name="Component"]) > Identifier'
         )
+        let name;
+        if (exportClassName.length > 0){
+          //we don't really need this if... any component.ts file we check will have a name (query results array will have length)
+          name = exportClassName[0].getText();
+        };
 
-          //why do we have an if statement? --> selectorProperties should never be empty. it's just querying our
-          //AST to pull out data
-        // Check if selectorProperties is not empty and log the selector name
+
+          //why do we have the if statement below? --> selectorProperties should never be empty. 
+          //it's just querying our AST to pull out data
         if (selectorProperties.length > 0) {
-
-          const name = 
+        // selectorProperties(result of our query) is an array. If it has length, access [0] element
           const selectorName = selectorProperties[0].parent.initializer.text;
-        
+          // results of our query (selectorPropertiez) is an array of NODE(s) from the AST
           const obj = {
             selectorName,
             folderPath,
@@ -143,12 +148,12 @@ export function inLineCheck(sourceFile: ts.SourceFile, obj: object) {
     sourceFile,
     "NoSubstitutionTemplateLiteral"
   );
-  console.log(sourceFile);
   // Component is using an inline template
   if (templateProperties.length > 0) {
     const temp = templateProperties[0] as ts.NoSubstitutionTemplateLiteral; //ts.StringLiteral;
     obj.template = temp.text.trim();
   } 
+  //else --> we already 
 }
 
 // populates Parent Child object to send to Angular App
@@ -169,7 +174,7 @@ export function populatePCView(selectorNames: object[]): object {
 
   populateChildren(pcObject, selectorNames);
 
-  handleModules(appPath,);
+  handleModules(appPath, selectorNames, pcObject);
 
   console.log(pcObject);
   return pcObject;
@@ -271,7 +276,7 @@ function outputCheck(templateContent: string, outputName: string) {
 
 
 
-function handleModules(appPath, selectorNames) {
+function handleModules(appPath, selectorNames, pcObject) {
   
   const routerObject = {
     name: 'router-outlet',
@@ -294,11 +299,7 @@ function handleModules(appPath, selectorNames) {
     //if(foundRouter.length)
   };
 
-
-     // we know there is <router-outlet> in app template --> now we need to go check app.module.ts and parse
-    //it's AST to find out which components are called in there. Run populate children on all those components
-
-
+    //ANOTHER --> helper function???? (probably)
   //ALL OF THE BELOW --> needs to go inside the if statements on 181 / 185 --> find a way to make it DRY
   const modulePath = appPath+"/app.module.ts";
   const moduleSource = generateAST(modulePath);
@@ -321,15 +322,8 @@ function handleModules(appPath, selectorNames) {
   const componentPaths = routerPaths.map(node => node.text);
 
 
-
- 
-
-  const relativePaths = tsquery 
-
-
-
   for (let i = 0; i<componentNames.length; i++){
-    let obj = {};
+    let component = {};
     obj.name = componentNames[i];
     obj.path = '';
     obj.urlPath = componentPaths[i];
@@ -338,31 +332,26 @@ function handleModules(appPath, selectorNames) {
     obj.outputs = [];
 
     selectorNames.forEach(selector => {
-      if (selector.selectorName === obj.name){
-        const filePath = selector.path;
-        //
-      }; 
+      if (selector.name === component.name){
+        component.path = selector.folderPath;
+        //find the matching selector, in selectorNames, and grab it's folderpath, so generate children can access it when we pass in each component object
     });
 
     routerObject.children.push(obj);
   }
   
-  
-
-  //either add the export name of each component onto selectorNames so we can compare that to our componentName here
-  // in order to grab the full filepath from selectorNames
-  
-  //OR --> look at the import statement (filepath) from the AST of the module + add it to the current 
-  // directory of module filepath
-
-  
-  //BUT we need the full filepath (line 204) because populate children needs to reference that to work
   routerObject.children.forEach(component => populateChildren(component, selectorNames));
   
 
+  //DONE:
   //generate new object (instead of pcObject) to represent components brought in from router outlet... 
-  // --> routerObject?
     // then run populate children on that routerObject, to find any children components instantiated on those components
+
+    //AT THIS PART NOW:
     // --> return an object from populateChildren, add that onto a "moduleRoutes" property on the top level of our 
     // pcObject (to represent  app module), then return pcObject as normal 
+
+    //BUT we've edited the routerObject in place (taken each object in children array, and added to it)
+    //...sooo I don't think we need to return anythibg, we just need to push routerObject onto pcObject
+  pcObject.router = routerObject;
 }
