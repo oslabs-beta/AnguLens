@@ -5,8 +5,6 @@ import cheerio = require("cheerio");
 
 
 export function populateStructure(array: any, selectorNames: object[]): object {
-  console.log("POPULATED STRUCTURE TRIGGERED");
-  // console.log("POPULATE PASSED IN ARRAY====", array);
   const output = {};
   let rootPath: string = "";
   let omitIndeces;
@@ -29,7 +27,7 @@ export function populateStructure(array: any, selectorNames: object[]): object {
         objTracker = objTracker[key];
       }
 
-      // assigning type logic
+      // type logic
       let type;
       if (name.split(".").length > 1) {
         type = name.split(".").pop();
@@ -44,7 +42,7 @@ export function populateStructure(array: any, selectorNames: object[]): object {
         const folderPath = tempArray.join("/");
         const sourceFile = generateAST(filePath);
 
-        // looking for selectorName (the name used to call component, from an angular tempalte)
+        // looking for "selectorName" (the variable name used to call components, in angular templates)
         const selectorProperties = tsquery(
           sourceFile,
           "PropertyAssignment > Identifier[name=selector]"
@@ -61,9 +59,7 @@ export function populateStructure(array: any, selectorNames: object[]): object {
           name = exportClassName[0].getText();
         };
 
-
-          //why do we have the if statement below? --> selectorProperties should never be empty. 
-          //it's just querying our AST to pull out data
+          //REFACTOR? why do we have the if statement below? --> selectorProperties should never be empty. It's just querying our AST to pull out data
         if (selectorProperties.length > 0) {
         // selectorProperties(result of our query) is an array. If it has length, access [0] element
           const selectorName = selectorProperties[0].parent.initializer.text;
@@ -77,12 +73,8 @@ export function populateStructure(array: any, selectorNames: object[]): object {
           };
 
           populateInputs(sourceFile, obj, folderPath);
-          
           populateOutputs(sourceFile, obj, folderPath);
-
           inLineCheck(sourceFile, obj);
-          // if(obj.template) console.log('THIS IS IN LINE TEMP: ', template)
-
           selectorNames.push(obj);
         }
       }
@@ -97,17 +89,14 @@ export function populateStructure(array: any, selectorNames: object[]): object {
 }
 
 export function generateAST(filePath: string) {
-  // Read the TypeScript file content
-  const fileContent = fs.readFileSync(filePath, "utf-8");
+  const fileContent = fs.readFileSync(filePath, "utf-8"); //get the string content / code of our file 
 
-  // Parse the TypeScript code to get the AST
-  const sourceFile = ts.createSourceFile(
+  const sourceFile = ts.createSourceFile( //create the AST from our fileContent, store as sourceFile
     filePath,
     fileContent,
     ts.ScriptTarget.Latest,
     true
   );
-  // Return the AST of the source file
   return sourceFile;
 }
 
@@ -148,20 +137,19 @@ export function inLineCheck(sourceFile: ts.SourceFile, obj: object) {
     sourceFile,
     "NoSubstitutionTemplateLiteral"
   );
-  // Component is using an inline template
+  // if Component is using an inline template
   if (templateProperties.length > 0) {
     const temp = templateProperties[0] as ts.NoSubstitutionTemplateLiteral; //ts.StringLiteral;
     obj.template = temp.text.trim();
   } 
-  //else --> we already 
+  //else --> the component is not using an inline template = we don't need to create an obj.template property, because there will be a template file we can just use our convertToHtml helper function on
 }
 
-// populates Parent Child object to send to Angular App
+// populates Parent Child object (pcObject) with all relevant data, to send to Angular App front end (in webviewUI folder)
 export function populatePCView(selectorNames: object[]): object {
-  // step 1: build initial object with information about app component
   let appPath: string;
 
-  //WE COULD: sort the array alphabetically so app comes first? we don't *need* to iterate here.... 
+  //REFACTOR? --> we  sort the array alphabetically so app comes first? we don't *need* to iterate here.... 
   for (const selectorName of selectorNames) {
     if (selectorName.selectorName === "app-root") {
       appPath = selectorName.folderPath;
@@ -175,10 +163,7 @@ export function populatePCView(selectorNames: object[]): object {
   };
 
   populateChildren(pcObject, selectorNames);
-
   handleModules(appPath, selectorNames, pcObject);
-
-  console.log(pcObject);
   return pcObject;
 }
 
@@ -225,7 +210,6 @@ function populateChildren(pcObject: object, selectorNames: object[]): object {
       pcObject.children.push(obj);
     }
   }
-
   //Recursively call this function on each obj of children array
   pcObject.children.forEach((child) =>
     populateChildren(child, selectorNames)
@@ -234,6 +218,7 @@ function populateChildren(pcObject: object, selectorNames: object[]): object {
 }
 
 
+//takes in a folder path for an angular component, and returns the component.html filepath for its template
 function convertToHtml(folderPath: string): string {
   let path = folderPath.split("/");
   const component = path.pop();
@@ -242,20 +227,21 @@ function convertToHtml(folderPath: string): string {
 }
 
 
+// checks if angular template (parsed = template content in string form) contains a given component (selectorName)
 function selectorCheck(parsed: string, selectorName: string): boolean {
-  // creates AST of angular template (--> check up on what fs.readFileSync is doing: may be turning file into a STRING)
   const $ = cheerio.load(parsed);
-  // $ is variable name (?) --> using cheerio to ".load" parsed... is THIS creating the AST actually?
-  // To find an element by its tag name (selectorName)
+  // $ is variable name (?) --> using cheerio to ".load" our template content (parsed) in string format
   const foundElement = $(selectorName);
+   //checking $ to see if it has the given selectorName (component being called, like an element, within our angular template's HTML)
 
-  //if it found a match (variable foundElement has length) return true
-  if (foundElement.length) {
+  if (foundElement.length) { //if it found a match (variable foundElement has length) return true
     return true;
   }
   return false;
 }
 
+
+// checks an agular template (in string formate) to see if it contians an inputName
 function inputCheck(templateContent: string, inputName: string) {
   const regex = new RegExp(`\\[${inputName}\\]`, 'g');
   const matches = templateContent.match(regex);
@@ -266,6 +252,8 @@ function inputCheck(templateContent: string, inputName: string) {
   }
 }
 
+
+// checks an agular template (in string formate) to see if it contians an outputName
 function outputCheck(templateContent: string, outputName: string) {
   const regex = new RegExp(`\\(${outputName}\\)`, 'g');
   const matches = templateContent.match(regex);
@@ -277,50 +265,44 @@ function outputCheck(templateContent: string, outputName: string) {
 }
 
 
-
-
-//GIANT function currently, refactor?
-
 function handleModules(appPath, selectorNames, pcObject) {
-  
-                            //DONE:
   const routerObject = {  //generate new object (instead of pcObject) to represent components brought in from router outlet... 
     name: 'router-outlet',
     path: 'router-outlet',
-    children: [{},{}]
+    children: []
   };
-  
   const appComponent = appPath + "/app.component.ts";
-  let appTemplate = {};
-  inLineCheck(appComponent, appTemplate); //checking if app.component.ts is using an inline template, or a template URL 
+  //checking if app.component.ts is using an inline template, or a template URL
+  inLineCheck(appComponent, routerObject);
 
-  if(!appTemplate.template){ //not using inline template in app component
-    appTemplate = fs.readFileSync(convertToHtml(appPath), "utf-8");
+  //if app component is not using inline template
+  if(!routerObject.template) {
+    let appTemplate: string = fs.readFileSync(convertToHtml(appPath), "utf-8");
     const $ = cheerio.load(appTemplate);
     const foundRouter = $("router-outlet");
-    //if(foundRouter.length)
-  } 
-  else{
-    const $ = cheerio.load(appTemplate.template);
+    if(foundRouter.length){
+      populateRouterOutletComponents(appPath, selectorNames, routerObject, pcObject);
+    }
+  }
+  //if app component is using an inline template
+  else{ 
+    const $ = cheerio.load(routerObject.template);
     const foundRouter = $("router-outlet");
-    //if(foundRouter.length)
-  };
+    if(foundRouter.length){
+      populateRouterOutletComponents(appPath, selectorNames, routerObject, pcObject);
+    }
+  }
+}
 
-
-
-    //ANOTHER --> helper function???? (probably)
-  //ALL OF THE BELOW --> needs to go inside the if statements commented above--> find a way to make it DRY
-  
+function populateRouterOutletComponents (appPath, selectorNames, routerObject, pcObject){
   const modulePath = appPath+"/app.module.ts";
   const moduleSource = generateAST(modulePath);
-  
 
   const routerComponents = tsquery(
     moduleSource, 
     'PropertyAssignment Identifier[name="component"] ~ Identifier' //checking the AST to find the component names in the "routes" of app.module
   );
   const componentNames = routerComponents.map(node => node.text);
-  
 
   const routerPaths = tsquery(
     moduleSource, 
@@ -328,34 +310,25 @@ function handleModules(appPath, selectorNames, pcObject) {
   );
   const componentPaths = routerPaths.map(node => node.text);
 
-
   for (let i = 0; i<componentNames.length; i++){
     let component = {};
     component.name = componentNames[i];
-    component.path = 'placeholder'; //actually setting this below.... with the fucking forEach loop
+    component.path = 'placeholder'; 
     component.urlPath = componentPaths[i];
     component.children = [];
     component.inputs = [];
     component.outputs = [];
-
-    selectorNames.forEach(selector => {    //SUPER inefficient, find a better way to grab the components....  an object with properties? Could you iterate over that / do everything we currently do with selectornames with that?
+    selectorNames.forEach(selector => {//SUPER inefficient, find a better way to grab the components....  an object with properties? Could you iterate over that / do everything we currently do with selectornames with that?
       if (selector.name === component.name){
         component.path = selector.folderPath;//find the matching selector, in selectorNames, and grab it's folderpath, so generate children can access it when we pass in each component object
       }
     });
-
-    routerObject.children.push(obj);
+    routerObject.children.push(component);
   }
-  
-  routerObject.children.forEach(component => populateChildren(component, selectorNames));//then run populate children on that routerObject, to find any children components instantiated on those components
-
-  
-    //AT THIS PART NOW:
-    // --> return an object from populateChildren, add that onto a "moduleRoutes" property on the top level of our 
-    // pcObject (to represent  app module), then return pcObject as normal 
-
-
-    //BUT we've edited the routerObject in place (taken each object in children array, and added to it)
-    //...sooo I don't think we need to return anythibg, we just need to push routerObject onto pcObject
+  //run populate children on each component of that routerObject, to find any children components instantiated by those components
+  routerObject.children.forEach(component => {
+    populateChildren(component, selectorNames)
+  });
+  //add in our router-outlet components (aka routerObject) onto the router property of our larger pcObject
   pcObject.router = routerObject;
 }
