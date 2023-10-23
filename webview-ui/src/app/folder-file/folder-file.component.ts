@@ -50,6 +50,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
   pcItems: PcItem[] = [];
   uris: string[] = [];
   filePath: string = '';
+  reloadRequired: boolean = false;
   options = {
     interaction: {
       navigationButtons: true,
@@ -142,7 +143,10 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           const { nodes: nodeIds } = event;
           if (nodeIds.length > 0) {
             this.hide(nodeIds);
-            this.reRenderComponents();
+            if (this.reloadRequired) {
+              this.reRenderComponents();
+              this.reloadRequired = false;
+            }
           }
         });
         vscode.setState({
@@ -227,7 +231,10 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           const { nodes: nodeIds } = event;
           if (nodeIds.length > 0) {
             this.hide(nodeIds);
-            this.reRenderComponents();
+            if (this.reloadRequired) {
+              this.reRenderComponents();
+              this.reloadRequired = false;
+            }
           }
         });
 
@@ -287,7 +294,10 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           const { nodes: nodeIds } = event;
           if (nodeIds.length > 0) {
             this.hide(nodeIds);
-            this.reRenderComponents();
+            if (this.reloadRequired) {
+              this.reRenderComponents();
+              this.reloadRequired = false;
+            }
           }
         });
         break;
@@ -362,6 +372,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
       if (clickedNode && clickedNode.open !== undefined && (clickedNode.open || firstRun === true)) {
         console.log('in hide clickednode conditional');
         if (firstRun) {
+          this.reloadRequired = true;
           clickedNode.open = !clickedNode.open;
         }
         const childrenArr: String[] = this.edges.filter(edge => edge.from === clickedNode.id).map(edge => edge.to);
