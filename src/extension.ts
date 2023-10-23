@@ -20,9 +20,9 @@ export function activate(context: vscode.ExtensionContext) {
   // Use the console to output diagnostic information (console.log) and errors (console.error)
   // This line of code will only be executed once when your extension is activated
   console.log('Congratulations, your extension "angulens" is now active!');
-  const extensionPath =
-    vscode.extensions.getExtension("<YourExtensionID>")?.extensionPath;
-  console.log("EXTENSION PATH", extensionPath);
+  // const extensionPath =
+  //   vscode.extensions.getExtension("<YourExtensionID>")?.extensionPath;
+  // console.log("EXTENSION PATH", extensionPath);
 
   // The command has been defined in the package.json file
   // Now provide the implementation of the command with registerCommand
@@ -59,6 +59,7 @@ export function activate(context: vscode.ExtensionContext) {
       vscode.ViewColumn.One, // showOptions
       {
         enableScripts: true,
+        retainContextWhenHidden: true,
         localResourceRoots: [
           vscode.Uri.file(
             path.join(__dirname, "../webview-ui/dist/webview-ui")
@@ -91,7 +92,7 @@ export function activate(context: vscode.ExtensionContext) {
         path.join(
           __dirname,
           "../webview-ui/dist/webview-ui",
-          "main.d6ce8b1682753b10.js"
+          "main.81dd69cb7ea8ad79.js"
         )
       )
     );
@@ -120,25 +121,8 @@ export function activate(context: vscode.ExtensionContext) {
     const imageUris = getAssetUris(imagesFolder, panel.webview);
     console.log("IMAGE URIS", imageUris);
 
-    // const stringUris = imageUris.map((uri) => uri.toString());
+    const stringUris = imageUris.map((uri) => uri.toString());
     // console.log("STRING URIS", stringUris);
-
-    // Use a Promise to wait for all image URIs
-    Promise.all(imageUris.map((uri) => panel.webview.asWebviewUri(uri)))
-      .then((stringUris) => {
-        // Use the string URIs to set the webview content
-        const htmlContent = getWebViewContent(
-          stylesUri,
-          runtimeUri,
-          polyfillsUri,
-          scriptUri,
-          stringUris
-        );
-        panel.webview.html = htmlContent;
-      })
-      .catch((error) => {
-        console.error("Error generating image URIs:", error);
-      });
 
     interface Message {
       command: string;
@@ -218,21 +202,11 @@ export function activate(context: vscode.ExtensionContext) {
           }
 
           case "sendURIs": {
-            // Map imageUris to stringUris
-            const stringUris = imageUris.map((uri) => uri.toString());
-
-            // Create a Promise to wait for all stringUris to be generated
-            const urisPromise = Promise.all(stringUris);
-
-            // Use the Promise to send the postMessage
-            urisPromise.then((completedStringUris) => {
-              const uriMessage: Message = {
-                command: "updateUris",
-                data: completedStringUris,
-              };
-              panel.webview.postMessage(uriMessage);
-            });
-
+            const uriMessage: Message = {
+              command: "updateUris",
+              data: stringUris,
+            };
+            panel.webview.postMessage(uriMessage);
             break;
           }
 
@@ -262,7 +236,7 @@ export function activate(context: vscode.ExtensionContext) {
       Leaving 
     */
     panel.onDidChangeViewState((e) => {
-      if (e.webviewPanel.visible) {
+      if (e.webviewPanel.visible && e.webviewPanel.active) {
         console.log("visible");
         panel.webview.postMessage({
           command: "loadState",
@@ -318,14 +292,14 @@ function getWebViewContent(
     <head>
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <script type="module">
+      ${scriptContent}
+    </script>
       <link rel="stylesheet" type="text/css" href="${stylesUri}">
       <title>Hello World</title>
     </head>
     <body>
      <app-root></app-root>
-     <script type="module">
-     ${scriptContent}
-   </script>
       <script type="module" src="${runtimeUri}"></script>
       <script type="module" src="${polyfillsUri}"></script>
       <script type="module" src="${scriptUri}"></script>    </body>

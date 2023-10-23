@@ -14,8 +14,9 @@ function activate(context) {
     // Use the console to output diagnostic information (console.log) and errors (console.error)
     // This line of code will only be executed once when your extension is activated
     console.log('Congratulations, your extension "angulens" is now active!');
-    const extensionPath = vscode.extensions.getExtension("<YourExtensionID>")?.extensionPath;
-    console.log("EXTENSION PATH", extensionPath);
+    // const extensionPath =
+    //   vscode.extensions.getExtension("<YourExtensionID>")?.extensionPath;
+    // console.log("EXTENSION PATH", extensionPath);
     // The command has been defined in the package.json file
     // Now provide the implementation of the command with registerCommand
     // The commandId parameter must match the command field in package.json
@@ -41,6 +42,7 @@ function activate(context) {
         vscode.ViewColumn.One, // showOptions
         {
             enableScripts: true,
+            retainContextWhenHidden: true,
             localResourceRoots: [
                 vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui")),
                 vscode.Uri.file(path.join(__dirname, "../src/images")),
@@ -49,7 +51,7 @@ function activate(context) {
         );
         const runtimeUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "runtime.01fe1d460628a1d3.js")));
         const polyfillsUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "polyfills.ef3261c6791c905c.js")));
-        const scriptUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "main.d6ce8b1682753b10.js")));
+        const scriptUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "main.81dd69cb7ea8ad79.js")));
         const stylesUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "styles.ef46db3751d8e999.css")));
         // START URIS
         // added this
@@ -61,18 +63,7 @@ function activate(context) {
         // const imageUris = getAssetUris(assetsFolder, panel.webview);
         const imageUris = getAssetUris(imagesFolder, panel.webview);
         console.log("IMAGE URIS", imageUris);
-        // const stringUris = imageUris.map((uri) => uri.toString());
-        // console.log("STRING URIS", stringUris);
-        // Use a Promise to wait for all image URIs
-        Promise.all(imageUris.map((uri) => panel.webview.asWebviewUri(uri)))
-            .then((stringUris) => {
-            // Use the string URIs to set the webview content
-            const htmlContent = getWebViewContent(stylesUri, runtimeUri, polyfillsUri, scriptUri, stringUris);
-            panel.webview.html = htmlContent;
-        })
-            .catch((error) => {
-            console.error("Error generating image URIs:", error);
-        });
+        const stringUris = imageUris.map((uri) => uri.toString());
         let items = [];
         let selectorNames = [];
         let currentFilePath = "";
@@ -140,18 +131,11 @@ function activate(context) {
                     break;
                 }
                 case "sendURIs": {
-                    // Map imageUris to stringUris
-                    const stringUris = imageUris.map((uri) => uri.toString());
-                    // Create a Promise to wait for all stringUris to be generated
-                    const urisPromise = Promise.all(stringUris);
-                    // Use the Promise to send the postMessage
-                    urisPromise.then((completedStringUris) => {
-                        const uriMessage = {
-                            command: "updateUris",
-                            data: completedStringUris,
-                        };
-                        panel.webview.postMessage(uriMessage);
-                    });
+                    const uriMessage = {
+                        command: "updateUris",
+                        data: stringUris,
+                    };
+                    panel.webview.postMessage(uriMessage);
                     break;
                 }
                 case "openFile": {
@@ -168,7 +152,7 @@ function activate(context) {
           Leaving
         */
         panel.onDidChangeViewState((e) => {
-            if (e.webviewPanel.visible) {
+            if (e.webviewPanel.visible && e.webviewPanel.active) {
                 console.log("visible");
                 panel.webview.postMessage({
                     command: "loadState",
@@ -211,14 +195,14 @@ function getWebViewContent(stylesUri, runtimeUri, polyfillsUri, scriptUri, image
     <head>
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <script type="module">
+      ${scriptContent}
+    </script>
       <link rel="stylesheet" type="text/css" href="${stylesUri}">
       <title>Hello World</title>
     </head>
     <body>
      <app-root></app-root>
-     <script type="module">
-     ${scriptContent}
-   </script>
       <script type="module" src="${runtimeUri}"></script>
       <script type="module" src="${polyfillsUri}"></script>
       <script type="module" src="${scriptUri}"></script>    </body>

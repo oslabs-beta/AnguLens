@@ -6,6 +6,7 @@ import {
   ViewChild,
   OnDestroy,
   ChangeDetectorRef,
+  NgZone,
   // AfterViewInit,
 } from '@angular/core';
 import { DataSet } from 'vis-data';
@@ -44,7 +45,8 @@ export class FolderFileComponent implements OnInit, OnDestroy {
 
   constructor(
     private fileSystemService: FileSystemService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private zone: NgZone
   ) {}
 
   network: any;
@@ -125,7 +127,6 @@ export class FolderFileComponent implements OnInit, OnDestroy {
       const width = Math.max(minWidth, maxWidth * widthFactor);
       this.loadingBarWidth = `${width}px`;
       this.loadingBarText = `${Math.round(widthFactor * 100)}%`;
-      console.log('THIS LOAD BAR BOOLEAN SHOULD BE TRUE', this.canLoadBar);
       this.cdr.detectChanges();
     });
     network.once('stabilizationIterationsDone', () => {
@@ -133,23 +134,8 @@ export class FolderFileComponent implements OnInit, OnDestroy {
       this.loadingBarWidth = '496px';
       this.loadingBarOpacity = 0;
       this.canLoadBar = false;
-      console.log('THIS LOAD BAR BOOLEAN SHOULD BE FALSE', this.canLoadBar);
       this.loadingBarDisplay = 'none';
       this.cdr.detectChanges();
-    });
-
-    //event listener for double click to open file
-    network.on('doubleClick', (params: any) => {
-      if (params.nodes.length > 0) {
-        const nodeId = params.nodes[0];
-        if (nodeId) {
-          // Send a message to your VS Code extension to open the file
-          vscode.postMessage({
-            command: 'openFile',
-            data: { filePath: nodeId },
-          });
-        }
-      }
     });
   }
 
@@ -168,51 +154,68 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           pcNodes: Node[];
           pcEdges: Edge[];
         };
-        const newNodes = new DataSet(state.fsNodes);
-        const newEdges = new DataSet(state.fsEdges);
-        const data: {
-          nodes: DataSet<any, 'id'>;
-          edges: DataSet<any, 'id'>;
-        } = {
-          nodes: newNodes,
-          edges: newEdges,
-        };
-        const container = this.networkContainer.nativeElement;
-        this.network = new Network(container, data, this.options);
-        //event listener for double click to open file
-        this.network.on('doubleClick', (params: any) => {
-          if (params.nodes.length > 0) {
-            const nodeId = params.nodes[0];
-            if (nodeId) {
-              // Send a message to your VS Code extension to open the file
-              vscode.postMessage({
-                command: 'openFile',
-                data: { filePath: nodeId },
-              });
+        if (state) {
+          const newNodes = new DataSet(state.fsNodes);
+          const newEdges = new DataSet(state.fsEdges);
+          const data: {
+            nodes: DataSet<any, 'id'>;
+            edges: DataSet<any, 'id'>;
+          } = {
+            nodes: newNodes,
+            edges: newEdges,
+          };
+          console.log('NODES AND EDGES LOAD STATE CREATED');
+          const container = this.networkContainer.nativeElement;
+          this.network = new Network(container, data, this.options);
+          // console.log('URIS ARE PRESENT?', state.uris);
+          console.log('NETWORK IN LOAD STATE CREATED');
+          this.handleLoadingBar(this.network);
+          //event listener for double click to open file
+          console.log('LOAD STATE', this.canLoadBar);
+          this.network.on('doubleClick', (params: any) => {
+            if (params.nodes.length > 0) {
+              const nodeId = params.nodes[0];
+              if (nodeId) {
+                // Send a message to your VS Code extension to open the file
+                vscode.postMessage({
+                  command: 'openFile',
+                  data: { filePath: nodeId },
+                });
+              }
             }
-          }
-        });
+          });
 
-        vscode.setState({
-          uris: state.uris,
-          fsData: data,
-          fsNodes: state.fsNodes,
-          fsEdges: state.fsEdges,
-          pcData: state.pcData,
-          pcNodes: state.pcNodes,
-          pcEdges: state.pcEdges,
-        });
-
+          vscode.setState({
+            uris: state.uris,
+            fsData: data,
+            fsNodes: state.fsNodes,
+            fsEdges: state.fsEdges,
+            pcData: state.pcData,
+            pcNodes: state.pcNodes,
+            pcEdges: state.pcEdges,
+          });
+        }
         break;
       }
       //load icon URI's
       case 'updateUris': {
-        console.log('RUNNING UPDATEURIS');
-        this.uris = message.data;
+        Promise.resolve(message.data)
+          .then(async (data) => {
+            this.uris = data;
 
-        vscode.setState({
-          uris: this.uris,
-        });
+            // Run change detection inside Angular's zone
+            await this.zone.run(async () => {
+              vscode.setState({
+                uris: this.uris,
+              });
+
+              this.cdr.detectChanges();
+            });
+          })
+          .catch((error) => {
+            console.error('Error updating uris:', error);
+          });
+
         break;
       }
       //updatePath
@@ -246,8 +249,6 @@ export class FolderFileComponent implements OnInit, OnDestroy {
         const newEdges = new DataSet(edgesWithIds);
 
         // create a network
-        const container = this.networkContainer.nativeElement;
-        // const data = { newNodes, newEdges };
         const data: {
           nodes: DataSet<any>;
           edges: DataSet<any>;
@@ -255,13 +256,12 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           nodes: newNodes,
           edges: newEdges,
         };
+        const container = this.networkContainer.nativeElement;
         this.network = new Network(container, data, this.options);
         this.handleLoadingBar(this.network);
 
         vscode.setState({
-          // fsItems: this.fsItems,
           uris: state.uris,
-          // pcItems: this.pcItems,
           fsData: data,
           fsNodes: this.nodes,
           fsEdges: this.edges,
@@ -282,9 +282,10 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           fsNodes: Node[];
           fsEdges: Edge[];
         };
-
         const container = this.networkContainer.nativeElement;
         this.network = new Network(container, state.fsData, this.options);
+        // this.cdr.detectChanges();
+        console.log('NETWORK RELOAD STATE CREATED');
         // this.handleLoadingBar(this.network);
 
         //event listener for double click to open file
@@ -300,11 +301,9 @@ export class FolderFileComponent implements OnInit, OnDestroy {
             }
           }
         });
-
+        console.log('NETWORK RELOAD STATE SHOULD BE DONE');
         break;
       }
-
-      //default
       default:
         console.log('unknown comand ->', message.command);
         break;
@@ -316,7 +315,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    console.log(' ON INIT SHOULD BE BEFORE AFTER VIEW');
+    this.canLoadBar = false;
     const state = vscode.getState() as {
       uris: string[] | undefined;
     };
@@ -329,11 +328,6 @@ export class FolderFileComponent implements OnInit, OnDestroy {
     }
     this.setupMessageListener();
   }
-
-  // ngAfterViewInit(): void {
-  //   console.log('AFTER VIEW INIT');
-  //   this.cdr.detectChanges();
-  // }
 
   ngOnDestroy(): void {
     console.log('DESTROYED');
