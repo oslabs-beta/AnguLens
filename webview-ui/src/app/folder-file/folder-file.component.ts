@@ -346,11 +346,9 @@ export class FolderFileComponent implements OnInit, OnDestroy {
     });
     this.fileSystemService.setGeneratedPC(false);
     console.log(this.fileSystemService.getGeneratedPC()); // should log false
-
   }
 
   reRenderComponents() {
-    console.log('rerendering');
     this.renderedNodes = this.nodes.filter((node: Node) => !node.hidden);
     this.network.setData({
       nodes: this.renderedNodes,
@@ -364,23 +362,17 @@ export class FolderFileComponent implements OnInit, OnDestroy {
   }
 
   hide(nodes: String[], firstRun: Boolean = true) {
-    console.log('nodes in hide', nodes);
     const clickedNodes = nodes.map(nodeId => this.nodes.find(node => node.id === nodeId));
-    console.log('clickedNodes ->', clickedNodes);
     clickedNodes.forEach(clickedNode => {
-      console.log('clickedNode', clickedNode);
       if (clickedNode && clickedNode.open !== undefined && (clickedNode.open || firstRun === true)) {
-        console.log('in hide clickednode conditional');
         if (firstRun) {
           this.reloadRequired = true;
           clickedNode.open = !clickedNode.open;
         }
         const childrenArr: String[] = this.edges.filter(edge => edge.from === clickedNode.id).map(edge => edge.to);
-        console.log('nestedChildrenArr ->', childrenArr);
         this.hide(childrenArr, false);
         childrenArr.forEach((item) => {
           const currentNode: Node | undefined = this.nodes.find((node) => node.id === item);
-
           if (currentNode) {
             currentNode.hidden = !currentNode.hidden;
           }
@@ -388,26 +380,6 @@ export class FolderFileComponent implements OnInit, OnDestroy {
       }
 
     });
-
-    // clickedNodes.forEach(clickedNode => {
-    //     if (clickedNode && clickedNode.onFolderClick && (clickedNode.open || firstRun === true)) {
-    //         if (firstRun) {
-    //           clickedNode.onFolderClick();
-    //         }
-    //         const clickedFsItem = this.fsItems.find(item => item.id === clickedNode.id);
-    //         if (clickedFsItem && clickedFsItem.children) {
-    //           this.hide(clickedFsItem.children, false);
-    //           clickedFsItem.children.forEach((item) => {
-
-    //             const nodeItem: Node | undefined = this.nodes.find(node => node.id === item); 
-
-    //             if (nodeItem) {
-    //               nodeItem.hidden = !nodeItem.hidden;
-    //             }
-    //           });
-    //         }
-    //     } 
-    // });
   }
 
   createNodesAndEdges(
