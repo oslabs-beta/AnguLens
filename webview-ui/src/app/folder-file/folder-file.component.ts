@@ -143,10 +143,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           const { nodes: nodeIds } = event;
           if (nodeIds.length > 0) {
             this.hide(nodeIds);
-            if (this.reloadRequired) {
-              this.reRenderComponents();
-              this.reloadRequired = false;
-            }
+            this.reRenderComponents();
           }
         });
         vscode.setState({
@@ -231,10 +228,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           const { nodes: nodeIds } = event;
           if (nodeIds.length > 0) {
             this.hide(nodeIds);
-            if (this.reloadRequired) {
-              this.reRenderComponents();
-              this.reloadRequired = false;
-            }
+            this.reRenderComponents();
           }
         });
 
@@ -294,10 +288,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           const { nodes: nodeIds } = event;
           if (nodeIds.length > 0) {
             this.hide(nodeIds);
-            if (this.reloadRequired) {
-              this.reRenderComponents();
-              this.reloadRequired = false;
-            }
+            this.reRenderComponents();
           }
         });
         break;
@@ -349,16 +340,19 @@ export class FolderFileComponent implements OnInit, OnDestroy {
   }
 
   reRenderComponents() {
-    this.renderedNodes = this.nodes.filter((node: Node) => !node.hidden);
-    this.network.setData({
-      nodes: this.renderedNodes,
-      edges: this.edges
-    });
-    const state = vscode.getState();
-    vscode.setState({
-      ...state as object,
-      fsNodes: this.nodes,
-    });
+    if (this.reloadRequired) {
+      this.renderedNodes = this.nodes.filter((node: Node) => !node.hidden);
+      this.network.setData({
+        nodes: this.renderedNodes,
+        edges: this.edges
+      });
+      const state = vscode.getState();
+      vscode.setState({
+        ...state as object,
+        fsNodes: this.nodes,
+      });
+      this.reloadRequired = true;
+    }
   }
 
   hide(nodes: String[], firstRun: Boolean = true) {
