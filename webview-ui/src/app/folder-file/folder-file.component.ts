@@ -107,6 +107,8 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           fsData: any;
           fsNodes: Node[];
           fsEdges: Edge[];
+          pcNodes: Node[];
+          pcEdges: Edge[];
         };
         console.log('fs nodes in reload ->', state.fsNodes);
         console.log('fs edges in reload ->', state.fsEdges);
@@ -124,7 +126,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
         const container = this.networkContainer.nativeElement;
         this.network = new Network(container, data, this.options);
         //event listener for double click to open file
-        this.network.on('doubleClick', (params:any) => {
+        this.network.on('doubleClick', (params: any) => {
           if (params.nodes.length > 0) {
             const nodeId = params.nodes[0];
             if (nodeId) {
@@ -144,13 +146,13 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           }
         });
         vscode.setState({
-          // fsItems: state.fsItems,
           uris: state.uris,
-          // pcItems: state.pcItems,
           fsData: data,
           fsNodes: state.fsNodes,
           fsEdges: state.fsEdges,
           pcData: state.pcData,
+          pcNodes: state.pcNodes,
+          pcEdges: state.pcEdges,
         });
 
         break;
@@ -159,23 +161,25 @@ export class FolderFileComponent implements OnInit, OnDestroy {
       case 'updateUris': {
         console.log('RUNNING UPDATEURIS');
         this.uris = message.data;
-        // this.fsItems = this.populate(this.source.src);
 
-        // this.fileSystemService.updateState(
-        //   this.fsItems,
-        //   this.uris,
-        //   // this.source.src
-        // );
         vscode.setState({
-          // fsItems: this.fsItems,
           uris: this.uris,
-          // pcItems: this.pcItems,
         });
         break;
       }
       //updatePath
       case 'generateFolderFile': {
         this.fsItems = this.populate(message.data.src);
+        const state = vscode.getState() as {
+          uris: string[];
+          pcData?: any;
+          fsNodes?: Node[];
+          fsEdges?: Edge[];
+          pcNodes?: Node[];
+          pcEdges?: Edge[];
+        };
+
+        this.uris = state.uris;
 
         const { nodes, edges } = this.createNodesAndEdges(
           this.fsItems,
@@ -205,8 +209,8 @@ export class FolderFileComponent implements OnInit, OnDestroy {
         };
 
         this.network = new Network(container, data, this.options);
-         //event listener for double click to open file
-         this.network.on('doubleClick', (params:any) => {
+        //event listener for double click to open file
+        this.network.on('doubleClick', (params: any) => {
           if (params.nodes.length > 0) {
             const nodeId = params.nodes[0];
             if (nodeId) {
@@ -234,7 +238,9 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           fsData: data,
           fsNodes: this.nodes,
           fsEdges: this.edges,
-          pcData: {},
+          pcData: state.pcData,
+          pcNodes: state.pcNodes,
+          pcEdges: state.pcEdges,
         });
         break;
       }
@@ -242,8 +248,6 @@ export class FolderFileComponent implements OnInit, OnDestroy {
       // reupdate screen
       case 'reloadFolderFile': {
         const state = vscode.getState() as {
-          // fsItems: FsItem[];
-          // pcItems: PcItem[];
           uris: string[];
           pcData: any;
           fsData: any;
@@ -302,7 +306,15 @@ export class FolderFileComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.setupMessageListener();
-   
+    const state = vscode.getState() as {
+      uris: string[] | undefined;
+    };
+    if (state === undefined) {
+      vscode.postMessage({
+        command: 'sendURIs',
+        data: {},
+      });
+    }
   }
 
   ngOnDestroy(): void {
@@ -322,6 +334,9 @@ export class FolderFileComponent implements OnInit, OnDestroy {
         filePath: this.filePath,
       },
     });
+    this.fileSystemService.setGeneratedPC(false);
+    console.log(this.fileSystemService.getGeneratedPC()); // should log false
+
   }
 
   reRenderComponents() {

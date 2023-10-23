@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { vscode } from './utilities/vscode';
 import { ExtensionMessage } from '../models/message';
+import { FileSystemService } from '.././services/FileSystemService';
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -9,6 +10,8 @@ import { ExtensionMessage } from '../models/message';
 export class AppComponent implements OnInit {
   currentView: string = '';
   generatedPc: boolean = false;
+
+  constructor(private fileSystemService: FileSystemService) {}
   ngOnInit() {
     //start view as the folder-file hierarchy graph
     this.currentView = 'folder-file';
@@ -27,6 +30,7 @@ export class AppComponent implements OnInit {
   }
 
   loadParentChild() {
+    this.generatedPc = this.fileSystemService.getGeneratedPC();
     if (this.currentView === 'folder-file') {
       this.currentView = 'parent-child';
 
@@ -35,16 +39,16 @@ export class AppComponent implements OnInit {
           command: 'reloadPC',
           data: {},
         });
+        console.log('RELOADPC GENERATED PC', this.generatedPc);
       } else {
         vscode.postMessage({
           command: 'loadParentChild',
           data: {},
         });
         this.generatedPc = true;
+        this.fileSystemService.setGeneratedPC(this.generatedPc); // resetting file system service to true
+        console.log('UPDATEPC GENERATED PC', this.generatedPc);
       }
     }
   }
-
-  // nodes, edges, uris
-  // src object
 }

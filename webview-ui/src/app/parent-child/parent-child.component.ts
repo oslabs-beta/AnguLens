@@ -6,7 +6,7 @@ import {
   ViewChild,
   OnDestroy,
 } from '@angular/core';
-import { DataSet } from 'vis-data';
+import { DataSet, DataView } from 'vis-data';
 import { Network } from 'vis-network';
 // import { FsItem } from '../../models/FileSystem';
 import { ExtensionMessage } from '../../models/message';
@@ -32,59 +32,75 @@ export class ParentChildComponent implements OnInit, OnDestroy {
   edges: Edge[] = [];
   uris: string[] = [];
   pcItems: PcItem[] = [];
-  // fsItems: FsItem[] = [];
   private network: Network | undefined;
   private handleMessageEvent = (event: MessageEvent) => {
     const message: ExtensionMessage = event.data;
     console.log('caught message?', message);
 
     switch (message.command) {
-      case 'stop': {
+      case 'loadState': {
         const state = vscode.getState() as {
-          fsItems: FsItem[];
-          pcItems: PcItem[];
-          uris: any;
-          pcData: any;
-          fsData: any;
-        };
-        if (state) {
-          this.pcItems = state.pcItems;
-          // this.fsItems = state.fsItems;
-          this.uris = state.uris;
-
-          const container = this.networkContainer.nativeElement;
-          this.network = new Network(container, state.pcData, this.options);
-          vscode.setState({
-            // fsItems: this.fsItems,
-            pcItems: this.pcItems,
-            uris: this.uris,
-            pcData: state.pcData,
-            fsData: state.fsData,
-          });
-        }
-        break;
-      }
-
-      case 'updatePC': {
-        this.pcItems = this.populate(message.data);
-        const state = vscode.getState() as {
-          // fsItems: FsItem[];
-          // pcItems: PcItem[];
           uris: string[];
           pcData: any;
           fsData: any;
           fsNodes: Node[];
           fsEdges: Edge[];
+          pcNodes: Node[];
+          pcEdges: Edge[];
         };
+        this.nodes = state.pcNodes;
+        this.edges = state.pcEdges;
+        const newNodes = new DataSet(state.pcNodes);
+        const newEdges = new DataSet(state.pcEdges);
+        const data: {
+          nodes: DataSet<any, 'id'>;
+          edges: DataSet<any, 'id'>;
+        } = {
+          nodes: newNodes,
+          edges: newEdges,
+        };
+        const container = this.networkContainer.nativeElement;
+        this.network = new Network(container, data, this.options);
+        vscode.setState({
+          uris: state.uris,
+          pcData: data,
+          fsData: state.fsData,
+          fsNodes: state.fsNodes,
+          fsEdges: state.fsEdges,
+          pcNodes: state.pcNodes,
+          pcEdges: state.pcEdges,
+        });
+        break;
+      }
+
+      case 'updatePC': {
+        // console.log('REAL OBJECT', message.data);
+        this.pcItems = this.populate(message.data);
+        // console.log('PC ITEMS', this.pcItems);
+        const state = vscode.getState() as {
+          uris: string[];
+          pcData: object;
+          fsData: any;
+          fsNodes: Node[];
+          fsEdges: Edge[];
+          pcNodes: Node[];
+          pcEdges: Edge[];
+        };
+
         this.uris = state.uris;
+        // console.log('ABOUT TO CREATE NODES AND EDGES');
+        // console.log('SHOULD BE EMPTY EDGES', this.edges); // this should be set to empty state.pcEdges
         const { nodes, edges } = this.createNodesAndEdges(
           this.pcItems,
           this.uris
         );
         this.nodes = nodes;
         this.edges = edges;
+        // console.log('EDGES CREATED', this.edges);
         const newNodes = new DataSet(nodes);
         const newEdges = new DataSet(edges);
+
+        // console.log('EDGES', this.edges);
 
         // create a network
         const container = this.networkContainer.nativeElement;
@@ -106,6 +122,8 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           fsData: state.fsData,
           fsNodes: state.fsNodes,
           fsEdges: state.fsEdges,
+          pcNodes: this.nodes,
+          pcEdges: this.edges,
         });
         this.network = new Network(container, data, this.options);
         break;
@@ -120,7 +138,14 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           fsData: any;
           fsNodes: Node[];
           fsEdges: Edge[];
+          pcNodes: Node[];
+          pcEdges: Edge[];
         };
+        this.nodes = state.pcNodes;
+        this.edges = state.pcEdges;
+        // console.log('PC NODES', state.pcNodes);
+        // console.log('PC EDGES', state.pcEdges);
+
         const container = this.networkContainer.nativeElement;
         this.network = new Network(container, state.pcData, this.options);
         break;
@@ -136,12 +161,12 @@ export class ParentChildComponent implements OnInit, OnDestroy {
     layout: {
       hierarchical: {
         direction: 'UD', // Up-Down direction
-        nodeSpacing: 1000,
+        // nodeSpacing: 1000,
         // levelSeparation: 300,
         parentCentralization: true,
         edgeMinimization: true,
         shakeTowards: 'roots', // Tweak the layout algorithm to get better results
-        sortMethod: 'directed', // Sort based on the hierarchical structure
+        // sortMethod: 'directed', // Sort based on the hierarchical structure
       },
     },
 
@@ -180,8 +205,54 @@ export class ParentChildComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    console.log('DESTROYED');
+    console.log('VIEW DESTROYED');
     window.removeEventListener('message', this.handleMessageEvent);
+  }
+
+  selectedFilter: string = 'all';
+  edgesDataSet: DataSet<Edge> = new DataSet(this.edges); // Initialize as empty DataSet object
+  edgesView = new DataView(this.edgesDataSet);
+
+  edgesFilter(edgesData: DataSet<Edge>) {
+    switch (this.selectedFilter) {
+      case 'input':
+        const inputEdges = edgesData.get({
+          filter: (edge) => edge.relation !== 'output',
+        });
+        const inputDataSet = new DataSet(inputEdges);
+        return inputDataSet;
+      // return item.relation === this.selectedFilter;
+      case 'output':
+        const outputEdges = edgesData.get({
+          filter: (edge) => edge.relation !== 'input',
+        });
+        const outputDataSet = new DataSet(outputEdges);
+        return outputDataSet;
+      case 'all':
+        return edgesData;
+      default:
+        return edgesData;
+    }
+  }
+
+  updateFilters(filterType: string) {
+    this.selectedFilter = filterType;
+    this.edgesDataSet.clear();
+    this.edgesDataSet.add(this.edges);
+    const result = this.edgesFilter(this.edgesDataSet);
+    this.edgesView = new DataView(result);
+
+    if (this.network) {
+      const data: {
+        nodes: DataSet<any, 'id'>;
+        edges: DataView<any, 'id'>;
+      } = {
+        nodes: new DataSet<Node>(this.nodes),
+        edges: this.edgesView,
+      };
+      const container = this.networkContainer.nativeElement;
+      this.network = new Network(container, data, this.options);
+    }
   }
 
   createNodesAndEdges(
@@ -201,11 +272,56 @@ export class ParentChildComponent implements OnInit, OnDestroy {
         nodes.push({
           id: item.id,
           label: item.label,
-          // image: {
-          //   unselected: '',
-          //   selected: '',
-          // },
         });
+
+        if (item.inputs.length > 0) {
+          // iterate through inputs array
+          for (let inputItem in item.inputs) {
+            const edge: Edge = {
+              id: `${item.id}-${item.inputs[inputItem].pathFrom}`,
+              from: item.inputs[inputItem].pathFrom,
+              to: item.id,
+              relation: 'input',
+              color: { color: 'green' },
+              smooth: { type: 'curvedCCW', roundness: 0.25 },
+              arrows: {
+                to: {
+                  enabled: true,
+                  type: 'arrow',
+                },
+                middle: {
+                  type: 'arrow',
+                },
+              },
+            };
+            edges.push(edge);
+            // console.log('INPUT EDGE', edge);
+          }
+        }
+
+        if (item.outputs.length > 0) {
+          for (let outputItem in item.outputs) {
+            const edge: Edge = {
+              id: `${item.id}-${item.outputs[outputItem].pathTo}`,
+              from: item.id,
+              to: item.outputs[outputItem].pathTo,
+              color: { color: 'red' },
+              relation: 'output',
+              arrows: {
+                to: {
+                  enabled: true,
+                  type: 'arrow',
+                },
+                middle: {
+                  type: 'arrow',
+                },
+              },
+              smooth: { type: 'curvedCCW', roundness: 0.2 },
+            };
+            edges.push(edge);
+            // console.log('OUTPUT EDGE', edge);
+          }
+        }
 
         // If the item has children (files or subfolders), add edges to them
         if (item.children && item.children.length > 0) {
@@ -214,6 +330,8 @@ export class ParentChildComponent implements OnInit, OnDestroy {
               id: `${item.id}-${childId}`,
               from: item.id,
               to: childId,
+              relation: 'all',
+              smooth: false,
             };
             edges.push(edge);
             const child = pcItems.find((pcItem) => pcItem.id === childId);
@@ -249,6 +367,9 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           children: [],
         };
         items.push(currentNode);
+
+        if (obj.inputs) currentNode.inputs = obj.inputs;
+        if (obj.outputs) currentNode.outputs = obj.outputs;
 
         // check if object has children
         if (obj.children) {

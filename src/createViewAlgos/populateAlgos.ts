@@ -5,7 +5,7 @@ import cheerio = require("cheerio");
 
 
 export function populateStructure(array: any, selectorNames: object[]): object {
-  console.log("POPULATED STRUCTURE TRIGGERED");
+  //console.log("POPULATED STRUCTURE TRIGGERED");
   // console.log("POPULATE PASSED IN ARRAY====", array);
   const output = {};
   let rootPath: string = "";
