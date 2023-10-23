@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { DataSet, DataView } from 'vis-data';
 import { Network } from 'vis-network';
+// import { Legend } from 'vis-network/standalone';
 // import { FsItem } from '../../models/FileSystem';
 import { ExtensionMessage } from '../../models/message';
 import { URIObj } from 'src/models/uri';

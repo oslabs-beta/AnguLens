@@ -14,6 +14,8 @@ function activate(context) {
     // Use the console to output diagnostic information (console.log) and errors (console.error)
     // This line of code will only be executed once when your extension is activated
     console.log('Congratulations, your extension "angulens" is now active!');
+    const extensionPath = vscode.extensions.getExtension("<YourExtensionID>")?.extensionPath;
+    console.log("EXTENSION PATH", extensionPath);
     // The command has been defined in the package.json file
     // Now provide the implementation of the command with registerCommand
     // The commandId parameter must match the command field in package.json
@@ -37,19 +39,40 @@ function activate(context) {
         const panel = vscode.window.createWebviewPanel("AnguLensPanel", // viewType, unique identifier
         "AnguLens", // name of tab in vsCode
         vscode.ViewColumn.One, // showOptions
-        { enableScripts: true } // options
+        {
+            enableScripts: true,
+            localResourceRoots: [
+                vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui")),
+                vscode.Uri.file(path.join(__dirname, "../src/images")),
+            ],
+        } // options
         );
         const runtimeUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "runtime.01fe1d460628a1d3.js")));
         const polyfillsUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "polyfills.ef3261c6791c905c.js")));
-        const scriptUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "main.2912935a795b5066.js")));
+        const scriptUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "main.d6ce8b1682753b10.js")));
         const stylesUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui", "styles.ef46db3751d8e999.css")));
         // START URIS
         // added this
         // Create a webview-compatible URI for the "assets" folder
         const assetsFolder = vscode.Uri.file(path.join(__dirname, "../webview-ui/dist/webview-ui/assets"));
+        // const imagesFolder = vscode.Uri.file(path.join(__dirname, "./images"));
+        const imagesFolder = vscode.Uri.file(path.join(__dirname, "../src/images"));
         // Create URIs for all image assets in the "assets" folder
-        const imageUris = getAssetUris(assetsFolder, panel.webview);
-        const stringUris = imageUris.map((uri) => uri.toString());
+        // const imageUris = getAssetUris(assetsFolder, panel.webview);
+        const imageUris = getAssetUris(imagesFolder, panel.webview);
+        console.log("IMAGE URIS", imageUris);
+        // const stringUris = imageUris.map((uri) => uri.toString());
+        // console.log("STRING URIS", stringUris);
+        // Use a Promise to wait for all image URIs
+        Promise.all(imageUris.map((uri) => panel.webview.asWebviewUri(uri)))
+            .then((stringUris) => {
+            // Use the string URIs to set the webview content
+            const htmlContent = getWebViewContent(stylesUri, runtimeUri, polyfillsUri, scriptUri, stringUris);
+            panel.webview.html = htmlContent;
+        })
+            .catch((error) => {
+            console.error("Error generating image URIs:", error);
+        });
         let items = [];
         let selectorNames = [];
         let currentFilePath = "";
@@ -117,11 +140,18 @@ function activate(context) {
                     break;
                 }
                 case "sendURIs": {
-                    const uriMessage = {
-                        command: "updateUris",
-                        data: stringUris,
-                    };
-                    panel.webview.postMessage(uriMessage);
+                    // Map imageUris to stringUris
+                    const stringUris = imageUris.map((uri) => uri.toString());
+                    // Create a Promise to wait for all stringUris to be generated
+                    const urisPromise = Promise.all(stringUris);
+                    // Use the Promise to send the postMessage
+                    urisPromise.then((completedStringUris) => {
+                        const uriMessage = {
+                            command: "updateUris",
+                            data: completedStringUris,
+                        };
+                        panel.webview.postMessage(uriMessage);
+                    });
                     break;
                 }
                 case "openFile": {
@@ -150,9 +180,21 @@ function activate(context) {
     context.subscriptions.push(disposable, runWebView);
 }
 exports.activate = activate;
+// function getAssetUris(folderUri: vscode.Uri, webview: Webview): vscode.Uri[] {
+//   const imageFiles = fs.readdirSync(folderUri.fsPath);
+//   return imageFiles.map((file) =>
+//     webview.asWebviewUri(vscode.Uri.file(path.join(folderUri.fsPath, file)))
+//   );
+// }
 function getAssetUris(folderUri, webview) {
-    const imageFiles = fs.readdirSync(folderUri.fsPath);
-    return imageFiles.map((file) => webview.asWebviewUri(vscode.Uri.file(path.join(folderUri.fsPath, file))));
+    try {
+        const imageFiles = fs.readdirSync(folderUri.fsPath);
+        return imageFiles.map((file) => webview.asWebviewUri(vscode.Uri.file(path.join(folderUri.fsPath, file))));
+    }
+    catch (error) {
+        console.error("Error getting image URIs:", error);
+        return [];
+    }
 }
 // console.log("JSON STRINGIFIED OUTPUT", JSON.stringify(output))
 function getWebViewContent(stylesUri, runtimeUri, polyfillsUri, scriptUri, imageUris) {
@@ -174,14 +216,44 @@ function getWebViewContent(stylesUri, runtimeUri, polyfillsUri, scriptUri, image
     </head>
     <body>
      <app-root></app-root>
+     <script type="module">
+     ${scriptContent}
+   </script>
       <script type="module" src="${runtimeUri}"></script>
       <script type="module" src="${polyfillsUri}"></script>
-      <script type="module">
-        ${scriptContent}
-      </script>
       <script type="module" src="${scriptUri}"></script>    </body>
   </html>`;
 }
+// function getWebViewContent(
+//   stylesUri: any,
+//   runtimeUri: any,
+//   polyfillsUri: any,
+//   scriptUri: any,
+//   imageUris: any
+// ) {
+//   console.log("IMAGE URIS BEFORE MAPPING =======", imageUris);
+//   const imageTags = imageUris
+//     .map((uri: any) => `<img src="${uri}" alt="Image" />`)
+//     .join("\n");
+//   return `<!DOCTYPE html>
+//   <html lang="en">
+//     <head>
+//       <meta charset="UTF-8" />
+//       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+//       <link rel="stylesheet" type="text/css" href="${stylesUri}">
+//       <title>Hello World</title>
+//     </head>
+//     <body>
+//     <script type="module">
+//     ${imageTags}
+//   </script>
+//    <app-root></app-root>
+//       <script type="module" src="${runtimeUri}"></script>
+//       <script type="module" src="${polyfillsUri}"></script>
+//       <script type="module" src="${scriptUri}"></script>
+//     </body>
+//   </html>`;
+// }
 // This method is called when your extension is deactivated
 function deactivate() { }
 exports.deactivate = deactivate;

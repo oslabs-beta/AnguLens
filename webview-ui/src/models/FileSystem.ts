@@ -56,5 +56,6 @@ export interface Edge {
     middle?: object;
     from?: object;
   };
+  group?: object;
 }
 //

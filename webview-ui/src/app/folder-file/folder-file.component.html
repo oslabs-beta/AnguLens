@@ -1,3 +1,4 @@
+
 <div class="center-container">
   <label for="filePathInput"></label>
   <div class="input-button-container">
@@ -12,5 +13,22 @@
   </div>
 </div>
 
-<div #networkContainer class="network-container" ></div>
-<router-outlet></router-outlet>
+<div>
+  <!-- <div *ngIf="!canLoadBar" #networkContainer class="network-container"></div> -->
+  <div #networkContainer class="network-container"></div>
+
+  <div *ngIf="canLoadBar" class="wrapper">
+    <div
+      id="loadingBar"
+      [style.display]="loadingBarDisplay"
+      [style.opacity]="loadingBarOpacity"
+    >
+      <div class="outerBorder">
+        <div id="text">{{ loadingBarText }}</div>
+        <div id="border">
+          <div id="bar" [style.width]="loadingBarWidth"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
