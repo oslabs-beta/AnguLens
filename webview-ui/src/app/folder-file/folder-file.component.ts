@@ -17,12 +17,12 @@ import { URIObj } from 'src/models/uri';
 import { vscode } from '../utilities/vscode';
 
 import { FileSystemService } from 'src/services/FileSystemService';
+import { first } from 'rxjs';
 
 type AppState = {
   networkData: any; // Use the appropriate data type for 'networkData'
   options: any; // Use the appropriate data type for 'options'
 };
-
 interface Folder {
   type: 'folder';
   path: string;
@@ -51,11 +51,13 @@ export class FolderFileComponent implements OnInit, OnDestroy {
 
   network: any;
   nodes: Node[] = [];
+  renderedNodes: Node[] = [];
   edges: Edge[] = [];
   fsItems: FsItem[] = [];
   pcItems: PcItem[] = [];
   uris: string[] = [];
   filePath: string = '';
+  reloadRequired: boolean = false;
   options = {
     interaction: {
       navigationButtons: true,
@@ -149,54 +151,68 @@ export class FolderFileComponent implements OnInit, OnDestroy {
         const state = vscode.getState() as {
           uris: string[];
           pcData: any;
+          fsData: any;
           fsNodes: Node[];
           fsEdges: Edge[];
           pcNodes: Node[];
           pcEdges: Edge[];
         };
-        if (state) {
-          const newNodes = new DataSet(state.fsNodes);
-          const newEdges = new DataSet(state.fsEdges);
-          const data: {
-            nodes: DataSet<any, 'id'>;
-            edges: DataSet<any, 'id'>;
-          } = {
-            nodes: newNodes,
-            edges: newEdges,
-          };
-          console.log('NODES AND EDGES LOAD STATE CREATED');
-          const container = this.networkContainer.nativeElement;
-          this.network = new Network(container, data, this.options);
-          // console.log('URIS ARE PRESENT?', state.uris);
-          console.log('NETWORK IN LOAD STATE CREATED');
-          this.handleLoadingBar(this.network);
-          //event listener for double click to open file
-          console.log('LOAD STATE', this.canLoadBar);
-          this.network.on('doubleClick', (params: any) => {
-            if (params.nodes.length > 0) {
-              const nodeId = params.nodes[0];
-              if (nodeId) {
-                // Send a message to your VS Code extension to open the file
-                vscode.postMessage({
-                  command: 'openFile',
-                  data: { filePath: nodeId },
-                });
-              }
-            }
-          });
+        this.nodes = state.fsNodes;
+        this.edges = state.fsEdges;
+        this.renderedNodes = this.nodes.filter((node: Node) => !node.hidden);
 
-          vscode.setState({
-            uris: state.uris,
-            fsData: data,
-            fsNodes: state.fsNodes,
-            fsEdges: state.fsEdges,
-            pcData: state.pcData,
-            pcNodes: state.pcNodes,
-            pcEdges: state.pcEdges,
-          });
-        }
+        const data: {
+          nodes: DataSet<any>;
+          edges: DataSet<any>;
+        } = {
+          nodes: new DataSet(this.renderedNodes),
+          edges: new DataSet(this.edges),
+        };
+        const container = this.networkContainer.nativeElement;
+        this.network = new Network(container, data, this.options);
+        this.handleLoadingBar(this.network);
+        //event listener for double click to open file
+        this.network.on('doubleClick', (params: any) => {
+          if (params.nodes.length > 0) {
+            const nodeId = params.nodes[0];
+            if (nodeId) {
+              // Send a message to your VS Code extension to open the file
+              vscode.postMessage({
+                command: 'openFile',
+                data: { filePath: nodeId },
+              });
+            }
+          }
+        });
+        this.network.on('click', (event: { nodes: string[] }) => {
+          const { nodes: nodeIds } = event;
+          if (nodeIds.length > 0) {
+            this.hide(nodeIds);
+            this.reRenderComponents();
+          }
+        });
+        vscode.setState({
+          uris: state.uris,
+          fsData: data,
+          fsNodes: state.fsNodes,
+          fsEdges: state.fsEdges,
+          pcData: state.pcData,
+          pcNodes: state.pcNodes,
+          pcEdges: state.pcEdges,
+        });
+
+        vscode.setState({
+          uris: state.uris,
+          fsData: data,
+          fsNodes: state.fsNodes,
+          fsEdges: state.fsEdges,
+          pcData: state.pcData,
+          pcNodes: state.pcNodes,
+          pcEdges: state.pcEdges,
+        });
         break;
       }
+
       //load icon URI's
       case 'updateUris': {
         Promise.resolve(message.data)
@@ -247,7 +263,6 @@ export class FolderFileComponent implements OnInit, OnDestroy {
 
         const newNodes = new DataSet(nodes);
         const newEdges = new DataSet(edgesWithIds);
-
         // create a network
         const data: {
           nodes: DataSet<any>;
@@ -259,9 +274,30 @@ export class FolderFileComponent implements OnInit, OnDestroy {
         const container = this.networkContainer.nativeElement;
         this.network = new Network(container, data, this.options);
         this.handleLoadingBar(this.network);
+        //event listener for double click to open file
+        this.network.on('doubleClick', (params: any) => {
+          if (params.nodes.length > 0) {
+            const nodeId = params.nodes[0];
+            if (nodeId) {
+              // Send a message to your VS Code extension to open the file
+              vscode.postMessage({
+                command: 'openFile',
+                data: { filePath: nodeId },
+              });
+            }
+          }
+        });
+
+        this.network.on('click', (event: { nodes: string[] }) => {
+          const { nodes: nodeIds } = event;
+          if (nodeIds.length > 0) {
+            this.hide(nodeIds);
+            this.reRenderComponents();
+          }
+        });
 
         vscode.setState({
-          uris: state.uris,
+          uris: this.uris,
           fsData: data,
           fsNodes: this.nodes,
           fsEdges: this.edges,
@@ -282,12 +318,19 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           fsNodes: Node[];
           fsEdges: Edge[];
         };
-        const container = this.networkContainer.nativeElement;
-        this.network = new Network(container, state.fsData, this.options);
-        // this.cdr.detectChanges();
-        console.log('NETWORK RELOAD STATE CREATED');
-        // this.handleLoadingBar(this.network);
+        this.nodes = state.fsNodes;
+        this.edges = state.fsEdges;
+        this.renderedNodes = this.nodes.filter((node: Node) => !node.hidden);
 
+        const data: {
+          nodes: DataSet<any>;
+          edges: DataSet<any>;
+        } = {
+          nodes: new DataSet(this.renderedNodes),
+          edges: new DataSet(this.edges),
+        };
+        const container = this.networkContainer.nativeElement;
+        this.network = new Network(container, data, this.options);
         //event listener for double click to open file
         this.network.on('doubleClick', (params: any) => {
           if (params.nodes.length > 0) {
@@ -301,7 +344,14 @@ export class FolderFileComponent implements OnInit, OnDestroy {
             }
           }
         });
-        console.log('NETWORK RELOAD STATE SHOULD BE DONE');
+
+        this.network.on('click', (event: { nodes: string[] }) => {
+          const { nodes: nodeIds } = event;
+          if (nodeIds.length > 0) {
+            this.hide(nodeIds);
+            this.reRenderComponents();
+          }
+        });
         break;
       }
       default:
@@ -350,6 +400,52 @@ export class FolderFileComponent implements OnInit, OnDestroy {
     console.log(this.fileSystemService.getGeneratedPC()); // should log false
   }
 
+  reRenderComponents() {
+    if (this.reloadRequired) {
+      this.renderedNodes = this.nodes.filter((node: Node) => !node.hidden);
+      this.network.setData({
+        nodes: this.renderedNodes,
+        edges: this.edges,
+      });
+      const state = vscode.getState();
+      vscode.setState({
+        ...(state as object),
+        fsNodes: this.nodes,
+      });
+      this.reloadRequired = true;
+    }
+  }
+
+  hide(nodes: String[], firstRun: Boolean = true) {
+    const clickedNodes = nodes.map((nodeId) =>
+      this.nodes.find((node) => node.id === nodeId)
+    );
+    clickedNodes.forEach((clickedNode) => {
+      if (
+        clickedNode &&
+        clickedNode.open !== undefined &&
+        (clickedNode.open || firstRun === true)
+      ) {
+        if (firstRun) {
+          this.reloadRequired = true;
+          clickedNode.open = !clickedNode.open;
+        }
+        const childrenArr: String[] = this.edges
+          .filter((edge) => edge.from === clickedNode.id)
+          .map((edge) => edge.to);
+        this.hide(childrenArr, false);
+        childrenArr.forEach((item) => {
+          const currentNode: Node | undefined = this.nodes.find(
+            (node) => node.id === item
+          );
+          if (currentNode) {
+            currentNode.hidden = !currentNode.hidden;
+          }
+        });
+      }
+    });
+  }
+
   createNodesAndEdges(
     fsItems: FsItem[],
     uris: string[]
@@ -386,14 +482,26 @@ export class FolderFileComponent implements OnInit, OnDestroy {
             fileImg = uris[4];
             break;
         }
-        nodes.push({
+
+        const newNode: Node = {
           id: item.id,
           label: item.label,
           image: {
             unselected: fileImg,
             selected: selectedImg === '' ? fileImg : selectedImg,
           },
-        });
+          hidden: false,
+        };
+
+        if (item.type === 'folder') {
+          newNode.open = true;
+          newNode.onFolderClick = function () {
+            this.open = !this.open;
+            console.log('folder clicked');
+          };
+        }
+
+        nodes.push(newNode);
 
         // If the item has children (files or subfolders), add edges to them
         if (item.children && item.children.length > 0) {
@@ -480,62 +588,3 @@ export class FolderFileComponent implements OnInit, OnDestroy {
     return items;
   }
 }
-
-// source = {
-//   src: {
-//     type: 'folder',
-//     path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src',
-//     app: {
-//       type: 'folder',
-//       path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app',
-//       'app-routing.module.ts': {
-//         type: 'ts',
-//         path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app/app-routing.module.ts',
-//       },
-//       'app.component.css': {
-//         type: 'css',
-//         path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app/app.component.css',
-//       },
-//       'app.component.html': {
-//         type: 'html',
-//         path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app/app.component.html',
-//       },
-//       'app.component.spec.ts': {
-//         type: 'ts',
-//         path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app/app.component.spec.ts',
-//       },
-//       'app.component.ts': {
-//         type: 'ts',
-//         path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app/app.component.ts',
-//       },
-//       'app.module.ts': {
-//         type: 'ts',
-//         path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app/app.module.ts',
-//       },
-//     },
-//     assets: {
-//       type: 'folder',
-//       path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/assets',
-//       '.gitkeep': {
-//         type: 'gitkeep',
-//         path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/assets/.gitkeep',
-//       },
-//     },
-//     'favicon.ico': {
-//       type: 'ico',
-//       path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/favicon.ico',
-//     },
-//     'index.html': {
-//       type: 'html',
-//       path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/index.html',
-//     },
-//     'main.ts': {
-//       type: 'ts',
-//       path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/main.ts',
-//     },
-//     'styles.css': {
-//       type: 'css',
-//       path: '/Users/daielkim/CodeSmith/osp/AnguLens/webview-ui/src/styles.css',
-//     },
-//   },
-// };
