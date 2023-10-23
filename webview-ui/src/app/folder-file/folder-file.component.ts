@@ -101,8 +101,6 @@ export class FolderFileComponent implements OnInit, OnDestroy {
     switch (message.command) {
       case 'loadState': {
         const state = vscode.getState() as {
-          // fsItems: FsItem[];
-          // pcItems: PcItem[];
           uris: string[];
           pcData: any;
           fsData: any;
@@ -111,8 +109,6 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           pcNodes: Node[];
           pcEdges: Edge[];
         };
-        console.log('fs nodes in reload ->', state.fsNodes);
-        console.log('fs edges in reload ->', state.fsEdges);
         this.nodes = state.fsNodes;
         this.edges = state.fsEdges;
         this.renderedNodes = this.nodes.filter((node: Node) => !node.hidden);
@@ -233,9 +229,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
         });
 
         vscode.setState({
-          // fsItems: this.fsItems,
           uris: this.uris,
-          // pcItems: this.pcItems,
           fsData: data,
           fsNodes: this.nodes,
           fsEdges: this.edges,
@@ -255,8 +249,6 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           fsNodes: Node[];
           fsEdges: Edge[];
         };
-        console.log('fs nodes in reload ->', state.fsNodes);
-        console.log('fs edges in reload ->', state.fsEdges);
         this.nodes = state.fsNodes;
         this.edges = state.fsEdges;
         this.renderedNodes = this.nodes.filter((node: Node) => !node.hidden);
