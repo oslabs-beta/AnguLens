@@ -14,12 +14,12 @@ import { URIObj } from 'src/models/uri';
 import { vscode } from '../utilities/vscode';
 
 import { FileSystemService } from 'src/services/FileSystemService';
+import { first } from 'rxjs';
 
 type AppState = {
   networkData: any; // Use the appropriate data type for 'networkData'
   options: any; // Use the appropriate data type for 'options'
 };
-
 interface Folder {
   type: 'folder';
   path: string;
@@ -44,11 +44,13 @@ export class FolderFileComponent implements OnInit, OnDestroy {
 
   network: any;
   nodes: Node[] = [];
+  renderedNodes: Node[] = [];
   edges: Edge[] = [];
   fsItems: FsItem[] = [];
   pcItems: PcItem[] = [];
   uris: string[] = [];
   filePath: string = '';
+  reloadRequired: boolean = false;
   options = {
     interaction: {
       navigationButtons: true,
@@ -99,24 +101,24 @@ export class FolderFileComponent implements OnInit, OnDestroy {
     switch (message.command) {
       case 'loadState': {
         const state = vscode.getState() as {
-          // fsItems: FsItem[];
-          // pcItems: PcItem[];
           uris: string[];
           pcData: any;
+          fsData: any;
           fsNodes: Node[];
           fsEdges: Edge[];
           pcNodes: Node[];
           pcEdges: Edge[];
         };
+        this.nodes = state.fsNodes;
+        this.edges = state.fsEdges;
+        this.renderedNodes = this.nodes.filter((node: Node) => !node.hidden);
 
-        const newNodes = new DataSet(state.fsNodes);
-        const newEdges = new DataSet(state.fsEdges);
         const data: {
-          nodes: DataSet<any, 'id'>;
-          edges: DataSet<any, 'id'>;
+          nodes: DataSet<any>;
+          edges: DataSet<any>;
         } = {
-          nodes: newNodes,
-          edges: newEdges,
+          nodes: new DataSet(this.renderedNodes),
+          edges: new DataSet(this.edges),
         };
         const container = this.networkContainer.nativeElement;
         this.network = new Network(container, data, this.options);
@@ -133,7 +135,13 @@ export class FolderFileComponent implements OnInit, OnDestroy {
             }
           }
         });
-
+        this.network.on('click', (event: { nodes: string[] }) => {
+          const { nodes: nodeIds } = event;
+          if (nodeIds.length > 0) {
+            this.hide(nodeIds);
+            this.reRenderComponents();
+          }
+        });
         vscode.setState({
           uris: state.uris,
           fsData: data,
@@ -185,7 +193,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
 
         const newNodes = new DataSet(nodes);
         const newEdges = new DataSet(edgesWithIds);
-
+        console.log('edges in generate ->', edgesWithIds);
         // create a network
         const container = this.networkContainer.nativeElement;
         // const data = { newNodes, newEdges };
@@ -211,11 +219,17 @@ export class FolderFileComponent implements OnInit, OnDestroy {
             }
           }
         });
+        
+        this.network.on('click', (event: { nodes: string[] }) => {
+          const { nodes: nodeIds } = event;
+          if (nodeIds.length > 0) {
+            this.hide(nodeIds);
+            this.reRenderComponents();
+          }
+        });
 
         vscode.setState({
-          // fsItems: this.fsItems,
           uris: this.uris,
-          // pcItems: this.pcItems,
           fsData: data,
           fsNodes: this.nodes,
           fsEdges: this.edges,
@@ -235,11 +249,21 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           fsNodes: Node[];
           fsEdges: Edge[];
         };
+        this.nodes = state.fsNodes;
+        this.edges = state.fsEdges;
+        this.renderedNodes = this.nodes.filter((node: Node) => !node.hidden);
 
+        const data: {
+          nodes: DataSet<any>;
+          edges: DataSet<any>;
+        } = {
+          nodes: new DataSet(this.renderedNodes),
+          edges: new DataSet(this.edges),
+        };
         const container = this.networkContainer.nativeElement;
-        this.network = new Network(container, state.fsData, this.options);
-        //event listener for double click to open file
-        this.network.on('doubleClick', (params: any) => {
+        this.network = new Network(container, data, this.options);
+         //event listener for double click to open file
+         this.network.on('doubleClick', (params:any) => {
           if (params.nodes.length > 0) {
             const nodeId = params.nodes[0];
             if (nodeId) {
@@ -251,7 +275,14 @@ export class FolderFileComponent implements OnInit, OnDestroy {
             }
           }
         });
-
+        
+        this.network.on('click', (event: { nodes: string[] }) => {
+          const { nodes: nodeIds } = event;
+          if (nodeIds.length > 0) {
+            this.hide(nodeIds);
+            this.reRenderComponents();
+          }
+        });
         break;
       }
 
@@ -300,6 +331,43 @@ export class FolderFileComponent implements OnInit, OnDestroy {
     console.log(this.fileSystemService.getGeneratedPC()); // should log false
   }
 
+  reRenderComponents() {
+    if (this.reloadRequired) {
+      this.renderedNodes = this.nodes.filter((node: Node) => !node.hidden);
+      this.network.setData({
+        nodes: this.renderedNodes,
+        edges: this.edges
+      });
+      const state = vscode.getState();
+      vscode.setState({
+        ...state as object,
+        fsNodes: this.nodes,
+      });
+      this.reloadRequired = true;
+    }
+  }
+
+  hide(nodes: String[], firstRun: Boolean = true) {
+    const clickedNodes = nodes.map(nodeId => this.nodes.find(node => node.id === nodeId));
+    clickedNodes.forEach(clickedNode => {
+      if (clickedNode && clickedNode.open !== undefined && (clickedNode.open || firstRun === true)) {
+        if (firstRun) {
+          this.reloadRequired = true;
+          clickedNode.open = !clickedNode.open;
+        }
+        const childrenArr: String[] = this.edges.filter(edge => edge.from === clickedNode.id).map(edge => edge.to);
+        this.hide(childrenArr, false);
+        childrenArr.forEach((item) => {
+          const currentNode: Node | undefined = this.nodes.find((node) => node.id === item);
+          if (currentNode) {
+            currentNode.hidden = !currentNode.hidden;
+          }
+        });
+      }
+
+    });
+  }
+
   createNodesAndEdges(
     fsItems: FsItem[],
     uris: string[]
@@ -335,14 +403,28 @@ export class FolderFileComponent implements OnInit, OnDestroy {
             fileImg = uris[4];
             break;
         }
-        nodes.push({
+        
+        const newNode: Node = {
           id: item.id,
           label: item.label,
           image: {
             unselected: fileImg,
             selected: selectedImg === '' ? fileImg : selectedImg,
           },
-        });
+          hidden: false
+        };
+
+        if (item.type === 'folder') {
+          newNode.open = true;
+          newNode.onFolderClick = function() {
+            this.open = !this.open;
+            console.log('folder clicked');
+          };
+        }
+
+
+
+        nodes.push(newNode);
 
         // If the item has children (files or subfolders), add edges to them
         if (item.children && item.children.length > 0) {
