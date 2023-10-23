@@ -1,3 +1,8 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  background-color: #212121;
+}
 .buttonContainer {
   display: flex;
   background-color: #212121;
@@ -6,6 +11,7 @@
   justify-content: center;
   align-items: center;
   border-radius: 2px;
+  margin-bottom: 20px; /* Adjust as needed */
 }
 /* b1a7a6 */
 
@@ -116,4 +122,59 @@
 .button-77:disabled {
   cursor: default;
   opacity: 0.24;
+}
+
+/* main {
+  /* margin-left: 5rem;
+  padding: 1em; } */
+
+.navbar {
+  padding-top: 5rem;
+  width: 5rem;
+  height: 100vh;
+  position: fixed;
+  background-color: #212121;
+}
+
+.navbar-nav {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 1rem;
+}
+.nav-item {
+  width: 100%;
+}
+
+.nav-item:last-child {
+  margin-top: auto;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  height: 5rem;
+  text-decoration: none;
+  color: #fff;
+}
+
+.nav-link svg {
+  min-width: 2rem;
+  margin: 0 1.5rem;
+}
+
+.link-text {
+  display: none;
+  margin-left: 1rem;
+}
+
+.navbar:hover {
+  width: 16rem;
+}
+
+.navbar:hover .link-text {
+  display: block;
 }

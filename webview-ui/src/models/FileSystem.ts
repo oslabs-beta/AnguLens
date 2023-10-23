@@ -13,12 +13,23 @@ export class PcItem {
     public id: string,
     public label: string,
     public type: string,
-    public inputs: string[] = [],
-    public outputs: string[] = [],
+    public inputs: Input[] = [],
+    public outputs: Output[] = [],
     public children: string[] = []
   ) {}
 }
 
+export interface Input {
+  name: string;
+  pathTo: string;
+  pathFrom: string;
+}
+
+export interface Output {
+  name: string;
+  pathTo: string;
+  pathFrom: string;
+}
 export interface Node {
   id: string;
   label: string;
@@ -26,10 +37,27 @@ export interface Node {
     unselected?: string;
     selected?: string;
   };
+  hidden?: boolean;
+  open?: boolean;
+  onFolderClick?: () => void;
 }
 
 export interface Edge {
   id: string;
   from: string;
   to: string;
+  color?: {};
+  relation?: string;
+  endPointOffset?: {
+    to: number;
+    from: number;
+  };
+  arrowStrikethrough?: boolean;
+  smooth?: { type: string; roundness: number } | boolean;
+  arrows?: {
+    to: object;
+    middle?: object;
+    from?: object;
+  };
 }
+//

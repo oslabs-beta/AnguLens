@@ -24,7 +24,8 @@
 }
 
 .network-container {
-  width: 2000px;
-  height: 1500px;
+  width: 100vw;
+  height: 100vh;
   background-color: white;
+  margin-left: 5rem;
 }
