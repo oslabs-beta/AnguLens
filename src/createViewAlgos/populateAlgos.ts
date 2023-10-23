@@ -160,6 +160,8 @@ export function inLineCheck(sourceFile: ts.SourceFile, obj: object) {
 export function populatePCView(selectorNames: object[]): object {
   // step 1: build initial object with information about app component
   let appPath: string;
+
+  //WE COULD: sort the array alphabetically so app comes first? we don't *need* to iterate here.... 
   for (const selectorName of selectorNames) {
     if (selectorName.selectorName === "app-root") {
       appPath = selectorName.folderPath;
@@ -276,80 +278,82 @@ function outputCheck(templateContent: string, outputName: string) {
 
 
 
+
+//GIANT function currently, refactor?
+
 function handleModules(appPath, selectorNames, pcObject) {
   
-  const routerObject = {
+                            //DONE:
+  const routerObject = {  //generate new object (instead of pcObject) to represent components brought in from router outlet... 
     name: 'router-outlet',
     path: 'router-outlet',
     children: [{},{}]
   };
-  //checking if app.component.ts is using an inline template, or a template URL
+  
   const appComponent = appPath + "/app.component.ts";
   let appTemplate = {};
-  inLineCheck(appComponent, appTemplate);
-  if(!appTemplate.template){
-    //not using inline template in app component
+  inLineCheck(appComponent, appTemplate); //checking if app.component.ts is using an inline template, or a template URL 
+
+  if(!appTemplate.template){ //not using inline template in app component
     appTemplate = fs.readFileSync(convertToHtml(appPath), "utf-8");
     const $ = cheerio.load(appTemplate);
     const foundRouter = $("router-outlet");
     //if(foundRouter.length)
-  } else{
+  } 
+  else{
     const $ = cheerio.load(appTemplate.template);
     const foundRouter = $("router-outlet");
     //if(foundRouter.length)
   };
 
+
+
     //ANOTHER --> helper function???? (probably)
-  //ALL OF THE BELOW --> needs to go inside the if statements on 181 / 185 --> find a way to make it DRY
+  //ALL OF THE BELOW --> needs to go inside the if statements commented above--> find a way to make it DRY
+  
   const modulePath = appPath+"/app.module.ts";
   const moduleSource = generateAST(modulePath);
-  console.log("MODULE AST: ", moduleSource);
+  
 
-
-  //checking the AST to find the component names in the "routes" of app.module
   const routerComponents = tsquery(
     moduleSource, 
-    'PropertyAssignment Identifier[name="component"] ~ Identifier'
+    'PropertyAssignment Identifier[name="component"] ~ Identifier' //checking the AST to find the component names in the "routes" of app.module
   );
   const componentNames = routerComponents.map(node => node.text);
+  
 
-
-  //checking the URL path routing for the components in "routes" of app.module
   const routerPaths = tsquery(
     moduleSource, 
-    'PropertyAssignment Identifier[name="path"] ~ StringLiteral'
+    'PropertyAssignment Identifier[name="path"] ~ StringLiteral' //checking the URL path routing for the components in "routes" of app.module
   );
   const componentPaths = routerPaths.map(node => node.text);
 
 
   for (let i = 0; i<componentNames.length; i++){
     let component = {};
-    obj.name = componentNames[i];
-    obj.path = '';
-    obj.urlPath = componentPaths[i];
-    obj.children = [];
-    obj.inputs = [];
-    obj.outputs = [];
+    component.name = componentNames[i];
+    component.path = 'placeholder'; //actually setting this below.... with the fucking forEach loop
+    component.urlPath = componentPaths[i];
+    component.children = [];
+    component.inputs = [];
+    component.outputs = [];
 
-    selectorNames.forEach(selector => {
+    selectorNames.forEach(selector => {    //SUPER inefficient, find a better way to grab the components....  an object with properties? Could you iterate over that / do everything we currently do with selectornames with that?
       if (selector.name === component.name){
-        component.path = selector.folderPath;
-        //find the matching selector, in selectorNames, and grab it's folderpath, so generate children can access it when we pass in each component object
+        component.path = selector.folderPath;//find the matching selector, in selectorNames, and grab it's folderpath, so generate children can access it when we pass in each component object
+      }
     });
 
     routerObject.children.push(obj);
   }
   
-  routerObject.children.forEach(component => populateChildren(component, selectorNames));
+  routerObject.children.forEach(component => populateChildren(component, selectorNames));//then run populate children on that routerObject, to find any children components instantiated on those components
+
   
-
-  //DONE:
-  //generate new object (instead of pcObject) to represent components brought in from router outlet... 
-    // then run populate children on that routerObject, to find any children components instantiated on those components
-
     //AT THIS PART NOW:
     // --> return an object from populateChildren, add that onto a "moduleRoutes" property on the top level of our 
     // pcObject (to represent  app module), then return pcObject as normal 
+
 
     //BUT we've edited the routerObject in place (taken each object in children array, and added to it)
     //...sooo I don't think we need to return anythibg, we just need to push routerObject onto pcObject
