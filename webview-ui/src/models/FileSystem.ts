@@ -26,7 +26,7 @@ export class PcItem {
 
 export interface RouterChildren {
   name: string;
-  children: RouterChildren;
+  children: RouterChildren[];
   inputs: Input[];
   outputs: Output[];
   path: string;

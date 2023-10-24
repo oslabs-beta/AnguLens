@@ -14,7 +14,7 @@ import { ExtensionMessage } from '../../models/message';
 import { URIObj } from 'src/models/uri';
 
 import { vscode } from '../utilities/vscode';
-import { FsItem, PcItem, Node, Edge, Input, Output } from '../../models/FileSystem';
+import { FsItem, PcItem, Node, Edge, Input, Output, RouterChildren } from '../../models/FileSystem';
 import { Router } from '@angular/router';
 // import { ParentChildServices } from 'src/services/ParentChildServices';
 // import { FileSystemService } from 'src/services/FileSystemService';
@@ -256,6 +256,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
       this.network = new Network(container, data, this.options);
     }
   }
+  
 
   createNodesAndEdges(
     pcItems: PcItem[],
@@ -271,8 +272,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
         // Create the "router-outlet" node
         const routerOutletNode: Node = {
           id: 'router-outlet',
-          label: 'router-outlet', // You can customize the label
-        
+          label: 'router-outlet', 
         };
         nodes.push(routerOutletNode);
         const edge: Edge = {
@@ -286,7 +286,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
         edges.push(edge);
         //recursively add children
         for (const routerChild of item.router.children) {
-          // Check if the node already exists to avoid duplicates
+        
             // Add the router component as a node
             nodes.push({
               id: routerChild.path,
@@ -304,6 +304,34 @@ export class ParentChildComponent implements OnInit, OnDestroy {
               color: { color: 'blue' },
             };
             edges.push(edge);
+            
+            if(routerChild.children.length > 0) {
+             function routerChildrenHelper (routerChild: RouterChildren, parentId: string) {
+                nodes.push({
+                id: routerChild.path,
+                label: routerChild.name,
+                });
+                const edge: Edge = {
+                  id: ``,
+                  from: parentId,
+                  to: routerChild.path, // Connect to the "router-outlet" node
+                  relation: 'router-outlet',
+                  smooth: true,
+                  color: { color: 'blue' },
+                };
+                edges.push(edge);
+
+                
+               
+
+             }
+
+             for (const innerChild of routerChild.children){
+                routerChildrenHelper(innerChild, innerChild.path)
+             }
+              
+              
+            }
           
         }
       }
