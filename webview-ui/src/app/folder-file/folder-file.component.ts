@@ -67,7 +67,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
       improvedLayout: true,
       hierarchical: {
         direction: 'UD', // Up-Down direction
-        nodeSpacing: 1000,
+        nodeSpacing: 200,
         levelSeparation: 300,
         parentCentralization: true,
         edgeMinimization: true,
@@ -100,18 +100,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
     },
 
     physics: {
-      hierarchicalRepulsion: {
-        avoidOverlap: 1,
-        nodeDistance: 145,
-      },
-      maxVelocity: 146,
-      solver: 'forceAtlas2Based',
-      timestep: 0.35,
-      stabilization: {
-        enabled: true,
-        iterations: 2000,
-        updateInterval: 25,
-      },
+      enabled: false
     },
   };
   canLoadBar: boolean = false;
@@ -412,7 +401,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
         ...(state as object),
         fsNodes: this.nodes,
       });
-      this.reloadRequired = true;
+      this.reloadRequired = false;
     }
   }
 
