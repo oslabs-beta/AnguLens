@@ -5,6 +5,9 @@ import {
   OnInit,
   ViewChild,
   OnDestroy,
+  ChangeDetectorRef,
+  NgZone,
+  // AfterViewInit,
 } from '@angular/core';
 import { DataSet } from 'vis-data';
 import { Network } from 'vis-network/standalone';
@@ -40,7 +43,11 @@ interface File {
 export class FolderFileComponent implements OnInit, OnDestroy {
   @ViewChild('networkContainer') networkContainer!: ElementRef;
 
-  constructor(private fileSystemService: FileSystemService) {}
+  constructor(
+    private fileSystemService: FileSystemService,
+    private cdr: ChangeDetectorRef,
+    private zone: NgZone
+  ) {}
 
   network: any;
   nodes: Node[] = [];
@@ -57,6 +64,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
       keyboard: true,
     },
     layout: {
+      improvedLayout: true,
       hierarchical: {
         direction: 'UD', // Up-Down direction
         nodeSpacing: 1000,
@@ -70,6 +78,9 @@ export class FolderFileComponent implements OnInit, OnDestroy {
 
     nodes: {
       shape: 'image',
+      shapeProperties: {
+        interpolation: false,
+      },
       shadow: {
         enabled: true,
         color: 'rgba(0,0,0,0.5)',
@@ -93,13 +104,50 @@ export class FolderFileComponent implements OnInit, OnDestroy {
         avoidOverlap: 1,
         nodeDistance: 145,
       },
+      maxVelocity: 146,
+      solver: 'forceAtlas2Based',
+      timestep: 0.35,
+      stabilization: {
+        enabled: true,
+        iterations: 2000,
+        updateInterval: 25,
+      },
     },
   };
+  canLoadBar: boolean = false;
+  loadingBarDisplay: string = 'block';
+  loadingBarOpacity: number = 1;
+  loadingBarWidth: any = '20px';
+  loadingBarText: any = '0%';
+
+  private handleLoadingBar(network?: any) {
+    network.on('stabilizationProgress', (params: any) => {
+      this.canLoadBar = true;
+      const maxWidth = 496;
+      const minWidth = 20;
+      const widthFactor = params.iterations / params.total;
+      const width = Math.max(minWidth, maxWidth * widthFactor);
+      this.loadingBarWidth = `${width}px`;
+      this.loadingBarText = `${Math.round(widthFactor * 100)}%`;
+      this.cdr.detectChanges();
+    });
+    network.once('stabilizationIterationsDone', () => {
+      this.loadingBarText = '100%';
+      this.loadingBarWidth = '496px';
+      this.loadingBarOpacity = 0;
+      this.canLoadBar = false;
+      this.loadingBarDisplay = 'none';
+      this.cdr.detectChanges();
+    });
+  }
+
   private handleMessageEvent = (event: MessageEvent) => {
     const message: ExtensionMessage = event.data;
     console.log('caught message?', message);
     switch (message.command) {
       case 'loadState': {
+        this.canLoadBar = false;
+
         const state = vscode.getState() as {
           uris: string[];
           pcData: any;
@@ -122,6 +170,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
         };
         const container = this.networkContainer.nativeElement;
         this.network = new Network(container, data, this.options);
+        this.handleLoadingBar(this.network);
         //event listener for double click to open file
         this.network.on('doubleClick', (params: any) => {
           if (params.nodes.length > 0) {
@@ -152,16 +201,37 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           pcEdges: state.pcEdges,
         });
 
+        vscode.setState({
+          uris: state.uris,
+          fsData: data,
+          fsNodes: state.fsNodes,
+          fsEdges: state.fsEdges,
+          pcData: state.pcData,
+          pcNodes: state.pcNodes,
+          pcEdges: state.pcEdges,
+        });
         break;
       }
+
       //load icon URI's
       case 'updateUris': {
-        console.log('RUNNING UPDATEURIS');
-        this.uris = message.data;
+        Promise.resolve(message.data)
+          .then(async (data) => {
+            this.uris = data;
 
-        vscode.setState({
-          uris: this.uris,
-        });
+            // Run change detection inside Angular's zone
+            await this.zone.run(async () => {
+              vscode.setState({
+                uris: this.uris,
+              });
+
+              this.cdr.detectChanges();
+            });
+          })
+          .catch((error) => {
+            console.error('Error updating uris:', error);
+          });
+
         break;
       }
       //updatePath
@@ -193,10 +263,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
 
         const newNodes = new DataSet(nodes);
         const newEdges = new DataSet(edgesWithIds);
-        console.log('edges in generate ->', edgesWithIds);
         // create a network
-        const container = this.networkContainer.nativeElement;
-        // const data = { newNodes, newEdges };
         const data: {
           nodes: DataSet<any>;
           edges: DataSet<any>;
@@ -204,8 +271,9 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           nodes: newNodes,
           edges: newEdges,
         };
-
+        const container = this.networkContainer.nativeElement;
         this.network = new Network(container, data, this.options);
+        this.handleLoadingBar(this.network);
         //event listener for double click to open file
         this.network.on('doubleClick', (params: any) => {
           if (params.nodes.length > 0) {
@@ -219,7 +287,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
             }
           }
         });
-        
+
         this.network.on('click', (event: { nodes: string[] }) => {
           const { nodes: nodeIds } = event;
           if (nodeIds.length > 0) {
@@ -242,6 +310,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
 
       // reupdate screen
       case 'reloadFolderFile': {
+        this.canLoadBar = false;
         const state = vscode.getState() as {
           uris: string[];
           pcData: any;
@@ -262,8 +331,8 @@ export class FolderFileComponent implements OnInit, OnDestroy {
         };
         const container = this.networkContainer.nativeElement;
         this.network = new Network(container, data, this.options);
-         //event listener for double click to open file
-         this.network.on('doubleClick', (params:any) => {
+        //event listener for double click to open file
+        this.network.on('doubleClick', (params: any) => {
           if (params.nodes.length > 0) {
             const nodeId = params.nodes[0];
             if (nodeId) {
@@ -275,7 +344,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
             }
           }
         });
-        
+
         this.network.on('click', (event: { nodes: string[] }) => {
           const { nodes: nodeIds } = event;
           if (nodeIds.length > 0) {
@@ -285,8 +354,6 @@ export class FolderFileComponent implements OnInit, OnDestroy {
         });
         break;
       }
-
-      //default
       default:
         console.log('unknown comand ->', message.command);
         break;
@@ -298,16 +365,18 @@ export class FolderFileComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.setupMessageListener();
+    this.canLoadBar = false;
     const state = vscode.getState() as {
       uris: string[] | undefined;
     };
     if (state === undefined) {
+      console.log('STATE IS UNDEFINED');
       vscode.postMessage({
         command: 'sendURIs',
         data: {},
       });
     }
+    this.setupMessageListener();
   }
 
   ngOnDestroy(): void {
@@ -336,11 +405,11 @@ export class FolderFileComponent implements OnInit, OnDestroy {
       this.renderedNodes = this.nodes.filter((node: Node) => !node.hidden);
       this.network.setData({
         nodes: this.renderedNodes,
-        edges: this.edges
+        edges: this.edges,
       });
       const state = vscode.getState();
       vscode.setState({
-        ...state as object,
+        ...(state as object),
         fsNodes: this.nodes,
       });
       this.reloadRequired = true;
@@ -348,23 +417,32 @@ export class FolderFileComponent implements OnInit, OnDestroy {
   }
 
   hide(nodes: String[], firstRun: Boolean = true) {
-    const clickedNodes = nodes.map(nodeId => this.nodes.find(node => node.id === nodeId));
-    clickedNodes.forEach(clickedNode => {
-      if (clickedNode && clickedNode.open !== undefined && (clickedNode.open || firstRun === true)) {
+    const clickedNodes = nodes.map((nodeId) =>
+      this.nodes.find((node) => node.id === nodeId)
+    );
+    clickedNodes.forEach((clickedNode) => {
+      if (
+        clickedNode &&
+        clickedNode.open !== undefined &&
+        (clickedNode.open || firstRun === true)
+      ) {
         if (firstRun) {
           this.reloadRequired = true;
           clickedNode.open = !clickedNode.open;
         }
-        const childrenArr: String[] = this.edges.filter(edge => edge.from === clickedNode.id).map(edge => edge.to);
+        const childrenArr: String[] = this.edges
+          .filter((edge) => edge.from === clickedNode.id)
+          .map((edge) => edge.to);
         this.hide(childrenArr, false);
         childrenArr.forEach((item) => {
-          const currentNode: Node | undefined = this.nodes.find((node) => node.id === item);
+          const currentNode: Node | undefined = this.nodes.find(
+            (node) => node.id === item
+          );
           if (currentNode) {
             currentNode.hidden = !currentNode.hidden;
           }
         });
       }
-
     });
   }
 
@@ -374,6 +452,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
   ): { nodes: Node[]; edges: Edge[] } {
     const nodes: Node[] = [];
     const edges: Edge[] = [];
+    console.log('URIS IN CREATE NODES AND EDGES', uris);
     // Helper function to recursively add nodes and edges
     function addNodesAndEdges(item: FsItem, parentFolder?: string) {
       // Check if the node already exists to avoid duplicates
@@ -403,7 +482,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
             fileImg = uris[4];
             break;
         }
-        
+
         const newNode: Node = {
           id: item.id,
           label: item.label,
@@ -411,18 +490,16 @@ export class FolderFileComponent implements OnInit, OnDestroy {
             unselected: fileImg,
             selected: selectedImg === '' ? fileImg : selectedImg,
           },
-          hidden: false
+          hidden: false,
         };
 
         if (item.type === 'folder') {
           newNode.open = true;
-          newNode.onFolderClick = function() {
+          newNode.onFolderClick = function () {
             this.open = !this.open;
             console.log('folder clicked');
           };
         }
-
-
 
         nodes.push(newNode);
 
@@ -511,62 +588,3 @@ export class FolderFileComponent implements OnInit, OnDestroy {
     return items;
   }
 }
-
-// source = {
-//   src: {
-//     type: 'folder',
-//     path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src',
-//     app: {
-//       type: 'folder',
-//       path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app',
-//       'app-routing.module.ts': {
-//         type: 'ts',
-//         path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app/app-routing.module.ts',
-//       },
-//       'app.component.css': {
-//         type: 'css',
-//         path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app/app.component.css',
-//       },
-//       'app.component.html': {
-//         type: 'html',
-//         path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app/app.component.html',
-//       },
-//       'app.component.spec.ts': {
-//         type: 'ts',
-//         path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app/app.component.spec.ts',
-//       },
-//       'app.component.ts': {
-//         type: 'ts',
-//         path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app/app.component.ts',
-//       },
-//       'app.module.ts': {
-//         type: 'ts',
-//         path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/app/app.module.ts',
-//       },
-//     },
-//     assets: {
-//       type: 'folder',
-//       path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/assets',
-//       '.gitkeep': {
-//         type: 'gitkeep',
-//         path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/assets/.gitkeep',
-//       },
-//     },
-//     'favicon.ico': {
-//       type: 'ico',
-//       path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/favicon.ico',
-//     },
-//     'index.html': {
-//       type: 'html',
-//       path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/index.html',
-//     },
-//     'main.ts': {
-//       type: 'ts',
-//       path: '/Users/danielkim/CodeSmith/osp/AnguLens/webview-ui/src/main.ts',
-//     },
-//     'styles.css': {
-//       type: 'css',
-//       path: '/Users/daielkim/CodeSmith/osp/AnguLens/webview-ui/src/styles.css',
-//     },
-//   },
-// };

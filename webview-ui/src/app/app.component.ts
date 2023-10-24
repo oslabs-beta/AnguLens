@@ -10,13 +10,13 @@ import { FileSystemService } from '.././services/FileSystemService';
 export class AppComponent implements OnInit {
   currentView: string = '';
   generatedPc: boolean = false;
+  imageUrls: string[] = [];
 
   constructor(private fileSystemService: FileSystemService) {}
   ngOnInit() {
     //start view as the folder-file hierarchy graph
     this.currentView = 'folder-file';
   }
-  
 
   loadFolderFile() {
     if (this.currentView === 'parent-child') {
