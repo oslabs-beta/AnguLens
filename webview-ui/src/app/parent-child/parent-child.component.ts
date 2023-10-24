@@ -284,7 +284,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           color: { color: 'blue' },
         };
         edges.push(edge);
-
+        //recursively add children
         for (const routerChild of item.router.children) {
           // Check if the node already exists to avoid duplicates
             // Add the router component as a node
@@ -303,6 +303,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
               smooth: true,
               color: { color: 'blue' },
             };
+            edges.push(edge);
           
         }
       }
