@@ -306,37 +306,5 @@ function getWebViewContent(
   </html>`;
 }
 
-// function getWebViewContent(
-//   stylesUri: any,
-//   runtimeUri: any,
-//   polyfillsUri: any,
-//   scriptUri: any,
-//   imageUris: any
-// ) {
-//   console.log("IMAGE URIS BEFORE MAPPING =======", imageUris);
-//   const imageTags = imageUris
-//     .map((uri: any) => `<img src="${uri}" alt="Image" />`)
-//     .join("\n");
-
-//   return `<!DOCTYPE html>
-//   <html lang="en">
-//     <head>
-//       <meta charset="UTF-8" />
-//       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-//       <link rel="stylesheet" type="text/css" href="${stylesUri}">
-//       <title>Hello World</title>
-//     </head>
-//     <body>
-//     <script type="module">
-//     ${imageTags}
-//   </script>
-//    <app-root></app-root>
-//       <script type="module" src="${runtimeUri}"></script>
-//       <script type="module" src="${polyfillsUri}"></script>
-//       <script type="module" src="${scriptUri}"></script>
-//     </body>
-//   </html>`;
-// }
-
 // This method is called when your extension is deactivated
 export function deactivate() {}
