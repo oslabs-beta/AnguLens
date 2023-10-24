@@ -275,6 +275,15 @@ export class ParentChildComponent implements OnInit, OnDestroy {
         
         };
         nodes.push(routerOutletNode);
+        const edge: Edge = {
+          id: `${item.id}-router-outlet`,
+          from: routerOutletNode.id,
+          to: item.id, // Connect to the "router-outlet" node
+          relation: 'router-outlet',
+          smooth: true,
+          color: { color: 'blue' },
+        };
+        edges.push(edge);
 
         for (const routerChild of item.router.children) {
           // Check if the node already exists to avoid duplicates
