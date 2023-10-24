@@ -15,8 +15,18 @@ export class PcItem {
     public type: string,
     public inputs: Input[] = [],
     public outputs: Output[] = [],
-    public children: string[] = []
+    public children: string[] = [],
+    public router?: Router,
   ) {}
+}
+export interface Router {
+  id: string;
+  label: string,
+  path: string;
+  urlPath: string;
+  children: Router[];
+  inputs: any[]; // You can specify the correct type for the inputs
+  outputs: any[]; // You can specify the correct type for the outputs
 }
 
 export interface Input {

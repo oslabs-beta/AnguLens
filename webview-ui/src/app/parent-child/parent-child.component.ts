@@ -15,6 +15,7 @@ import { URIObj } from 'src/models/uri';
 
 import { vscode } from '../utilities/vscode';
 import { FsItem, PcItem, Node, Edge } from '../../models/FileSystem';
+import { Router } from '@angular/router';
 // import { ParentChildServices } from 'src/services/ParentChildServices';
 // import { FileSystemService } from 'src/services/FileSystemService';
 
@@ -343,7 +344,55 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           }
         }
       }
+       // If the item has children (router components), add edges to them
+  if (item.router && item.router.children.length > 0) {
+    // Create the "router-outlet" node
+    const routerOutletNode: Node = {
+      id: 'router-outlet',
+      label: 'router-outlet', // You can customize the label
+      // Add more properties based on your data
+    };
+    nodes.push(routerOutletNode);
+
+    for (const routerChild of item.router.children) {
+      // Check if the node already exists to avoid duplicates
+      const existingNode = nodes.find((node) => node.id === routerChild.id);
+      if (!existingNode) {
+        // Add the router component as a node
+        nodes.push({
+          id: routerChild.id,
+          label: routerChild.label,
+          // Add more properties based on your data
+        });
+
+        // Create an edge from the router component to the "router-outlet"
+        const edge: Edge = {
+          id: `${routerChild.id}-router-outlet`,
+          from: routerChild.id,
+          to: 'router-outlet', // Connect to the "router-outlet" node
+          relation: 'router',
+          smooth: true,
+          color: { color: 'blue' },
+        };
+        edges.push(edge);
+
+        // Recursively add nodes and edges for router children
+        const routerChildWithParent: PcItem = {
+          id: routerChild.id,
+          label: routerChild.label,
+          type: 'router',
+          router: routerChild,
+          inputs: [], // add inputs property
+          outputs: [], // add outputs property
+          children: [], // add children property
+        };
+        addNodesAndEdges(routerChildWithParent, item.id);
+      }
     }
+  }
+    }
+
+    
 
     // Iterate through the root items and start the process
     for (const rootItem of pcItems) {
@@ -354,6 +403,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
   }
 
   populate(obj: any, items: PcItem[] = []): PcItem[] {
+    console.log('obj HERE', obj)
     // let firstKey = Object.keys(obj)[0];
 
     function populateGraph(obj: any, parentComponent?: string): PcItem | void {
@@ -366,6 +416,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           inputs: [],
           outputs: [],
           children: [],
+         
         };
         items.push(currentNode);
 
