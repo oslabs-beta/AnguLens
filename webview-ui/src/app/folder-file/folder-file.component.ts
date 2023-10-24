@@ -412,7 +412,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
         ...(state as object),
         fsNodes: this.nodes,
       });
-      this.reloadRequired = true;
+      this.reloadRequired = false;
     }
   }
 
