@@ -92,7 +92,7 @@ export function activate(context: vscode.ExtensionContext) {
         path.join(
           __dirname,
           "../webview-ui/dist/webview-ui",
-          "main.eea0c7cc8acf08f6.js"
+          "main.55993edc4cb10c1f.js"
         )
       )
     );
@@ -231,7 +231,6 @@ export function activate(context: vscode.ExtensionContext) {
       scriptUri,
       imageUris
     );
-
     /*
       Leaving 
     */
@@ -268,6 +267,16 @@ function getAssetUris(folderUri: vscode.Uri, webview: Webview): vscode.Uri[] {
   }
 }
 
+function getNonce() {
+  let text = "";
+  const possible =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  for (let i = 0; i < 32; i++) {
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  }
+  return text;
+}
+
 // console.log("JSON STRINGIFIED OUTPUT", JSON.stringify(output))
 
 function getWebViewContent(
@@ -286,13 +295,14 @@ function getWebViewContent(
     const imageContainer = document.createElement('div');
     imageContainer.innerHTML = \`${imageTags}\`;
   `;
+  const nonce = getNonce();
 
   return `<!DOCTYPE html>
   <html lang="en">
     <head>
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <script type="module">
+      <script type="module" nonce="${nonce}">
       ${scriptContent}
     </script>
       <link rel="stylesheet" type="text/css" href="${stylesUri}">

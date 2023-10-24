@@ -15,7 +15,7 @@ import { URIObj } from 'src/models/uri';
 
 import { vscode } from '../utilities/vscode';
 import { FsItem, PcItem, Node, Edge } from '../../models/FileSystem';
-// import { ParentChildServices } from 'src/services/ParentChildServices';
+import { ParentChildServices } from 'src/services/ParentChildServices';
 // import { FileSystemService } from 'src/services/FileSystemService';
 
 @Component({
@@ -27,13 +27,39 @@ import { FsItem, PcItem, Node, Edge } from '../../models/FileSystem';
 export class ParentChildComponent implements OnInit, OnDestroy {
   @ViewChild('networkContainer') networkContainer!: ElementRef;
 
-  constructor() {}
+  constructor(private pcService: ParentChildServices) {}
 
   nodes: Node[] = [];
   edges: Edge[] = [];
   uris: string[] = [];
   pcItems: PcItem[] = [];
   private network: Network | undefined;
+
+  handleClickModal(network: Network) {
+    network.on('doubleClick', (params: any) => {
+      if (params.nodes.length > 0) {
+        const nodeId = params.nodes[0];
+        if (nodeId) {
+          // Open Modal for specific node component
+          console.log(this.pcItems, 'PC ITEMS');
+          let deliverPc: PcItem | null = null;
+          for (const item of this.pcItems) {
+            if (item.id === nodeId) {
+              deliverPc = item;
+              break;
+            }
+          }
+
+          console.log('params.node', params.nodes);
+          console.log('connections', params.nodes.connections);
+          if (deliverPc) {
+            this.pcService.openModal(deliverPc);
+          }
+        }
+      }
+    });
+  }
+
   private handleMessageEvent = (event: MessageEvent) => {
     const message: ExtensionMessage = event.data;
     console.log('caught message?', message);
@@ -41,6 +67,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
     switch (message.command) {
       case 'loadState': {
         const state = vscode.getState() as {
+          pcItems: PcItem[];
           uris: string[];
           pcData: any;
           fsData: any;
@@ -62,7 +89,9 @@ export class ParentChildComponent implements OnInit, OnDestroy {
         };
         const container = this.networkContainer.nativeElement;
         this.network = new Network(container, data, this.options);
+        this.pcItems = state.pcItems;
         vscode.setState({
+          pcItems: this.pcItems,
           uris: state.uris,
           pcData: data,
           fsData: state.fsData,
@@ -71,14 +100,15 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           pcNodes: state.pcNodes,
           pcEdges: state.pcEdges,
         });
+        this.handleClickModal(this.network);
         break;
       }
 
       case 'updatePC': {
-        // console.log('REAL OBJECT', message.data);
         this.pcItems = this.populate(message.data);
-        // console.log('PC ITEMS', this.pcItems);
+        this.pcService.setItems(this.pcItems);
         const state = vscode.getState() as {
+          pcItems: PcItem[];
           uris: string[];
           pcData: object;
           fsData: any;
@@ -118,6 +148,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
         vscode.setState({
           // fsItems: state.fsItems,
           // pcItems: state.pcItems,
+          pcItems: this.pcItems,
           uris: this.uris,
           pcData: data,
           fsData: state.fsData,
@@ -127,6 +158,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           pcEdges: this.edges,
         });
         this.network = new Network(container, data, this.options);
+        this.handleClickModal(this.network);
         break;
       }
 
@@ -141,14 +173,17 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           fsEdges: Edge[];
           pcNodes: Node[];
           pcEdges: Edge[];
+          pcItems: PcItem[];
         };
         this.nodes = state.pcNodes;
         this.edges = state.pcEdges;
+        this.pcItems = state.pcItems;
         // console.log('PC NODES', state.pcNodes);
         // console.log('PC EDGES', state.pcEdges);
 
         const container = this.networkContainer.nativeElement;
         this.network = new Network(container, state.pcData, this.options);
+        this.handleClickModal(this.network);
         break;
       }
 
@@ -284,7 +319,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
               to: item.id,
               relation: 'input',
               color: { color: 'green' },
-              smooth: { type: 'curvedCCW', roundness: 0.25 },
+              smooth: { type: 'curvedCCW', roundness: 0.3 },
               arrows: {
                 to: {
                   enabled: true,
@@ -294,6 +329,8 @@ export class ParentChildComponent implements OnInit, OnDestroy {
                   type: 'arrow',
                 },
               },
+              label: 'Input Flow',
+              font: { align: 'middle' },
             };
             edges.push(edge);
             // console.log('INPUT EDGE', edge);
@@ -318,9 +355,10 @@ export class ParentChildComponent implements OnInit, OnDestroy {
                 },
               },
               smooth: { type: 'curvedCCW', roundness: 0.2 },
+              label: 'Output Flow',
+              font: { align: 'middle' },
             };
             edges.push(edge);
-            // console.log('OUTPUT EDGE', edge);
           }
         }
 

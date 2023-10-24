@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { PcItem } from '../models/FileSystem';
+import { PcItem, Node } from '../models/FileSystem';
+import { Subject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -10,11 +11,22 @@ export class ParentChildServices {
   uris: any[] = [];
   pcItems: PcItem[] = [];
   filePath: object = {};
+
+  // subject to open modal
+  private openModalSource = new Subject<PcItem>();
+  openModal$ = this.openModalSource.asObservable();
+
   // Add any other state variables as needed
 
-  updateState(pcItems: PcItem[], uris: any[], filePath: object) {
+  setItems(pcItems: PcItem[]) {
     this.pcItems = pcItems;
-    this.uris = uris;
-    this.filePath = filePath;
+  }
+
+  getItems() {
+    return this.pcItems;
+  }
+
+  openModal(pcItem: PcItem) {
+    this.openModalSource.next(pcItem);
   }
 }

@@ -7,7 +7,7 @@ import {
   OnDestroy,
   ChangeDetectorRef,
   NgZone,
-  // AfterViewInit,
+  AfterViewInit,
 } from '@angular/core';
 import { DataSet } from 'vis-data';
 import { Network } from 'vis-network/standalone';
@@ -18,6 +18,7 @@ import { vscode } from '../utilities/vscode';
 
 import { FileSystemService } from 'src/services/FileSystemService';
 import { first } from 'rxjs';
+// import matfFolderAnimationColored from '@ng-icons/material-file-icons';
 
 type AppState = {
   networkData: any; // Use the appropriate data type for 'networkData'
@@ -40,7 +41,7 @@ interface File {
   styleUrls: ['./folder-file.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class FolderFileComponent implements OnInit, OnDestroy {
+export class FolderFileComponent implements AfterViewInit, OnDestroy {
   @ViewChild('networkContainer') networkContainer!: ElementRef;
 
   constructor(
@@ -156,6 +157,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           fsEdges: Edge[];
           pcNodes: Node[];
           pcEdges: Edge[];
+          pcItems: PcItem[];
         };
         this.nodes = state.fsNodes;
         this.edges = state.fsEdges;
@@ -191,15 +193,6 @@ export class FolderFileComponent implements OnInit, OnDestroy {
             this.reRenderComponents();
           }
         });
-        vscode.setState({
-          uris: state.uris,
-          fsData: data,
-          fsNodes: state.fsNodes,
-          fsEdges: state.fsEdges,
-          pcData: state.pcData,
-          pcNodes: state.pcNodes,
-          pcEdges: state.pcEdges,
-        });
 
         vscode.setState({
           uris: state.uris,
@@ -209,6 +202,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           pcData: state.pcData,
           pcNodes: state.pcNodes,
           pcEdges: state.pcEdges,
+          pcItems: state.pcItems,
         });
         break;
       }
@@ -244,6 +238,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           fsEdges?: Edge[];
           pcNodes?: Node[];
           pcEdges?: Edge[];
+          pcItems?: PcItem[];
         };
 
         this.uris = state.uris;
@@ -304,6 +299,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           pcData: state.pcData,
           pcNodes: state.pcNodes,
           pcEdges: state.pcEdges,
+          pcItems: state.pcItems,
         });
         break;
       }
@@ -364,7 +360,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
     window.addEventListener('message', this.handleMessageEvent);
   }
 
-  ngOnInit(): void {
+  ngAfterViewInit(): void {
     this.canLoadBar = false;
     const state = vscode.getState() as {
       uris: string[] | undefined;
@@ -459,7 +455,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
       const existingNode = nodes.find((node) => node.id === item.id);
       if (!existingNode) {
         // Add the current item as a node
-        let fileImg: string = '';
+        let fileImg: any; //string = '';
         let selectedImg: string = '';
         switch (item.type) {
           case 'gitkeep':
@@ -474,6 +470,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           case 'folder':
             fileImg = uris[5];
             selectedImg = uris[7];
+            // fileImg = matfFolderAnimationColored;
             break;
           case 'html':
             fileImg = uris[2];

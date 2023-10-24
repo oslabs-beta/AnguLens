@@ -3,6 +3,11 @@
   flex-direction: column;
   background-color: #212121;
 }
+.current-views-container {
+  display: flex;
+  flex-direction: row;
+}
+
 .buttonContainer {
   display: flex;
   background-color: #212121;

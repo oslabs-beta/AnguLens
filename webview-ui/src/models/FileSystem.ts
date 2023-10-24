@@ -60,5 +60,7 @@ export interface Edge {
     from?: object;
   };
   group?: object;
+  label?: string;
+  font?: object;
 }
 //

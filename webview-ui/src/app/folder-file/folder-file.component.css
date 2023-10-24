@@ -24,16 +24,16 @@
 }
 
 .network-container {
-  width: 100vw;
-  height: 100vh;
+  width: 60vw;
+  height: 60vh;
   background-color: white;
   margin-left: 5rem;
   display: block;
 }
 
 #mynetwork {
-  width: 2000px;
-  height: 1500px;
+  width: 60vw;
+  height: 60vh;
   border: 1px solid lightgray;
 }
 #loadingBar {
