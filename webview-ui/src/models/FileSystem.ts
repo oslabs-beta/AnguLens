@@ -16,18 +16,23 @@ export class PcItem {
     public inputs: Input[] = [],
     public outputs: Output[] = [],
     public children: string[] = [],
-    public router?: Router,
+    public router?: {
+      name: string;
+      path: string;
+      children: RouterChildren[]; // Make sure children is an array of PcItem
+    },
   ) {}
 }
-export interface Router {
-  id: string;
-  label: string,
+
+export interface RouterChildren {
+  name: string;
+  children: RouterChildren;
+  inputs: Input[];
+  outputs: Output[];
   path: string;
-  urlPath: string;
-  children: Router[];
-  inputs: any[]; // You can specify the correct type for the inputs
-  outputs: any[]; // You can specify the correct type for the outputs
+  urlPath: string
 }
+
 
 export interface Input {
   name: string;
