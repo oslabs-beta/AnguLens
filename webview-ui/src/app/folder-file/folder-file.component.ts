@@ -253,8 +253,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
         this.uris = state.uris;
 
         const { nodes, edges } = this.createNodesAndEdges(
-          this.fsItems,
-          this.uris
+          this.fsItems
         );
 
         const edgesWithIds: Edge[] = edges.map((edge) => ({
@@ -452,11 +451,20 @@ export class FolderFileComponent implements OnInit, OnDestroy {
 
   createNodesAndEdges(
     fsItems: FsItem[],
-    uris: string[]
   ): { nodes: Node[]; edges: Edge[] } {
     const nodes: Node[] = [];
     const edges: Edge[] = [];
-    console.log('URIS IN CREATE NODES AND EDGES', uris);
+    const uris: Record<string, string> = this.uriObj as {
+      git: '...',
+      ts: '...',
+      css: '...',
+      folder: '...',
+      html: '...',
+      file: '...'
+    };
+    function getSVGUri(uri: string): string {
+      return 'data:image/svg+xml,' + encodeURIComponent(uri);
+    }
     // Helper function to recursively add nodes and edges
     function addNodesAndEdges(item: FsItem, parentFolder?: string) {
       // Check if the node already exists to avoid duplicates
@@ -464,35 +472,15 @@ export class FolderFileComponent implements OnInit, OnDestroy {
       if (!existingNode) {
         // Add the current item as a node
         let fileImg: string = '';
-        let selectedImg: string = '';
-        switch (item.type) {
-          case 'gitkeep':
-            fileImg = uris[6];
-            break;
-          case 'ts':
-            fileImg = uris[1];
-            break;
-          case 'css':
-            fileImg = uris[3];
-            break;
-          case 'folder':
-            fileImg = uris[5];
-            selectedImg = uris[7];
-            break;
-          case 'html':
-            fileImg = uris[2];
-            break;
-          default:
-            fileImg = uris[4];
-            break;
-        }
+        if (uris[item.type]) fileImg = getSVGUri(uris[item.type]);
+        else fileImg = getSVGUri(uris['file']);
 
         const newNode: Node = {
           id: item.id,
           label: item.label,
           image: {
             unselected: fileImg,
-            selected: selectedImg === '' ? fileImg : selectedImg,
+            selected: fileImg
           },
           hidden: false,
         };
