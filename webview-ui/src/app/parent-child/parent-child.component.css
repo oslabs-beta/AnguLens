@@ -150,3 +150,20 @@ div.outerBorder {
   background: rgb(0, 173, 246); /* Old browsers */
   box-shadow: 2px 0px 4px rgba(0, 0, 0, 0.4);
 }
+
+
+/* Legend styling */
+
+.legendContainer {
+  width: 200px;
+  height: 200px;
+  background-color: white;
+}
+
+.circle {
+  height: 50px;
+  width: 50px;
+  background-color: #555;
+  border-radius: 50%;
+
+}
