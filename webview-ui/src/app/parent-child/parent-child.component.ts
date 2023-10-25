@@ -329,7 +329,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
                   type: 'arrow',
                 },
               },
-              label: 'Input Flow',
+              label: 'Input',
               font: { align: 'middle' },
             };
             edges.push(edge);
@@ -355,7 +355,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
                 },
               },
               smooth: { type: 'curvedCCW', roundness: 0.2 },
-              label: 'Output Flow',
+              label: 'Output',
               font: { align: 'middle' },
             };
             edges.push(edge);

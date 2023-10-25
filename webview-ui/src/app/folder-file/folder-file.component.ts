@@ -225,7 +225,6 @@ export class FolderFileComponent implements AfterViewInit, OnDestroy {
           .catch((error) => {
             console.error('Error updating uris:', error);
           });
-
         break;
       }
       //updatePath

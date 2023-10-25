@@ -1,17 +1,19 @@
 .sidebar {
   position: fixed;
   width: 30%;
-  height: 63.4vh;
-  background: red;
+  height: 80vh;
+  background: #404252;
   transition: all 0.25s ease-in-out;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
   margin-left: -250px;
+  border-radius: 10px 10px 10px 0;
+  flex: 0;
 }
 
 .sidebar header {
-  font-size: 5em;
+  font-size: 2em;
   color: white;
   text-align: center;
   background: purple;
@@ -26,12 +28,11 @@
 }
 
 button {
-  margin-right: -40px;
-  position: absolute;
+  margin-left: 20px;
+  position: sticky;
   line-height: 50%;
   text-align: center;
   font-weight: 600;
-
 }
 
 /* button:before {
