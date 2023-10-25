@@ -272,8 +272,9 @@ export class ParentChildComponent implements OnInit, OnDestroy {
     const edges: Edge[] = [];
     // Helper function to recursively add nodes and edges
     function addNodesAndEdges(item: PcItem, parentFolder?: string) {
+      console.log('itemHERERE', item)
       //start of adding router nodes and edges
-      if (item.router) {
+      if (item.router !== undefined && item.router.children)  {
         // Create the "router-outlet" node
         const routerOutletNode: Node = {
           id: 'router-outlet',
