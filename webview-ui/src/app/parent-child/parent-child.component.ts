@@ -261,6 +261,8 @@ export class ParentChildComponent implements OnInit, OnDestroy {
   ): { nodes: Node[]; edges: Edge[] } {
     const nodes: Node[] = [];
     const edges: Edge[] = [];
+
+    let hasAddedRootNode = false;
     // Helper function to recursively add nodes and edges
     function addNodesAndEdges(item: PcItem, parentFolder?: string) {
       // Check if the node already exists to avoid duplicates
@@ -269,18 +271,15 @@ export class ParentChildComponent implements OnInit, OnDestroy {
         // Add the current item as a node
         let fileImg: string = '';
         let selectedImg: string = '';
-        if(nodes.length === 0){
-          nodes.push({
-            id: item.id,
-            label: item.label,
-            color: '#ff6961'
-          });
-
-        }
+        
         nodes.push({
           id: item.id,
           label: item.label,
+          color: hasAddedRootNode ? undefined : '#ff6961',
         });
+        if (!hasAddedRootNode) {
+          hasAddedRootNode = true; // Set the flag to true after adding the root node
+        }
 
         if (item.inputs.length > 0) {
           // iterate through inputs array
