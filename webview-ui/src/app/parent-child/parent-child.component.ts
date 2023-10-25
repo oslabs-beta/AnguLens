@@ -305,34 +305,12 @@ export class ParentChildComponent implements OnInit, OnDestroy {
             };
             edges.push(edge);
             
-            if(routerChild.children.length > 0) {
-             function routerChildrenHelper (routerChild: RouterChildren, parentId: string) {
-                nodes.push({
-                id: routerChild.path,
-                label: routerChild.name,
-                });
-                const edge: Edge = {
-                  id: ``,
-                  from: parentId,
-                  to: routerChild.path, // Connect to the "router-outlet" node
-                  relation: 'router-outlet',
-                  smooth: true,
-                  color: { color: 'blue' },
-                };
-                edges.push(edge);
-
-                
-               
-
-             }
-
-             for (const innerChild of routerChild.children){
-                routerChildrenHelper(innerChild, innerChild.path)
-             }
-              
-              
+        // Recursively add nodes and edges for children of router children
+          if (routerChild.children && routerChild.children.length > 0) {
+            for (const innerRouterChild of routerChild.children) {
+              routerChildrenHelper(innerRouterChild, routerChild.path);
             }
-          
+          }
         }
       }
       // Check if the node already exists to avoid duplicates
@@ -414,6 +392,36 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           }
         }
       }
+      // Helper function for adding nodes and edges for children of router children
+    function routerChildrenHelper(innerRouterChild: RouterChildren, parentId: string) {
+      // Check if the node already exists to avoid duplicates
+      const existingNode = nodes.find((node) => node.id === innerRouterChild.path);
+      if (!existingNode) {
+        // Add the router child as a node
+        nodes.push({
+          id: innerRouterChild.path,
+          label: innerRouterChild.name,
+        });
+
+        // Create an edge from the router child to its parent router
+        const edge: Edge = {
+          id: `${innerRouterChild.path}-${parentId}`,
+          from: innerRouterChild.path,
+          to: parentId,
+          relation: 'router-outlet',
+          smooth: true,
+          color: { color: 'blue' },
+        };
+        edges.push(edge);
+
+        // Recursively add nodes and edges for children of router children
+        if (innerRouterChild.children && innerRouterChild.children.length > 0) {
+          for (const childOfInnerChild of innerRouterChild.children) {
+            routerChildrenHelper(childOfInnerChild, innerRouterChild.path);
+          }
+        }
+      }
+    }
       
     }
 
