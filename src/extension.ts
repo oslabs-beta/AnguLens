@@ -59,13 +59,7 @@ export function activate(context: vscode.ExtensionContext) {
       vscode.ViewColumn.One, // showOptions
       {
         enableScripts: true,
-        retainContextWhenHidden: true,
-        localResourceRoots: [
-          vscode.Uri.file(
-            path.join(__dirname, "../webview-ui/dist/webview-ui")
-          ),
-          vscode.Uri.file(path.join(__dirname, "../src/images")),
-        ],
+        retainContextWhenHidden: true
       } // options
     );
 
@@ -92,7 +86,7 @@ export function activate(context: vscode.ExtensionContext) {
         path.join(
           __dirname,
           "../webview-ui/dist/webview-ui",
-          "main.eea0c7cc8acf08f6.js"
+          "main.eea7f98121a5933c.js"
         )
       )
     );
@@ -105,25 +99,6 @@ export function activate(context: vscode.ExtensionContext) {
         )
       )
     );
-
-    // START URIS
-    // added this
-    // Create a webview-compatible URI for the "assets" folder
-    const assetsFolder = vscode.Uri.file(
-      path.join(__dirname, "../webview-ui/dist/webview-ui/assets")
-    );
-
-    // const imagesFolder = vscode.Uri.file(path.join(__dirname, "./images"));
-    const imagesFolder = vscode.Uri.file(path.join(__dirname, "../src/images"));
-
-    // Create URIs for all image assets in the "assets" folder
-    // const imageUris = getAssetUris(assetsFolder, panel.webview);
-    const imageUris = getAssetUris(imagesFolder, panel.webview);
-    console.log("IMAGE URIS", imageUris);
-
-    const stringUris = imageUris.map((uri) => uri.toString());
-    // console.log("STRING URIS", stringUris);
-
     interface Message {
       command: string;
       data: any;
@@ -201,15 +176,6 @@ export function activate(context: vscode.ExtensionContext) {
             break;
           }
 
-          case "sendURIs": {
-            const uriMessage: Message = {
-              command: "updateUris",
-              data: stringUris,
-            };
-            panel.webview.postMessage(uriMessage);
-            break;
-          }
-
           case "openFile": {
             vscode.commands.executeCommand("angulens.openFile", message.data);
             break;
@@ -228,8 +194,7 @@ export function activate(context: vscode.ExtensionContext) {
       stylesUri,
       runtimeUri,
       polyfillsUri,
-      scriptUri,
-      imageUris
+      scriptUri
     );
 
     /*
@@ -249,52 +214,18 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(disposable, runWebView);
 }
 
-// function getAssetUris(folderUri: vscode.Uri, webview: Webview): vscode.Uri[] {
-//   const imageFiles = fs.readdirSync(folderUri.fsPath);
-//   return imageFiles.map((file) =>
-//     webview.asWebviewUri(vscode.Uri.file(path.join(folderUri.fsPath, file)))
-//   );
-// }
-
-function getAssetUris(folderUri: vscode.Uri, webview: Webview): vscode.Uri[] {
-  try {
-    const imageFiles = fs.readdirSync(folderUri.fsPath);
-    return imageFiles.map((file) =>
-      webview.asWebviewUri(vscode.Uri.file(path.join(folderUri.fsPath, file)))
-    );
-  } catch (error) {
-    console.error("Error getting image URIs:", error);
-    return [];
-  }
-}
-
-// console.log("JSON STRINGIFIED OUTPUT", JSON.stringify(output))
-
 function getWebViewContent(
   stylesUri: any,
   runtimeUri: any,
   polyfillsUri: any,
-  scriptUri: any,
-  imageUris: any
+  scriptUri: any
 ) {
-  const imageTags = imageUris
-    .map((uri: any) => `<img src="${uri}" alt="Image" />`)
-    .join("\n");
-
-  // Include imageTags in the script content
-  const scriptContent = `
-    const imageContainer = document.createElement('div');
-    imageContainer.innerHTML = \`${imageTags}\`;
-  `;
 
   return `<!DOCTYPE html>
   <html lang="en">
     <head>
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <script type="module">
-      ${scriptContent}
-    </script>
       <link rel="stylesheet" type="text/css" href="${stylesUri}">
       <title>Hello World</title>
     </head>

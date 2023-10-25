@@ -55,9 +55,23 @@ export class FolderFileComponent implements OnInit, OnDestroy {
   edges: Edge[] = [];
   fsItems: FsItem[] = [];
   pcItems: PcItem[] = [];
-  uris: string[] = [];
   filePath: string = '';
   reloadRequired: boolean = false;
+  uriObj: object = {
+    gitkeep: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 21V23.5L10 21.5L7 23.5V21H6.5C4.567 21 3 19.433 3 17.5V5C3 3.34315 4.34315 2 6 2H20C20.5523 2 21 2.44772 21 3V20C21 20.5523 20.5523 21 20 21H13ZM13 19H19V16H6.5C5.67157 16 5 16.6716 5 17.5C5 18.3284 5.67157 19 6.5 19H7V17H13V19ZM19 14V4H6V14.0354C6.1633 14.0121 6.33024 14 6.5 14H19ZM7 5H9V7H7V5ZM7 8H9V10H7V8ZM7 11H9V13H7V11Z"></path></svg>`,
+    ts: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path d="M17.5235 16.6507L18.0126 16.3795L19.1315 6.66941L12.0002 4.12362L4.86892 6.66941L5.98781 16.3795L6.46166 16.6422L12.0002 4.21L17.5235 16.6507ZM16.4246 17.26H15.6263L14.4576 14.34H9.52286L8.35412 17.26H7.57582L12.0002 19.7131L16.4246 17.26ZM12.0002 2L21.3002 5.32L19.8817 17.63L12.0002 22L4.11867 17.63L2.7002 5.32L12.0002 2ZM13.6984 12.54L12.0002 8.45L10.302 12.54H13.6984Z">
+    </path></svg>`,
+    css: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path d="M2.8 14H4.83961L4.2947 16.7245L10.0393 18.8787L17.2665 16.4697L18.3604 11H3.4L3.8 9H18.7604L19.5604 5H4.6L5 3H22L19 18L10 21L2 18L2.8 14Z">
+    </path></svg>`,
+    folder: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12.4142 5H21C21.5523 5 22 5.44772 22 6V20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V4C2 3.44772 2.44772 3 3 3H10.4142L12.4142 5ZM20 11H4V19H20V11ZM20 9V7H11.5858L9.58579 5H4V9H20Z"></path></svg>`,
+    html: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18.1778L7.38083 16.9222L7.0517 13.3778H9.32156L9.48045 15.2222L12 15.8889L14.5195 15.2222L14.7806 12.3556H6.96091L6.32535 5.67778H17.6747L17.4477 7.88889H8.82219L9.02648 10.1444H17.2434L16.6192 16.9222L12 18.1778ZM3 2H21L19.377 20L12 22L4.62295 20L3 2ZM5.18844 4L6.48986 18.4339L12 19.9278L17.5101 18.4339L18.8116 4H5.18844Z"></path></svg>`,
+    file: `<svg xmlns="http://www.w3.org/2000/svg" 
+    viewBox="0 0 24 24">
+    <path d="M15 4H5V20H19V8H15V4ZM3 2.9918C3 2.44405 3.44749 2 3.9985 2H16L20.9997 7L21 20.9925C21 21.5489 20.5551 22 20.0066 
+    22H3.9934C3.44476 22 3 21.5447 3 21.0082V2.9918ZM11"></path></svg>`,
+  };
   options = {
     interaction: {
       navigationButtons: true,
@@ -138,7 +152,6 @@ export class FolderFileComponent implements OnInit, OnDestroy {
         this.canLoadBar = false;
 
         const state = vscode.getState() as {
-          uris: string[];
           pcData: any;
           fsData: any;
           fsNodes: Node[];
@@ -181,7 +194,6 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           }
         });
         vscode.setState({
-          uris: state.uris,
           fsData: data,
           fsNodes: state.fsNodes,
           fsEdges: state.fsEdges,
@@ -190,44 +202,13 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           pcEdges: state.pcEdges,
         });
 
-        vscode.setState({
-          uris: state.uris,
-          fsData: data,
-          fsNodes: state.fsNodes,
-          fsEdges: state.fsEdges,
-          pcData: state.pcData,
-          pcNodes: state.pcNodes,
-          pcEdges: state.pcEdges,
-        });
         break;
       }
 
-      //load icon URI's
-      case 'updateUris': {
-        Promise.resolve(message.data)
-          .then(async (data) => {
-            this.uris = data;
-
-            // Run change detection inside Angular's zone
-            await this.zone.run(async () => {
-              vscode.setState({
-                uris: this.uris,
-              });
-
-              this.cdr.detectChanges();
-            });
-          })
-          .catch((error) => {
-            console.error('Error updating uris:', error);
-          });
-
-        break;
-      }
       //updatePath
       case 'generateFolderFile': {
         this.fsItems = this.populate(message.data.src);
         const state = vscode.getState() as {
-          uris: string[];
           pcData?: any;
           fsNodes?: Node[];
           fsEdges?: Edge[];
@@ -235,11 +216,8 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           pcEdges?: Edge[];
         };
 
-        this.uris = state.uris;
-
         const { nodes, edges } = this.createNodesAndEdges(
-          this.fsItems,
-          this.uris
+          this.fsItems
         );
 
         const edgesWithIds: Edge[] = edges.map((edge) => ({
@@ -286,7 +264,6 @@ export class FolderFileComponent implements OnInit, OnDestroy {
         });
 
         vscode.setState({
-          uris: this.uris,
           fsData: data,
           fsNodes: this.nodes,
           fsEdges: this.edges,
@@ -301,7 +278,6 @@ export class FolderFileComponent implements OnInit, OnDestroy {
       case 'reloadFolderFile': {
         this.canLoadBar = false;
         const state = vscode.getState() as {
-          uris: string[];
           pcData: any;
           fsData: any;
           fsNodes: Node[];
@@ -355,16 +331,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.canLoadBar = false;
-    const state = vscode.getState() as {
-      uris: string[] | undefined;
-    };
-    if (state === undefined) {
-      console.log('STATE IS UNDEFINED');
-      vscode.postMessage({
-        command: 'sendURIs',
-        data: {},
-      });
-    }
+    if (!vscode.getState()) vscode.setState({});
     this.setupMessageListener();
   }
 
@@ -437,11 +404,20 @@ export class FolderFileComponent implements OnInit, OnDestroy {
 
   createNodesAndEdges(
     fsItems: FsItem[],
-    uris: string[]
   ): { nodes: Node[]; edges: Edge[] } {
     const nodes: Node[] = [];
     const edges: Edge[] = [];
-    console.log('URIS IN CREATE NODES AND EDGES', uris);
+    const uris: Record<string, string> = this.uriObj as {
+      git: '...',
+      ts: '...',
+      css: '...',
+      folder: '...',
+      html: '...',
+      file: '...'
+    };
+    function getSVGUri(uri: string): string {
+      return 'data:image/svg+xml,' + encodeURIComponent(uri);
+    }
     // Helper function to recursively add nodes and edges
     function addNodesAndEdges(item: FsItem, parentFolder?: string) {
       // Check if the node already exists to avoid duplicates
@@ -449,35 +425,15 @@ export class FolderFileComponent implements OnInit, OnDestroy {
       if (!existingNode) {
         // Add the current item as a node
         let fileImg: string = '';
-        let selectedImg: string = '';
-        switch (item.type) {
-          case 'gitkeep':
-            fileImg = uris[6];
-            break;
-          case 'ts':
-            fileImg = uris[1];
-            break;
-          case 'css':
-            fileImg = uris[3];
-            break;
-          case 'folder':
-            fileImg = uris[5];
-            selectedImg = uris[7];
-            break;
-          case 'html':
-            fileImg = uris[2];
-            break;
-          default:
-            fileImg = uris[4];
-            break;
-        }
+        if (uris[item.type]) fileImg = getSVGUri(uris[item.type]);
+        else fileImg = getSVGUri(uris['file']);
 
         const newNode: Node = {
           id: item.id,
           label: item.label,
           image: {
             unselected: fileImg,
-            selected: selectedImg === '' ? fileImg : selectedImg,
+            selected: fileImg
           },
           hidden: false,
         };
