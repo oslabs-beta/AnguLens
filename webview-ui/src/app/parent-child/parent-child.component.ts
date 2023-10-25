@@ -106,6 +106,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
 
       case 'updatePC': {
         this.pcItems = this.populate(message.data);
+        console.log('PC MESSAGE DATA', message.data);
         this.pcService.setItems(this.pcItems);
         const state = vscode.getState() as {
           pcItems: PcItem[];
@@ -333,7 +334,6 @@ export class ParentChildComponent implements OnInit, OnDestroy {
               font: { align: 'middle' },
             };
             edges.push(edge);
-            // console.log('INPUT EDGE', edge);
           }
         }
 

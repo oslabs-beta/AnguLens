@@ -1,6 +1,12 @@
-<button (click)="toggleSidebar()">Click Me</button>
+<!-- <button (click)="toggleSidebar()">Click Me</button> -->
 <div class="modal-container">
+  <!-- <div class="sidebar" [class.show-sidebar]="isSidebarVisible"> -->
+  <!-- <div class="sidebar show-sidebar"> -->
   <div class="sidebar" [class.show-sidebar]="isSidebarVisible">
+    <button class="nav-toggle" (click)="toggleSidebar()"></button>
     <header>{{ modalItem?.label }}</header>
+    <ul>
+      <li></li>
+    </ul>
   </div>
 </div>

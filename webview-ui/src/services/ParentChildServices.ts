@@ -17,7 +17,6 @@ export class ParentChildServices {
   openModal$ = this.openModalSource.asObservable();
 
   // Add any other state variables as needed
-
   setItems(pcItems: PcItem[]) {
     this.pcItems = pcItems;
   }

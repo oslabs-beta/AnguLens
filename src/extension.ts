@@ -92,7 +92,7 @@ export function activate(context: vscode.ExtensionContext) {
         path.join(
           __dirname,
           "../webview-ui/dist/webview-ui",
-          "main.7173680602a9427e.js"
+          "main.040bb6bf144d55cc.js"
         )
       )
     );
