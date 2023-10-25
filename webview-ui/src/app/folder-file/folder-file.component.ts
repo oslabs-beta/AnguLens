@@ -146,7 +146,6 @@ export class FolderFileComponent implements OnInit, OnDestroy {
 
   private handleMessageEvent = (event: MessageEvent) => {
     const message: ExtensionMessage = event.data;
-    console.log('caught message?', message);
     switch (message.command) {
       case 'loadState': {
         this.canLoadBar = false;
@@ -336,7 +335,6 @@ export class FolderFileComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    console.log('DESTROYED');
     window.removeEventListener('message', this.handleMessageEvent);
   }
 
@@ -344,8 +342,6 @@ export class FolderFileComponent implements OnInit, OnDestroy {
     After the User inputs a src path
   */
   loadNetwork() {
-    console.log('File path:', this.filePath);
-
     vscode.postMessage({
       command: 'loadNetwork',
       data: {
@@ -353,7 +349,6 @@ export class FolderFileComponent implements OnInit, OnDestroy {
       },
     });
     this.fileSystemService.setGeneratedPC(false);
-    console.log(this.fileSystemService.getGeneratedPC()); // should log false
   }
 
   reRenderComponents() {
@@ -442,7 +437,6 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           newNode.open = true;
           newNode.onFolderClick = function () {
             this.open = !this.open;
-            console.log('folder clicked');
           };
         }
 
@@ -471,9 +465,6 @@ export class FolderFileComponent implements OnInit, OnDestroy {
     for (const rootItem of fsItems) {
       addNodesAndEdges(rootItem);
     }
-
-    // console.log('NODES', nodes);
-    // console.log('EDGES', edges);
     return { nodes, edges };
   }
 
