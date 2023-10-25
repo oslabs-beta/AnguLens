@@ -4,7 +4,7 @@ import { tsquery } from "@phenomnomnominal/tsquery";
 import cheerio = require("cheerio");
 
 
-export function populateStructure(array: any, selectorNames: object[]): object {
+export function populateStructure(array: any, selectorNames: object[], servicesList: object[], modulesList: object[]): object {
   const output = {};
   let rootPath: string = "";
   let omitIndeces;
@@ -29,8 +29,9 @@ export function populateStructure(array: any, selectorNames: object[]): object {
 
       // type logic
       let type;
-      if (name.split(".").length > 1) {
-        type = name.split(".").pop();
+      let nameList = name.split(".")
+      if (nameList.length > 1) {
+        type = nameList.pop();
       } else {
         type = "folder";
       }
@@ -53,10 +54,10 @@ export function populateStructure(array: any, selectorNames: object[]): object {
           sourceFile,
           'ClassDeclaration:has(Decorator[expression.expression.name="Component"]) > Identifier'
         )
-        let name;
+        let className;
         if (exportClassName.length > 0){
           //we don't really need this if... any component.ts file we check will have a name (query results array will have length)
-          name = exportClassName[0].getText();
+          className = exportClassName[0].getText();
         };
 
           //REFACTOR? why do we have the if statement below? --> selectorProperties should never be empty. It's just querying our AST to pull out data
@@ -67,7 +68,8 @@ export function populateStructure(array: any, selectorNames: object[]): object {
           const obj = {
             selectorName,
             folderPath,
-            name,
+            filePath,
+            className,
             inputs: [],
             outputs: []
           };
@@ -79,6 +81,40 @@ export function populateStructure(array: any, selectorNames: object[]): object {
         }
       }
 
+      //checking for type ts, and file names that include "service" - this will work whether the string is event.service or eventService
+              //REFACTOR all of this into a helper function? (services funcion)
+      if (type === "ts" && name.toLowerCase().includes("service")){
+        //REFACTOR: instead of running generateAST twice on filepath, we can call it above and use a variable
+        let servicePath = generateAST(item.path);
+
+        //querying the value of the "providedIn" property, within the @injectable directive of our service file - the value of this property is the module where this service is scoped to
+        const serviceProvidedIn = tsquery(
+          servicePath,
+          'PropertyAssignment > Identifier[name=providedIn]'
+          ); 
+
+        //The following if statement will only run if there was @injectable in the service file --> sometimes we might land on a service.spec.ts file without @injectable
+        if (serviceProvidedIn.length){
+          let serviceObj = {
+            path: item.path, 
+            fileName: nameList.join("."),//will result in "event.service" if naming conventions were followed (the .ts already removed on line 37's "nameList.pop()" call) --> we could set name differently here....
+            className: '', //need the exported className, to check against selectorNames imports (to see where the service is imported)
+            injectionPoints: [],
+            providedIn: serviceProvidedIn[0].parent.initializer.text
+          };
+
+          //querying the className from our service file - what's exported / what's imported when you want to use the service in a component
+          let serviceClassName = tsquery(
+            servicePath,
+            'ClassDeclaration:has(Decorator[expression.expression.name="Injectable"]) > Identifier'
+          );
+
+          serviceObj.className = serviceClassName[0].getText();
+
+          servicesList.push(serviceObj); //serviceList instantiated in extension.ts, passed in to populateStucture as argument
+        }
+      }
+    
       objTracker[name] = {
         type,
         path: item.path,
@@ -145,8 +181,10 @@ export function inLineCheck(sourceFile: ts.SourceFile, obj: object) {
   //else --> the component is not using an inline template = we don't need to create an obj.template property, because there will be a template file we can just use our convertToHtml helper function on
 }
 
+
 // populates Parent Child object (pcObject) with all relevant data, to send to Angular App front end (in webviewUI folder)
-export function populatePCView(selectorNames: object[]): object {
+//also enriches our services list with all the components where that service is imported and used
+export function populatePCView(selectorNames: object[], servicesList: object[]): object {
   let appPath: string;
 
   //REFACTOR? --> we  sort the array alphabetically so app comes first? we don't *need* to iterate here.... 
@@ -154,7 +192,12 @@ export function populatePCView(selectorNames: object[]): object {
     if (selectorName.selectorName === "app-root") {
       appPath = selectorName.folderPath;
     }
+
+    let ast = generateAST(selectorName.filePath);
+    //Enriching our services list, by checking which components (each called a "selectorName" here) imports a given service
+    populateServicesList(servicesList, selectorName, ast);
   }
+
   const pcObject = {
     name: "app-root",
     path: appPath,
@@ -163,8 +206,25 @@ export function populatePCView(selectorNames: object[]): object {
   };
 
   populateChildren(pcObject, selectorNames);
-  handleModules(appPath, selectorNames, pcObject);
+  handleRouter(appPath, selectorNames, pcObject);
+  //could check for app-router.module? --> or do we want to do that in handleRouter?
+  // check for any lazy loaded routes? --> if they have components that aren't otherwise tracked in pcObject
   return pcObject;
+}
+
+
+
+function populateServicesList(servicesList, selectorName, ast) {
+  servicesList.forEach(service => {
+    //Query the imports from each component (items in selectorNames)
+    const componentImports = tsquery(
+      ast,
+      `ImportSpecifier > Identifier[name="${service.className}"]`
+    );
+    if (componentImports.length){
+      service.injectionPoints.push(selectorName);
+    }
+  });
 }
 
 
@@ -265,7 +325,7 @@ function outputCheck(templateContent: string, outputName: string) {
 }
 
 
-function handleModules(appPath, selectorNames, pcObject) {
+function handleRouter(appPath, selectorNames, pcObject) {
   const routerObject = {  //generate new object (instead of pcObject) to represent components brought in from router outlet... 
     name: 'router-outlet',
     path: 'router-outlet',
@@ -319,7 +379,7 @@ function populateRouterOutletComponents (appPath, selectorNames, routerObject, p
     component.inputs = [];
     component.outputs = [];
     selectorNames.forEach(selector => {//SUPER inefficient, find a better way to grab the components....  an object with properties? Could you iterate over that / do everything we currently do with selectornames with that?
-      if (selector.name === component.name){
+      if (selector.className === component.name){
         component.path = selector.folderPath;//find the matching selector, in selectorNames, and grab it's folderpath, so generate children can access it when we pass in each component object
       }
     });

@@ -80,7 +80,7 @@ export function activate(context: vscode.ExtensionContext) {
         path.join(
           __dirname,
           "../webview-ui/dist/webview-ui",
-          "main.76bc4e2561e8afdf.js"
+          "main.518ef54e2fc911a3.js"
         )
       )
     );
@@ -109,9 +109,11 @@ export function activate(context: vscode.ExtensionContext) {
       command: string;
       data: any;
     }
-
-    let items: any = [];
+    
+    let items: any[] =[];
     let selectorNames: object[] = [];
+    let servicesList: object[] = [];
+    let modulesList: object[] = [];
     let currentFilePath: string = "";
     let pcObject: object = {};
     let fsObject: object = {};
@@ -123,6 +125,8 @@ export function activate(context: vscode.ExtensionContext) {
           case "loadNetwork": {
             items = [];
             selectorNames = [];
+            servicesList = []; //Do we need to create this here AND instantiate the variable on line 115? or is that overkill?
+            modulesList = []; // same a above
             const srcRootPath = message.data.filePath;
             currentFilePath = message.data.filePath;
             let rootPath: string = "";
@@ -137,7 +141,7 @@ export function activate(context: vscode.ExtensionContext) {
             klaw(rootPath)
               .on("data", (item) => items.push(item))
               .on("end", () => {
-                fsObject = populateStructure(items, selectorNames);
+                fsObject = populateStructure(items, selectorNames, servicesList, modulesList);
 
                 const sendNewPathObj: Message = {
                   command: "generateFolderFile",
@@ -153,7 +157,7 @@ export function activate(context: vscode.ExtensionContext) {
             // klaw(currentFilePath)
             //   .on("data", (item) => items.push(item))
             //   .on("end", () => {
-            pcObject = populatePCView(selectorNames);
+            pcObject = populatePCView(selectorNames, servicesList);
             console.log("SELECTOR NAMES", selectorNames);
             console.log("THIS PC OBJECT: ", pcObject);
             const pcMessage: Message = {
