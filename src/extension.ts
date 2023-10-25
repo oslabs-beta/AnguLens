@@ -20,6 +20,9 @@ export function activate(context: vscode.ExtensionContext) {
   // Use the console to output diagnostic information (console.log) and errors (console.error)
   // This line of code will only be executed once when your extension is activated
   console.log('Congratulations, your extension "angulens" is now active!');
+  // const extensionPath =
+  //   vscode.extensions.getExtension("<YourExtensionID>")?.extensionPath;
+  // console.log("EXTENSION PATH", extensionPath);
 
   // The command has been defined in the package.json file
   // Now provide the implementation of the command with registerCommand
@@ -54,7 +57,10 @@ export function activate(context: vscode.ExtensionContext) {
       "AnguLensPanel", // viewType, unique identifier
       "AnguLens", // name of tab in vsCode
       vscode.ViewColumn.One, // showOptions
-      { enableScripts: true } // options
+      {
+        enableScripts: true,
+        retainContextWhenHidden: true
+      } // options
     );
 
     const runtimeUri = panel.webview.asWebviewUri(
@@ -93,18 +99,6 @@ export function activate(context: vscode.ExtensionContext) {
         )
       )
     );
-
-    // START URIS
-    // added this
-    // Create a webview-compatible URI for the "assets" folder
-    const assetsFolder = vscode.Uri.file(
-      path.join(__dirname, "../webview-ui/dist/webview-ui/assets")
-    );
-
-    // Create URIs for all image assets in the "assets" folder
-    const imageUris = getAssetUris(assetsFolder, panel.webview);
-    const stringUris = imageUris.map((uri) => uri.toString());
-
     interface Message {
       command: string;
       data: any;
@@ -118,7 +112,6 @@ export function activate(context: vscode.ExtensionContext) {
     let pcObject: object = {};
     let fsObject: object = {};
 
-    // FS OBject
     panel.webview.onDidReceiveMessage(
       (message: Message) => {
         switch (message.command) {
@@ -154,18 +147,12 @@ export function activate(context: vscode.ExtensionContext) {
           }
 
           case "loadParentChild": {
-            // klaw(currentFilePath)
-            //   .on("data", (item) => items.push(item))
-            //   .on("end", () => {
             pcObject = populatePCView(selectorNames, servicesList);
-            console.log("SELECTOR NAMES", selectorNames);
-            console.log("THIS PC OBJECT: ", pcObject);
             const pcMessage: Message = {
               command: "updatePC",
               data: pcObject,
             };
             panel.webview.postMessage(pcMessage);
-            // });
             break;
           }
 
@@ -183,15 +170,6 @@ export function activate(context: vscode.ExtensionContext) {
               command: "reloadFolderFile",
               data: {},
             });
-            break;
-          }
-
-          case "sendURIs": {
-            const uriMessage: Message = {
-              command: "updateUris",
-              data: stringUris,
-            };
-            panel.webview.postMessage(uriMessage);
             break;
           }
 
@@ -213,16 +191,14 @@ export function activate(context: vscode.ExtensionContext) {
       stylesUri,
       runtimeUri,
       polyfillsUri,
-      scriptUri,
-      imageUris
+      scriptUri
     );
 
     /*
       Leaving 
     */
     panel.onDidChangeViewState((e) => {
-      if (e.webviewPanel.visible) {
-        console.log("visible");
+      if (e.webviewPanel.visible && e.webviewPanel.active) {
         panel.webview.postMessage({
           command: "loadState",
           data: {},
@@ -234,31 +210,12 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(disposable, runWebView);
 }
 
-function getAssetUris(folderUri: vscode.Uri, webview: Webview): vscode.Uri[] {
-  const imageFiles = fs.readdirSync(folderUri.fsPath);
-  return imageFiles.map((file) =>
-    webview.asWebviewUri(vscode.Uri.file(path.join(folderUri.fsPath, file)))
-  );
-}
-
-// console.log("JSON STRINGIFIED OUTPUT", JSON.stringify(output))
-
 function getWebViewContent(
   stylesUri: any,
   runtimeUri: any,
   polyfillsUri: any,
-  scriptUri: any,
-  imageUris: any
+  scriptUri: any
 ) {
-  const imageTags = imageUris
-    .map((uri: any) => `<img src="${uri}" alt="Image" />`)
-    .join("\n");
-
-  // Include imageTags in the script content
-  const scriptContent = `
-    const imageContainer = document.createElement('div');
-    imageContainer.innerHTML = \`${imageTags}\`;
-  `;
 
   return `<!DOCTYPE html>
   <html lang="en">
@@ -272,9 +229,6 @@ function getWebViewContent(
      <app-root></app-root>
       <script type="module" src="${runtimeUri}"></script>
       <script type="module" src="${polyfillsUri}"></script>
-      <script type="module">
-        ${scriptContent}
-      </script>
       <script type="module" src="${scriptUri}"></script>    </body>
   </html>`;
 }

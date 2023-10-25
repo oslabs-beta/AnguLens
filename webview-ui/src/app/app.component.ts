@@ -10,13 +10,13 @@ import { FileSystemService } from '.././services/FileSystemService';
 export class AppComponent implements OnInit {
   currentView: string = '';
   generatedPc: boolean = false;
+  imageUrls: string[] = [];
 
   constructor(private fileSystemService: FileSystemService) {}
   ngOnInit() {
     //start view as the folder-file hierarchy graph
     this.currentView = 'folder-file';
   }
-  
 
   loadFolderFile() {
     if (this.currentView === 'parent-child') {
@@ -39,7 +39,6 @@ export class AppComponent implements OnInit {
           command: 'reloadPC',
           data: {},
         });
-        console.log('RELOADPC GENERATED PC', this.generatedPc);
       } else {
         vscode.postMessage({
           command: 'loadParentChild',
@@ -47,7 +46,6 @@ export class AppComponent implements OnInit {
         });
         this.generatedPc = true;
         this.fileSystemService.setGeneratedPC(this.generatedPc); // resetting file system service to true
-        console.log('UPDATEPC GENERATED PC', this.generatedPc);
       }
     }
   }
