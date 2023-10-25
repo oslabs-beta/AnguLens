@@ -15,9 +15,24 @@ export class PcItem {
     public type: string,
     public inputs: Input[] = [],
     public outputs: Output[] = [],
-    public children: string[] = []
+    public children: string[] = [],
+    public router?: {
+      name: string;
+      path: string;
+      children: RouterChildren[]; // Make sure children is an array of PcItem
+    },
   ) {}
 }
+
+export interface RouterChildren {
+  name: string;
+  children: RouterChildren[];
+  inputs: Input[];
+  outputs: Output[];
+  path: string;
+  urlPath: string
+}
+
 
 export interface Input {
   name: string;
@@ -39,6 +54,7 @@ export interface Node {
   };
   hidden?: boolean;
   open?: boolean;
+  color?: string;
   onFolderClick?: () => void;
 }
 
