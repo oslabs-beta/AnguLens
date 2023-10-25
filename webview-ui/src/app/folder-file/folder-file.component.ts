@@ -13,7 +13,6 @@ import { DataSet } from 'vis-data';
 import { Network } from 'vis-network/standalone';
 import { FsItem, PcItem, Node, Edge } from '../../models/FileSystem';
 import { ExtensionMessage } from '../../models/message';
-import { URIObj } from 'src/models/uri';
 import { vscode } from '../utilities/vscode';
 
 import { FileSystemService } from 'src/services/FileSystemService';
@@ -41,7 +40,7 @@ interface File {
   styleUrls: ['./folder-file.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class FolderFileComponent implements AfterViewInit, OnDestroy {
+export class FolderFileComponent implements OnInit, OnDestroy {
   @ViewChild('networkContainer') networkContainer!: ElementRef;
 
   constructor(
@@ -56,7 +55,6 @@ export class FolderFileComponent implements AfterViewInit, OnDestroy {
   edges: Edge[] = [];
   fsItems: FsItem[] = [];
   pcItems: PcItem[] = [];
-  uris: string[] = [];
   filePath: string = '';
   reloadRequired: boolean = false;
   options = {
@@ -150,7 +148,6 @@ export class FolderFileComponent implements AfterViewInit, OnDestroy {
         this.canLoadBar = false;
 
         const state = vscode.getState() as {
-          uris: string[];
           pcData: any;
           fsData: any;
           fsNodes: Node[];
@@ -195,7 +192,6 @@ export class FolderFileComponent implements AfterViewInit, OnDestroy {
         });
 
         vscode.setState({
-          uris: state.uris,
           fsData: data,
           fsNodes: state.fsNodes,
           fsEdges: state.fsEdges,
@@ -207,31 +203,10 @@ export class FolderFileComponent implements AfterViewInit, OnDestroy {
         break;
       }
 
-      //load icon URI's
-      case 'updateUris': {
-        Promise.resolve(message.data)
-          .then(async (data) => {
-            this.uris = data;
-
-            // Run change detection inside Angular's zone
-            await this.zone.run(async () => {
-              vscode.setState({
-                uris: this.uris,
-              });
-
-              this.cdr.detectChanges();
-            });
-          })
-          .catch((error) => {
-            console.error('Error updating uris:', error);
-          });
-        break;
-      }
       //updatePath
       case 'generateFolderFile': {
         this.fsItems = this.populate(message.data.src);
         const state = vscode.getState() as {
-          uris: string[];
           pcData?: any;
           fsNodes?: Node[];
           fsEdges?: Edge[];
@@ -240,12 +215,7 @@ export class FolderFileComponent implements AfterViewInit, OnDestroy {
           pcItems?: PcItem[];
         };
 
-        this.uris = state.uris;
-
-        const { nodes, edges } = this.createNodesAndEdges(
-          this.fsItems,
-          this.uris
-        );
+        const { nodes, edges } = this.createNodesAndEdges(this.fsItems);
 
         const edgesWithIds: Edge[] = edges.map((edge) => ({
           ...edge,
@@ -291,7 +261,6 @@ export class FolderFileComponent implements AfterViewInit, OnDestroy {
         });
 
         vscode.setState({
-          uris: this.uris,
           fsData: data,
           fsNodes: this.nodes,
           fsEdges: this.edges,
@@ -307,7 +276,6 @@ export class FolderFileComponent implements AfterViewInit, OnDestroy {
       case 'reloadFolderFile': {
         this.canLoadBar = false;
         const state = vscode.getState() as {
-          uris: string[];
           pcData: any;
           fsData: any;
           fsNodes: Node[];
@@ -359,18 +327,9 @@ export class FolderFileComponent implements AfterViewInit, OnDestroy {
     window.addEventListener('message', this.handleMessageEvent);
   }
 
-  ngAfterViewInit(): void {
+  ngOnInit(): void {
     this.canLoadBar = false;
-    const state = vscode.getState() as {
-      uris: string[] | undefined;
-    };
-    if (state === undefined) {
-      console.log('STATE IS UNDEFINED');
-      vscode.postMessage({
-        command: 'sendURIs',
-        data: {},
-      });
-    }
+    if (!vscode.getState()) vscode.setState({});
     this.setupMessageListener();
   }
 
@@ -441,13 +400,9 @@ export class FolderFileComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  createNodesAndEdges(
-    fsItems: FsItem[],
-    uris: string[]
-  ): { nodes: Node[]; edges: Edge[] } {
+  createNodesAndEdges(fsItems: FsItem[]): { nodes: Node[]; edges: Edge[] } {
     const nodes: Node[] = [];
     const edges: Edge[] = [];
-    console.log('URIS IN CREATE NODES AND EDGES', uris);
     // Helper function to recursively add nodes and edges
     function addNodesAndEdges(item: FsItem, parentFolder?: string) {
       // Check if the node already exists to avoid duplicates

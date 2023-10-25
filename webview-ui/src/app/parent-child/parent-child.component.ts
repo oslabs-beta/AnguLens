@@ -8,15 +8,11 @@ import {
 } from '@angular/core';
 import { DataSet, DataView } from 'vis-data';
 import { Network } from 'vis-network';
-// import { Legend } from 'vis-network/standalone';
-// import { FsItem } from '../../models/FileSystem';
 import { ExtensionMessage } from '../../models/message';
-import { URIObj } from 'src/models/uri';
 
 import { vscode } from '../utilities/vscode';
 import { FsItem, PcItem, Node, Edge } from '../../models/FileSystem';
 import { ParentChildServices } from 'src/services/ParentChildServices';
-// import { FileSystemService } from 'src/services/FileSystemService';
 
 @Component({
   selector: 'parent-child',
@@ -31,7 +27,6 @@ export class ParentChildComponent implements OnInit, OnDestroy {
 
   nodes: Node[] = [];
   edges: Edge[] = [];
-  uris: string[] = [];
   pcItems: PcItem[] = [];
   private network: Network | undefined;
 
@@ -68,7 +63,6 @@ export class ParentChildComponent implements OnInit, OnDestroy {
       case 'loadState': {
         const state = vscode.getState() as {
           pcItems: PcItem[];
-          uris: string[];
           pcData: any;
           fsData: any;
           fsNodes: Node[];
@@ -92,7 +86,6 @@ export class ParentChildComponent implements OnInit, OnDestroy {
         this.pcItems = state.pcItems;
         vscode.setState({
           pcItems: this.pcItems,
-          uris: state.uris,
           pcData: data,
           fsData: state.fsData,
           fsNodes: state.fsNodes,
@@ -110,7 +103,6 @@ export class ParentChildComponent implements OnInit, OnDestroy {
         this.pcService.setItems(this.pcItems);
         const state = vscode.getState() as {
           pcItems: PcItem[];
-          uris: string[];
           pcData: object;
           fsData: any;
           fsNodes: Node[];
@@ -119,12 +111,10 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           pcEdges: Edge[];
         };
 
-        this.uris = state.uris;
         // console.log('ABOUT TO CREATE NODES AND EDGES');
         // console.log('SHOULD BE EMPTY EDGES', this.edges); // this should be set to empty state.pcEdges
         const { nodes, edges } = this.createNodesAndEdges(
-          this.pcItems,
-          this.uris
+          this.pcItems
         );
         this.nodes = nodes;
         this.edges = edges;
@@ -150,7 +140,6 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           // fsItems: state.fsItems,
           // pcItems: state.pcItems,
           pcItems: this.pcItems,
-          uris: this.uris,
           pcData: data,
           fsData: state.fsData,
           fsNodes: state.fsNodes,
@@ -167,7 +156,6 @@ export class ParentChildComponent implements OnInit, OnDestroy {
         const state = vscode.getState() as {
           // fsItems: FsItem[];
           // pcItems: PcItem[];
-          uris: string[];
           pcData: any;
           fsData: any;
           fsNodes: Node[];
@@ -294,7 +282,6 @@ export class ParentChildComponent implements OnInit, OnDestroy {
 
   createNodesAndEdges(
     pcItems: PcItem[],
-    uris: string[]
   ): { nodes: Node[]; edges: Edge[] } {
     const nodes: Node[] = [];
     const edges: Edge[] = [];
