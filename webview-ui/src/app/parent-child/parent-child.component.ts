@@ -269,6 +269,14 @@ export class ParentChildComponent implements OnInit, OnDestroy {
         // Add the current item as a node
         let fileImg: string = '';
         let selectedImg: string = '';
+        if(nodes.length === 0){
+          nodes.push({
+            id: item.id,
+            label: item.label,
+            color: '#ff6961'
+          });
+
+        }
         nodes.push({
           id: item.id,
           label: item.label,
