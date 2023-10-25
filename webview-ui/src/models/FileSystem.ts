@@ -54,7 +54,7 @@ export interface Node {
   };
   hidden?: boolean;
   open?: boolean;
-  color?: {};
+  color?: string;
   onFolderClick?: () => void;
 }
 

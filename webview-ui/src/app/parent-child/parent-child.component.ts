@@ -278,7 +278,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
         const routerOutletNode: Node = {
           id: 'router-outlet',
           label: 'router-outlet',
-          color: {color: 'purple'}
+          color: '#CBC3E3'
         };
         nodes.push(routerOutletNode);
         const edge: Edge = {
@@ -296,6 +296,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           nodes.push({
             id: routerChild.path,
             label: routerChild.name,
+            color: 'purple'
           });
 
           // Create an edge from the router component to the "router-outlet"
@@ -410,7 +411,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           nodes.push({
             id: innerRouterChild.path,
             label: innerRouterChild.name,
-            color: {color: 'purple'}
+            color: '#CBC3E3'
           });
 
           // Create an edge from the router child to its parent router
