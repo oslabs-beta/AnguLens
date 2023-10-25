@@ -55,7 +55,6 @@ export class FolderFileComponent implements OnInit, OnDestroy {
   edges: Edge[] = [];
   fsItems: FsItem[] = [];
   pcItems: PcItem[] = [];
-  uris: string[] = ['1,2'];
   filePath: string = '';
   reloadRequired: boolean = false;
   uriObj: object = {
@@ -153,7 +152,6 @@ export class FolderFileComponent implements OnInit, OnDestroy {
         this.canLoadBar = false;
 
         const state = vscode.getState() as {
-          uris: string[];
           pcData: any;
           fsData: any;
           fsNodes: Node[];
@@ -196,7 +194,6 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           }
         });
         vscode.setState({
-          uris: state.uris,
           fsData: data,
           fsNodes: state.fsNodes,
           fsEdges: state.fsEdges,
@@ -205,52 +202,19 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           pcEdges: state.pcEdges,
         });
 
-        vscode.setState({
-          uris: state.uris,
-          fsData: data,
-          fsNodes: state.fsNodes,
-          fsEdges: state.fsEdges,
-          pcData: state.pcData,
-          pcNodes: state.pcNodes,
-          pcEdges: state.pcEdges,
-        });
         break;
       }
 
-      //load icon URI's
-      case 'no': {
-        Promise.resolve(message.data)
-          .then(async (data) => {
-            this.uris = data;
-
-            // Run change detection inside Angular's zone
-            await this.zone.run(async () => {
-              vscode.setState({
-                uris: ['1','2'],
-              });
-
-              this.cdr.detectChanges();
-            });
-          })
-          .catch((error) => {
-            console.error('Error updating uris:', error);
-          });
-
-        break;
-      }
       //updatePath
       case 'generateFolderFile': {
         this.fsItems = this.populate(message.data.src);
         const state = vscode.getState() as {
-          uris: string[];
           pcData?: any;
           fsNodes?: Node[];
           fsEdges?: Edge[];
           pcNodes?: Node[];
           pcEdges?: Edge[];
         };
-
-        this.uris = state.uris;
 
         const { nodes, edges } = this.createNodesAndEdges(
           this.fsItems
@@ -300,7 +264,6 @@ export class FolderFileComponent implements OnInit, OnDestroy {
         });
 
         vscode.setState({
-          uris: this.uris,
           fsData: data,
           fsNodes: this.nodes,
           fsEdges: this.edges,
@@ -315,7 +278,6 @@ export class FolderFileComponent implements OnInit, OnDestroy {
       case 'reloadFolderFile': {
         this.canLoadBar = false;
         const state = vscode.getState() as {
-          uris: string[];
           pcData: any;
           fsData: any;
           fsNodes: Node[];
@@ -369,16 +331,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.canLoadBar = false;
-    const state = vscode.getState() as {
-      uris: string[] | undefined;
-    };
-    if (state === undefined) {
-      console.log('STATE IS UNDEFINED');
-      vscode.postMessage({
-        command: 'sendURIs',
-        data: {},
-      });
-    }
+    if (!vscode.getState()) vscode.setState({});
     this.setupMessageListener();
   }
 
