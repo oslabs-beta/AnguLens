@@ -11,7 +11,6 @@ import { Network } from 'vis-network';
 // import { Legend } from 'vis-network/standalone';
 // import { FsItem } from '../../models/FileSystem';
 import { ExtensionMessage } from '../../models/message';
-import { URIObj } from 'src/models/uri';
 
 import { vscode } from '../utilities/vscode';
 import { FsItem, PcItem, Node, Edge } from '../../models/FileSystem';
@@ -31,7 +30,6 @@ export class ParentChildComponent implements OnInit, OnDestroy {
 
   nodes: Node[] = [];
   edges: Edge[] = [];
-  uris: string[] = [];
   pcItems: PcItem[] = [];
   private network: Network | undefined;
   private handleMessageEvent = (event: MessageEvent) => {
@@ -41,7 +39,6 @@ export class ParentChildComponent implements OnInit, OnDestroy {
     switch (message.command) {
       case 'loadState': {
         const state = vscode.getState() as {
-          uris: string[];
           pcData: any;
           fsData: any;
           fsNodes: Node[];
@@ -63,7 +60,6 @@ export class ParentChildComponent implements OnInit, OnDestroy {
         const container = this.networkContainer.nativeElement;
         this.network = new Network(container, data, this.options);
         vscode.setState({
-          uris: state.uris,
           pcData: data,
           fsData: state.fsData,
           fsNodes: state.fsNodes,
@@ -79,7 +75,6 @@ export class ParentChildComponent implements OnInit, OnDestroy {
         this.pcItems = this.populate(message.data);
         // console.log('PC ITEMS', this.pcItems);
         const state = vscode.getState() as {
-          uris: string[];
           pcData: object;
           fsData: any;
           fsNodes: Node[];
@@ -88,7 +83,6 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           pcEdges: Edge[];
         };
 
-        this.uris = state.uris;
         // console.log('ABOUT TO CREATE NODES AND EDGES');
         // console.log('SHOULD BE EMPTY EDGES', this.edges); // this should be set to empty state.pcEdges
         const { nodes, edges } = this.createNodesAndEdges(
@@ -117,7 +111,6 @@ export class ParentChildComponent implements OnInit, OnDestroy {
         vscode.setState({
           // fsItems: state.fsItems,
           // pcItems: state.pcItems,
-          uris: this.uris,
           pcData: data,
           fsData: state.fsData,
           fsNodes: state.fsNodes,
@@ -133,7 +126,6 @@ export class ParentChildComponent implements OnInit, OnDestroy {
         const state = vscode.getState() as {
           // fsItems: FsItem[];
           // pcItems: PcItem[];
-          uris: string[];
           pcData: any;
           fsData: any;
           fsNodes: Node[];
