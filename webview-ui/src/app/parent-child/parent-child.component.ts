@@ -183,6 +183,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
     },
 
     edges: {
+      color: 'blue',
       smooth: {
         enabled: true,
         type: 'cubicBezier',
@@ -283,7 +284,6 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           nodes.push({
             id: item.id,
             label: item.label,
-            color: '#ff6961',
           });
         }
         if (item.inputs.length > 0) {
