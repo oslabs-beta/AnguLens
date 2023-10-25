@@ -278,6 +278,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
             label: item.label,
             color: '#ff6961',
           });
+          hasAddedRootNode = true;
         } else {
           nodes.push({
             id: item.id,
