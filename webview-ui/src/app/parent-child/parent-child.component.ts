@@ -92,8 +92,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
         // console.log('ABOUT TO CREATE NODES AND EDGES');
         // console.log('SHOULD BE EMPTY EDGES', this.edges); // this should be set to empty state.pcEdges
         const { nodes, edges } = this.createNodesAndEdges(
-          this.pcItems,
-          this.uris
+          this.pcItems
         );
         this.nodes = nodes;
         this.edges = edges;
@@ -257,8 +256,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
   }
 
   createNodesAndEdges(
-    pcItems: PcItem[],
-    uris: string[]
+    pcItems: PcItem[]
   ): { nodes: Node[]; edges: Edge[] } {
     const nodes: Node[] = [];
     const edges: Edge[] = [];
