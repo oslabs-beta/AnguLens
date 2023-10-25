@@ -39,7 +39,6 @@ export class AppComponent implements OnInit {
           command: 'reloadPC',
           data: {},
         });
-        console.log('RELOADPC GENERATED PC', this.generatedPc);
       } else {
         vscode.postMessage({
           command: 'loadParentChild',
@@ -47,7 +46,6 @@ export class AppComponent implements OnInit {
         });
         this.generatedPc = true;
         this.fileSystemService.setGeneratedPC(this.generatedPc); // resetting file system service to true
-        console.log('UPDATEPC GENERATED PC', this.generatedPc);
       }
     }
   }

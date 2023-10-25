@@ -8,8 +8,6 @@ import {
 } from '@angular/core';
 import { DataSet, DataView } from 'vis-data';
 import { Network } from 'vis-network';
-// import { Legend } from 'vis-network/standalone';
-// import { FsItem } from '../../models/FileSystem';
 import { ExtensionMessage } from '../../models/message';
 
 import { vscode } from '../utilities/vscode';
@@ -23,9 +21,6 @@ import {
   RouterChildren,
 } from '../../models/FileSystem';
 import { Router } from '@angular/router';
-// import { ParentChildServices } from 'src/services/ParentChildServices';
-// import { FileSystemService } from 'src/services/FileSystemService';
-
 @Component({
   selector: 'parent-child',
   templateUrl: './parent-child.component.html',
@@ -80,9 +75,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
       }
 
       case 'updatePC': {
-        // console.log('REAL OBJECT', message.data);
         this.pcItems = this.populate(message.data);
-        // console.log('PC ITEMS', this.pcItems);
         const state = vscode.getState() as {
           pcData: object;
           fsData: any;
@@ -92,18 +85,14 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           pcEdges: Edge[];
         };
 
-        // console.log('ABOUT TO CREATE NODES AND EDGES');
-        // console.log('SHOULD BE EMPTY EDGES', this.edges); // this should be set to empty state.pcEdges
         const { nodes, edges } = this.createNodesAndEdges(
           this.pcItems
         );
         this.nodes = nodes;
         this.edges = edges;
-        // console.log('EDGES CREATED', this.edges);
+
         const newNodes = new DataSet(nodes);
         const newEdges = new DataSet(edges);
-
-        // console.log('EDGES', this.edges);
 
         // create a network
         const container = this.networkContainer.nativeElement;
@@ -118,8 +107,6 @@ export class ParentChildComponent implements OnInit, OnDestroy {
         //update state
 
         vscode.setState({
-          // fsItems: state.fsItems,
-          // pcItems: state.pcItems,
           pcData: data,
           fsData: state.fsData,
           fsNodes: state.fsNodes,
@@ -133,8 +120,6 @@ export class ParentChildComponent implements OnInit, OnDestroy {
 
       case 'reloadPC': {
         const state = vscode.getState() as {
-          // fsItems: FsItem[];
-          // pcItems: PcItem[];
           pcData: any;
           fsData: any;
           fsNodes: Node[];
@@ -144,8 +129,6 @@ export class ParentChildComponent implements OnInit, OnDestroy {
         };
         this.nodes = state.pcNodes;
         this.edges = state.pcEdges;
-        // console.log('PC NODES', state.pcNodes);
-        // console.log('PC EDGES', state.pcEdges);
 
         const container = this.networkContainer.nativeElement;
         this.network = new Network(container, state.pcData, this.options);
@@ -307,7 +290,6 @@ export class ParentChildComponent implements OnInit, OnDestroy {
               },
             };
             edges.push(edge);
-            // console.log('INPUT EDGE', edge);
           }
         }
 
@@ -331,7 +313,6 @@ export class ParentChildComponent implements OnInit, OnDestroy {
               smooth: { type: 'curvedCCW', roundness: 0.2 },
             };
             edges.push(edge);
-            // console.log('OUTPUT EDGE', edge);
           }
         }
 

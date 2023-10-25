@@ -110,7 +110,6 @@ export function activate(context: vscode.ExtensionContext) {
     let pcObject: object = {};
     let fsObject: object = {};
 
-    // FS OBject
     panel.webview.onDidReceiveMessage(
       (message: Message) => {
         switch (message.command) {
@@ -144,18 +143,12 @@ export function activate(context: vscode.ExtensionContext) {
           }
 
           case "loadParentChild": {
-            // klaw(currentFilePath)
-            //   .on("data", (item) => items.push(item))
-            //   .on("end", () => {
             pcObject = populatePCView(selectorNames);
-            console.log("SELECTOR NAMES", selectorNames);
-            console.log("THIS PC OBJECT: ", pcObject);
             const pcMessage: Message = {
               command: "updatePC",
               data: pcObject,
             };
             panel.webview.postMessage(pcMessage);
-            // });
             break;
           }
 
@@ -202,7 +195,6 @@ export function activate(context: vscode.ExtensionContext) {
     */
     panel.onDidChangeViewState((e) => {
       if (e.webviewPanel.visible && e.webviewPanel.active) {
-        console.log("visible");
         panel.webview.postMessage({
           command: "loadState",
           data: {},
