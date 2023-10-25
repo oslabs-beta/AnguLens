@@ -9,6 +9,7 @@ import { ParentChildServices } from 'src/services/ParentChildServices';
 })
 export class ModalComponent implements OnInit {
   modalItem: PcItem | null = null;
+
   constructor(private pcService: ParentChildServices) {}
 
   ngOnInit(): void {
@@ -22,6 +23,7 @@ export class ModalComponent implements OnInit {
   isSidebarVisible = false;
 
   toggleSidebar() {
+    console.log('CLICKED TOGGLE');
     this.isSidebarVisible = !this.isSidebarVisible;
   }
 
@@ -29,3 +31,20 @@ export class ModalComponent implements OnInit {
     this.isSidebarVisible = true;
   }
 }
+
+/*
+  REGULAR COMPONENT
+  Inputs (Receiving Data From Parent: ) 
+    Name of Input Variable
+
+  Outputs (Sending data to Parent:)
+    Name of Output Variable
+  
+  Any Injectables in this component
+*/
+
+/*
+  ROUTER COMPONENT 
+  Children - 
+
+*/
