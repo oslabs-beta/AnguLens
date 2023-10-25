@@ -55,7 +55,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
   edges: Edge[] = [];
   fsItems: FsItem[] = [];
   pcItems: PcItem[] = [];
-  uris: string[] = [];
+  uris: string[] = ['1,2'];
   filePath: string = '';
   reloadRequired: boolean = false;
   uriObj: object = {
@@ -218,7 +218,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
       }
 
       //load icon URI's
-      case 'updateUris': {
+      case 'no': {
         Promise.resolve(message.data)
           .then(async (data) => {
             this.uris = data;
@@ -226,7 +226,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
             // Run change detection inside Angular's zone
             await this.zone.run(async () => {
               vscode.setState({
-                uris: this.uris,
+                uris: ['1','2'],
               });
 
               this.cdr.detectChanges();
