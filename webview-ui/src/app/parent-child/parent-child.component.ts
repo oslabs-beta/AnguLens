@@ -296,7 +296,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           nodes.push({
             id: routerChild.path,
             label: routerChild.name,
-            color: 'purple'
+            color: '#CBC3E3'
           });
 
           // Create an edge from the router component to the "router-outlet"
