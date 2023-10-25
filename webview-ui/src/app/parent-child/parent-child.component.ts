@@ -272,15 +272,19 @@ export class ParentChildComponent implements OnInit, OnDestroy {
         let fileImg: string = '';
         let selectedImg: string = '';
         
-        nodes.push({
-          id: item.id,
-          label: item.label,
-          color: hasAddedRootNode ? undefined : '#ff6961',
-        });
-        if (!hasAddedRootNode) {
-          hasAddedRootNode = true; // Set the flag to true after adding the root node
+        if(!hasAddedRootNode){
+          nodes.push({
+            id: item.id,
+            label: item.label,
+            color: '#ff6961',
+          });
+        } else {
+          nodes.push({
+            id: item.id,
+            label: item.label,
+            color: '#ff6961',
+          });
         }
-
         if (item.inputs.length > 0) {
           // iterate through inputs array
           for (let inputItem in item.inputs) {
