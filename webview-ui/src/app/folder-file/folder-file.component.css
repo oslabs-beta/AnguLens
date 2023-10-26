@@ -4,9 +4,9 @@
   display: flex;
   justify-content: end;
   flex-grow: 3;
-  background-color: #212121;
+  
   margin-bottom: 10px;
-  margin-top: 15px;
+  
 }
 .custom-input {
   padding: 8px;

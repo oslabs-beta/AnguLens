@@ -3,7 +3,7 @@
   flex-direction: column;
   align-items: center; /* Center items horizontally */
   justify-content: center; /* Center items vertically */
-  background-color: #212121;
+  background: #130c25;
   height: 100vh; /* Ensure the container takes the full viewport height */
 }
 .mainContainer {
@@ -18,7 +18,6 @@
   display: flex;
   justify-content: flex-start;
   position: absolute;
-  background-color: #212121;
   width: max-content;
 }
 
@@ -28,7 +27,7 @@
   height: max-content;
   width: max-content;
   border-radius: 2px;
-  margin-top: 10px;
+  
   
   
  
