@@ -78,10 +78,6 @@ export class ModalComponent implements OnInit {
         break;
     }
   }
-
-  getSVGUri(uri: string): string {
-    return 'data:image/svg+xml,' + encodeURIComponent(uri);
-  }
 }
 
 /*
