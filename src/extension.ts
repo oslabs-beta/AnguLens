@@ -87,7 +87,7 @@ export function activate(context: vscode.ExtensionContext) {
         path.join(
           __dirname,
           "../webview-ui/dist/webview-ui",
-          "main.34afeef483a1e1f6.js"
+          "main.893d98c27878970d.js"
         )
       )
     );
@@ -147,9 +147,15 @@ export function activate(context: vscode.ExtensionContext) {
             break;
           }
 
+
+
           case "loadServices": {
             const servicesObject: any = populateServicesView(selectorNames, servicesList);
-            console.log('services in test case: ', servicesObject);
+            const serviceMessage: Message = {
+              command: 'updateServices',
+              data: servicesObject
+            };
+            panel.webview.postMessage(serviceMessage);
             break;
           }
           case "loadParentChild": {

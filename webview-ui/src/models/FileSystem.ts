@@ -24,6 +24,21 @@ export class PcItem {
   ) {}
 }
 
+export class ServiceItem {
+  constructor(
+    public className: string,
+    public fileName: string,
+    public injectionPoints: InjectionPoint[],
+    public path: string,
+    public providedIn: string
+  ) {}
+}
+
+export interface InjectionPoint {
+  selectorName: string,
+  folderPath: string
+}
+
 export interface RouterChildren {
   name: string;
   children: RouterChildren[];
