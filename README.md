@@ -40,12 +40,14 @@ Using AnguLens you can:
 4. Click "Copy Path"
 5. Paste path into text input and click generate
 
-
+<p align="center"><img src="./assets/startAnguLens.gif"></p>
 
 # Folder-File view
 Displays file structure of selected directory 
 - Click on folders to open or close them for a cleaner view 
+<p align="center"><img src="./assets/collapsingFolders.gif"></p>
 - Double click files to navigate current VSCode window to clicked file 
+<p align="center"><img src="./assets/navigatefile.gif"></p>
 
 # Component view
 Displays component hierarchy, including routers, with overlayed connections representing different connections
@@ -53,7 +55,14 @@ Displays component hierarchy, including routers, with overlayed connections repr
   - Inputs/Outputs
   - Component Hierarchy
 - Click on components to get additional information in modal
+  -Inputs
+  -Outputs
+  -Services
+<p align="center"><img src="./assets/modal.gif"></p>
 
+# Services view
+-Displays every service as a new network, with any components that utilize that service
+<p align="center"><img src="./assets/services.gif"></p>
 
 [contributors-url]: https://github.com/oslabs-beta/AnguLens/graphs/contributors
 [contributors-shield]: https://img.shields.io/badge/Contributors-4-darkred?logoColor=white
@@ -65,6 +74,8 @@ Displays component hierarchy, including routers, with overlayed connections repr
 
 # Contributing
 AnguLens is an open source project and we encourage iteration and or contribution. To coontribute fork the repo, make feature branches, and PR from your feature branch into AnguLen's dev. 
+
+
 
 ## Current Roadmap
   - Removing use of retain context when hidden from VSCode API and use state instead
