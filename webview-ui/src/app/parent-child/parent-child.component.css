@@ -1,0 +1,136 @@
+.network-container {
+  width: 70vw;
+  height: 70vh;
+  background: #130c25;
+  display: block;
+  border-radius: 10px;
+  border: 1px solid #444444
+}
+
+.center {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+.dropbtn {
+  background-color: #4caf50;
+  color: white;
+  padding: 16px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+}
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+}
+
+.dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+.dropdown-content a:hover {
+  background-color: #f1f1f1;
+}
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+.dropdown:hover .dropbtn {
+  background-color: #3e8e41;
+}
+
+/* dropdown button new */
+.button-1 {
+  background: hsl(345, 100%, 37%);
+  border-radius: 8px;
+  border-style: none;
+  box-sizing: border-box;
+  color: #ffffff;
+  cursor: pointer;
+  display: inline-block;
+  font-size: 14px;
+  height: 45px;
+  line-height: 20px;
+  list-style: none;
+  margin: 0;
+  outline: none;
+  padding: 10px 16px;
+  position: relative;
+  text-align: center;
+  text-decoration: none;
+  transition: color 100ms;
+  vertical-align: baseline;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.button-1:hover,
+.button-1:focus {
+  background-color: #f082ac;
+}
+
+/* Legend styling */
+
+.legendContainer {
+  display: flex;
+  justify-content: center;
+  width: 70vw;
+  height: max-content;
+}
+.nodesContainer {
+  display: flex;
+  justify-content: center;
+}
+
+.circleContainer {
+  display: flex;
+  align-items: center;
+}
+
+.legendCircle {
+  height: 20px;
+  width: 20px;
+  box-shadow: 2px 0px 4px rgba(0, 0, 0, 0.4);
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.nodeTitle {
+  color: white;
+  font-weight: 400;
+  margin-right: 20px;
+}
+.edge {
+  display: flex;
+  align-items: center;
+}
+.arrow {
+  font-size: 35px;
+  margin-right: 10px;
+  
+}
+
+.edgesContainer {
+  display: flex;
+  align-items: center;
+}
+
+.edgeTitle {
+  color: white;
+  margin-right: 10px;
+}

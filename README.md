@@ -1,71 +1,74 @@
-# angulens README
+<div align="center">
+  <img src="./assets/Angulens_3.png" alt="Magnifying glass AnguLens logo" width="200" height="200">
+</div>
 
-This is the README for your extension "angulens". After writing up a brief description, we recommend including the following sections.
+<div align="center"> 
+  <img src="https://img.shields.io/badge/version-1.0.0-darkred?logoColor=white" alt="Version number: 1.0.0">
+  <img src="https://img.shields.io/badge/Contributors-4-darkred?logoColor=white" alt="Contributors: 4">
+</div>
 
-## Features
+<div align="center"> 
+  <img src="https://img.shields.io/badge/Angular-darkred?style=flat-square&logo=angular" alt="angular badge">
+  <img src="https://img.shields.io/badge/TypeScript-blue?style=flat-square&logo=typescript&logoColor=white" alt="typescript badge">
+</div>
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
 
-For example if there is an image subfolder under your extension project workspace:
+#
 
-\!\[feature X\]\(images/feature-x.png\)
+## AnguLens
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+Welcome to AnguLens, a VSCode extension build to aid understanding of Angular based projects through visualization.
 
-## Requirements
+## Features 
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+Using AnguLens you can: 
+  - Choose a project directory
+  - View folder-file hierarchy 
+  - Navigate to selected files in views via double click 
+  - View inputs / outputs of all components
+  - View routers 
+  - View component hierarchy between parent and child components
+  - View additional information of files on click via modal 
 
-## Extension Settings
+## Getting started
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+### Starting source directory
 
-For example:
+1. Install AnguLens from extension marketplace 
+2. Open commands (cmd/ctrl + shift + p) and run "Start AnguLens" 
+3. Right click on "src" folder in Angular project 
+4. Click "Copy Path"
+5. Paste path into text input and click generate
 
-This extension contributes the following settings:
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
 
-## Known Issues
+# Folder-File view
+Displays file structure of selected directory 
+- Click on folders to open or close them for a cleaner view 
+- Double click files to navigate current VSCode window to clicked file 
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+# Component view
+Displays component hierarchy, including routers, with overlayed connections representing different connections
+- Filter component connections using dropdown menu
+  - Inputs/Outputs
+  - Component Hierarchy
+- Click on components to get additional information in modal
 
-## Release Notes
 
-Users appreciate release notes as you update your extension.
+[contributors-url]: https://github.com/oslabs-beta/AnguLens/graphs/contributors
+[contributors-shield]: https://img.shields.io/badge/Contributors-4-darkred?logoColor=white
+[version-shield]: https://img.shields.io/badge/version-1.0.0-darkred?logoColor=white
+[angular-shield]: https://img.shields.io/badge/Angular-darkred?style=flat-square&logo=angular
+[angular-url]: https://angular.io/
+[typescript-shield]: https://img.shields.io/badge/TypeScript-blue?style=flat-square&logo=typescript&logoColor=white
+[typescript-url]: https://www.typescriptlang.org/
 
-### 1.0.0
+# Contributing
+AnguLens is an open source project and we encourage iteration and or contribution. To coontribute fork the repo, make feature branches, and PR from your feature branch into AnguLen's dev. 
 
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+## Current Roadmap
+  - Removing use of retain context when hidden from VSCode API and use state instead
+  - Support for Workspaces/monorepos
+  - Mapping Signals
+  - Expanding module support 
+  - Mapping Observabels 

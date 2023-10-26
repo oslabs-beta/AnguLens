@@ -1,0 +1,47 @@
+<div class="center">
+  <div class="dropdown">
+    <button class="button-1" role="button">Filter Relationships</button>
+    <div class="dropdown-content">
+      <a href="#" (click)="updateFilters('input')">Show Inputs</a>
+      <a href="#" (click)="updateFilters('output')">Show Outputs</a>
+      <a href="#" (click)="updateFilters('all')">Show All Relationships</a>
+    </div>
+  </div>
+</div>
+
+<div
+  #networkContainer
+  style="
+    width: 70vw;
+    height: 70vh;
+    background: #130c25;
+    border-radius: 10px;
+    border: 1px solid #444444
+  "
+></div>
+<div class="legendContainer">
+  <div class="nodesContainer">
+    <div class="circleContainer">
+      <div class="legendCircle" style="background-color: #ff6961"></div>
+      <h4 class="nodeTitle">Root Node</h4>
+    </div>
+    <div class="circleContainer">
+      <div class="legendCircle" style="background-color: #cbc3e3"></div>
+      <h4 class="nodeTitle">Router-Outlet Node</h4>
+    </div>
+    <div class="circleContainer">
+      <div class="legendCircle" style="background-color: #12deec"></div>
+      <h4 class="nodeTitle">Component Node</h4>
+    </div>
+  </div>
+  <div class="edgesContainer">
+    <div class="edge">
+      <div class="arrow" style="color: green">&#8594;</div>
+      <h4 class="edgeTitle">Inputs</h4>
+    </div>
+    <div class="edge">
+      <div class="arrow" style="color: red">&#8594;</div>
+      <h4 class="edgeTitle">Outputs</h4>
+    </div>
+  </div>
+</div>
