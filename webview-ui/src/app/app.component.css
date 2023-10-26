@@ -6,7 +6,6 @@
 .current-views-container {
   display: flex;
   flex-direction: row;
-  height: 80vh;
 }
 
 .buttonContainer {

@@ -1,17 +1,18 @@
-<div class="center-container">
-  <label for="filePathInput"></label>
-  <div class="input-button-container">
-    <input
+  <div class="center-container">
+    <label for="filePathInput"></label>
+    <div class="input-button-container">
+      <input
       type="text"
       id="filePathInput"
       [(ngModel)]="filePath"
       placeholder="Enter file path"
       class="custom-input"
-    />
-    <button (click)="loadNetwork()" class="custom-button">Load Network</button>
+      />
+      <button (click)="loadNetwork()" class="custom-button">Load Network</button>
+    </div>
   </div>
-</div>
 
+  
 <div>
   <!-- <div *ngIf="!canLoadBar" #networkContainer class="network-container"></div> -->
   <div #networkContainer class="network-container"></div>
