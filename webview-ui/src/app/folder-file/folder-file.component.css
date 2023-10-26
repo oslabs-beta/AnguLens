@@ -1,12 +1,8 @@
-
-
 .center-container {
   display: flex;
   justify-content: end;
   flex-grow: 3;
-  
   margin-bottom: 10px;
-  
 }
 .custom-input {
   padding: 8px;
@@ -29,9 +25,9 @@
 .network-container {
   width: 70vw;
   height: 70vh;
-  background-color: white;
-  display: block;
+  background: #130c25;
   border-radius: 10px;
+  border: 2px solid white;
 }
 
 #mynetwork {
@@ -151,7 +147,6 @@ div.outerBorder {
   user-select: none;
   -webkit-user-select: none;
   touch-action: manipulation;
-  
 }
 
 .button-82-shadow {
@@ -164,10 +159,7 @@ div.outerBorder {
   background: hsl(0deg 0% 0% / 0.25);
   will-change: transform;
   transform: translateY(2px);
-  transition:
-    transform
-    600ms
-    cubic-bezier(.3, .7, .4, 1);
+  transition: transform 600ms cubic-bezier(0.3, 0.7, 0.4, 1);
 }
 
 .button-82-edge {
@@ -196,10 +188,7 @@ div.outerBorder {
   background: hsl(345, 100%, 37%);
   will-change: transform;
   transform: translateY(-4px);
-  transition:
-    transform
-    600ms
-    cubic-bezier(.3, .7, .4, 1);
+  transition: transform 600ms cubic-bezier(0.3, 0.7, 0.4, 1);
 }
 
 @media (min-width: 768px) {
@@ -216,10 +205,7 @@ div.outerBorder {
 
 .button-82-pushable:hover .button-82-front {
   transform: translateY(-6px);
-  transition:
-    transform
-    250ms
-    cubic-bezier(.3, .7, .4, 1.5);
+  transition: transform 250ms cubic-bezier(0.3, 0.7, 0.4, 1.5);
 }
 
 .button-82-pushable:active .button-82-front {
@@ -229,10 +215,7 @@ div.outerBorder {
 
 .button-82-pushable:hover .button-82-shadow {
   transform: translateY(4px);
-  transition:
-    transform
-    250ms
-    cubic-bezier(.3, .7, .4, 1.5);
+  transition: transform 250ms cubic-bezier(0.3, 0.7, 0.4, 1.5);
 }
 
 .button-82-pushable:active .button-82-shadow {

@@ -1,3 +1,12 @@
+.network-container {
+  width: 70vw;
+  height: 70vh;
+  background: #130c25;
+  display: block;
+  border-radius: 10px;
+  border: 2px solid white;
+}
+
 .center {
   display: flex;
   justify-content: flex-end;
@@ -44,14 +53,13 @@
   background-color: #3e8e41;
 }
 
-
 /* dropdown button new */
 .button-1 {
   background: hsl(345, 100%, 37%);
   border-radius: 8px;
   border-style: none;
   box-sizing: border-box;
-  color: #FFFFFF;
+  color: #ffffff;
   cursor: pointer;
   display: inline-block;
   font-size: 14px;
@@ -69,12 +77,11 @@
   user-select: none;
   -webkit-user-select: none;
   touch-action: manipulation;
-  
 }
 
 .button-1:hover,
 .button-1:focus {
-  background-color: #F082AC;
+  background-color: #f082ac;
 }
 
 /* Legend styling */

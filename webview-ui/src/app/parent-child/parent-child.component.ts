@@ -278,7 +278,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
     },
 
     nodes: {
-      shape: 'square',
+      shape: 'circle',
       shadow: {
         enabled: true,
         color: 'rgba(0,0,0,0.5)',
@@ -289,7 +289,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
     },
 
     edges: {
-      color: 'blue',
+      color: 'cyan',
       smooth: {
         enabled: true,
         type: 'cubicBezier',

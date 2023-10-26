@@ -76,6 +76,7 @@ export interface Node {
   hidden?: boolean;
   open?: boolean;
   color?: string | {};
+  font?: {};
   onFolderClick?: () => void;
 }
 

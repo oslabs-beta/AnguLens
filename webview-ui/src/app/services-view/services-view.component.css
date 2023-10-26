@@ -1,0 +1,8 @@
+.network-container {
+  width: 70vw;
+  height: 70vh;
+  background: #130c25;
+  display: block;
+  border-radius: 10px;
+  border: 2px solid white;
+}

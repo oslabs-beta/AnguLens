@@ -64,7 +64,7 @@ export class ServicesViewComponent implements OnInit, OnDestroy {
     },
 
     edges: {
-      color: 'blue',
+      color: 'cyan',
       smooth: {
         enabled: true,
         type: 'cubicBezier',
@@ -72,8 +72,6 @@ export class ServicesViewComponent implements OnInit, OnDestroy {
         roundness: 0.4,
       },
     },
-
-    
   };
   private handleMessageEvent = (event: MessageEvent) => {
     const message: ExtensionMessage = event.data;
@@ -186,6 +184,7 @@ export class ServicesViewComponent implements OnInit, OnDestroy {
       const newServiceNode: Node = {
         id: item.path,
         label: item.className,
+        color: '#ff6961',
       };
       nodes.push(newServiceNode);
       if (item.injectionPoints.length > 0) {
@@ -193,6 +192,7 @@ export class ServicesViewComponent implements OnInit, OnDestroy {
           const newInjectNode: Node = {
             id: `${injectItem.folderPath}-${idCounter}`,
             label: injectItem.selectorName,
+            color: 'cyan',
           };
           nodes.push(newInjectNode);
           const newEdge: Edge = {
