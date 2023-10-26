@@ -1,3 +1,5 @@
+import { DataSet } from 'vis-data';
+
 export class FsItem {
   constructor(
     public id: string,
@@ -22,6 +24,27 @@ export class PcItem {
       children: RouterChildren[]; // Make sure children is an array of PcItem
     },
   ) {}
+}
+
+
+export interface DataStore {
+  nodes: DataSet<any>,
+  edges: DataSet<any>
+}
+
+export class ServiceItem {
+  constructor(
+    public className: string,
+    public fileName: string,
+    public injectionPoints: InjectionPoint[],
+    public path: string,
+    public providedIn: string
+  ) {}
+}
+
+export interface InjectionPoint {
+  selectorName: string,
+  folderPath: string
 }
 
 export interface RouterChildren {

@@ -5,6 +5,7 @@
       <button class="button-77" (click)="loadParentChild()">
         Parent-Child
       </button>
+      <button class="button-77" (click)="loadServices()"> Test Services </button>
     </div>
   </div>
   <main>
@@ -34,6 +35,10 @@
 
       <div *ngIf="currentView === 'parent-child'">
         <parent-child></parent-child>
+      </div>
+
+      <div *ngIf="currentView === 'services'">
+        <services-view></services-view>
       </div>
     </div>
   </main>

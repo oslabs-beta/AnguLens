@@ -182,9 +182,7 @@ export function inLineCheck(sourceFile: ts.SourceFile, obj: object) {
 }
 
 
-// populates Parent Child object (pcObject) with all relevant data, to send to Angular App front end (in webviewUI folder)
-//also enriches our services list with all the components where that service is imported and used
-export function populatePCView(selectorNames: object[], servicesList: object[]): object {
+export function populateServicesView(selectorNames: object[], servicesList: object[]): any {
   let appPath: string;
 
   //REFACTOR? --> we  sort the array alphabetically so app comes first? we don't *need* to iterate here....
@@ -196,6 +194,25 @@ export function populatePCView(selectorNames: object[], servicesList: object[]):
     let ast = generateAST(selectorName.filePath);
     //Enriching our services list, by checking which components (each called a "selectorName" here) imports a given service
     populateServicesList(servicesList, selectorName, ast);
+  }
+  return servicesList;
+}
+
+
+// populates Parent Child object (pcObject) with all relevant data, to send to Angular App front end (in webviewUI folder)
+//also enriches our services list with all the components where that service is imported and used
+export function populatePCView(selectorNames: object[]): object {
+  let appPath: string;
+
+  //REFACTOR? --> we  sort the array alphabetically so app comes first? we don't *need* to iterate here....
+  for (const selectorName of selectorNames) {
+    if (selectorName.selectorName === "app-root") {
+      appPath = selectorName.folderPath;
+    }
+
+    let ast = generateAST(selectorName.filePath);
+    //Enriching our services list, by checking which components (each called a "selectorName" here) imports a given service
+    //populateServicesList(servicesList, selectorName, ast);
   }
 
   const pcObject = {
