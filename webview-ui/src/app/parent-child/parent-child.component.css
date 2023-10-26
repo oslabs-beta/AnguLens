@@ -48,25 +48,17 @@
 /* Legend styling */
 
 .legendContainer {
-  z-index: 0;
-  position: absolute;
-  bottom: 0;
-  right: 0;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  width: 200px; 
+  align-items: center;
+  justify-content: center;
+  width: 900px;
+  height: 200px;
   background-color: #212121;
-  margin-right: 60px;
-  margin-bottom: 100px;
 }
 .nodesContainer {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  margin-bottom: 20px;
-  
-  
+  justify-content: center;
 }
 
 .circleContainer {
@@ -86,7 +78,6 @@
   color: white;
   font-weight: 400;
   margin-right: 20px;
-  font-size: 15px;
 }
 .edge {
   display: flex;
@@ -104,5 +95,3 @@
   color: white;
   margin-right: 10px;
 }
-
-
