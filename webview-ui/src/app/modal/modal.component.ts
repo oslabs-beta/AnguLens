@@ -60,6 +60,9 @@ export class ModalComponent implements OnInit {
   openModal() {
     this.isSidebarVisible = true;
   }
+
+
+  
   showSection(section: string) {
     switch (section) {
       case 'inputs':
