@@ -160,9 +160,9 @@ div.outerBorder {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 100vw;
+  width: 900px;
   height: 200px;
-  background-color: rgb(41, 38, 38);
+  background-color: #212121;
   
 }
 .nodesContainer {
@@ -179,7 +179,7 @@ div.outerBorder {
   width: 20px;
   box-shadow: 2px 0px 4px rgba(0, 0, 0, 0.4);
   border-radius: 50%;
-  margin-top: 20px;
+  margin-top: 18px;
   margin-right: 8px;
  
 }
