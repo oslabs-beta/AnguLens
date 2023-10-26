@@ -150,3 +150,60 @@ div.outerBorder {
   background: rgb(0, 173, 246); /* Old browsers */
   box-shadow: 2px 0px 4px rgba(0, 0, 0, 0.4);
 }
+
+
+/* Legend styling */
+
+
+.legendContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 900px;
+  height: 200px;
+  background-color: #212121;
+  
+}
+.nodesContainer {
+  display: flex;
+  justify-content: center;
+}
+
+.circleContainer{
+  display: flex;
+}
+
+.legendCircle {
+  height: 20px;
+  width: 20px;
+  box-shadow: 2px 0px 4px rgba(0, 0, 0, 0.4);
+  border-radius: 50%;
+  margin-top: 18px;
+  margin-right: 8px;
+ 
+}
+
+.nodeTitle{
+  color: white;
+  font-weight: 400;
+  margin-right: 20px;
+  
+}
+.edge {
+  display: flex;
+}
+.arrow{
+  font-size: 50px;
+  margin-right: 10px;
+}
+
+.edgesContainer {
+  display: flex;
+}
+
+
+.edgeTitle {
+  color: white;
+  margin-right: 10px;
+}
