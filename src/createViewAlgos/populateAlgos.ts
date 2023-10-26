@@ -113,6 +113,64 @@ export function populateStructure(array: any, selectorNames: object[], servicesL
           servicesList.push(serviceObj); //serviceList instantiated in extension.ts, passed in to populateStucture as argument
         }
       }
+
+
+      if (type === "ts" && name.toLowerCase().includes("module")){
+        const moduleAST = generateAST(item.path);
+
+        let modCheck = tsquery(
+          moduleAST,
+          'CallExpression > Identifier[name="NgModule"]'
+        );
+        //check @ngModule imports first - if there are results (aka there was an ngModule decorator) --> then know for sure this is a module
+        if (modCheck.length){
+
+          //First, we will grab all the imports from our module file's AST
+          let moduleImports = tsquery(
+            moduleAST,
+            'PropertyAssignment[name=imports] > ArrayLiteralExpression > *', //the ALL means we're grabbing all children (?) (becausea the arrayLiteral is just an array of items / children)
+          );
+          //imports is an array, so we want to grab all elements (with * above) and now we can .forEach it
+          moduleImports.forEach(node => {
+            //CHECK --> if the item is an identifier, we can just add it to the modulesList.imports array
+            if (ts.isIdentifier(node)) {
+              //console.log("Module Imported:", node.escapedText);
+              modulesList.imports.push(node.escapedText);
+                //HERE we should also check if what's being imported is brought in from @angular native, or is a custom module ()
+            } 
+            //CHECK if the item is a call expression --> ie. it's a moduleName.forRoot(routes) or moduleName.forChild(routes)
+            else if (ts.isCallExpression(node)) {
+              //console.log("Module Imported:", node.expression.expression.escapedText);//this is "routerModule" or whatever else is being imported / having a method called on it
+              //console.log("Method Used:", node.expression.name.escapedText);//this is "forChild" or "forRoot" --> or I assume other 
+              if (node.arguments.length) {
+                //console.log("Argument:", node.arguments[0].escapedText);//this is "route"
+              }
+            }
+          });
+
+          let moduleExports = tsquery(
+            moduleAST,
+            'PropertyAssignment[name=exports] > ArrayLiteralExpression > *', //the ALL means we're grabbing all children (?) (becausea the arrayLiteral is just an array of items / children)
+          );
+          moduleExports.forEach(node => {
+
+          });
+
+          //check "routes" --> first query for 'PropertyAssigment > Identifier[name="component"]'
+          let moduleComponentRoutes = tsquery(
+            modulePath,
+            'PropertyAssigment > Identifier[name="component"]'
+          );
+
+          // --> ALSO need to check routes for lazy loading
+
+          //let moduleOutputs = tsquery(
+          //   modulePath,
+          //   ''
+          // )
+
+        }//End of giant if satement - REFACTOR? - set up helper functions for these checks
+      };
     
       objTracker[name] = {
         type,
