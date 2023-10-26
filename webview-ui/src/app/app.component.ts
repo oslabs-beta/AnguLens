@@ -10,6 +10,7 @@ import { FileSystemService } from '.././services/FileSystemService';
 export class AppComponent implements OnInit {
   currentView: string = '';
   generatedPc: boolean = false;
+  generatedServices: boolean = false;
   imageUrls: string[] = [];
 
   constructor(private fileSystemService: FileSystemService) {}
@@ -18,13 +19,23 @@ export class AppComponent implements OnInit {
     this.currentView = 'folder-file';
   }
 
-  testServices() {
+  loadServices() {
+    this.generatedServices = this.fileSystemService.getGeneratedServices();
     if (this.currentView === 'parent-child' || this.currentView === 'folder-file') {
       this.currentView = 'services';
-      vscode.postMessage({
-        command: 'loadServices',
-        data: {}
-      });
+      if (this.generatedServices) {
+        vscode.postMessage({
+          command: 'reloadServices',
+          data: {}
+        });
+      } else {
+        vscode.postMessage({
+          command: 'loadServices',
+          data: {}
+        });
+        this.generatedServices = true;
+        this.fileSystemService.setGeneratedServices(this.generatedServices);
+      }
     }
   }
 

@@ -349,6 +349,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
       },
     });
     this.fileSystemService.setGeneratedPC(false);
+    this.fileSystemService.setGeneratedServices(false);
   }
 
   reRenderComponents() {
