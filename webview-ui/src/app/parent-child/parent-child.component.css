@@ -1,8 +1,15 @@
+.network-container {
+  width: 70vw;
+  height: 70vh;
+  background: #130c25;
+  display: block;
+  border-radius: 10px;
+  border: 1px solid #444444
+}
+
 .center {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  background-color: #212121;
+  justify-content: flex-end;
   margin-bottom: 10px;
 }
 .dropbtn {
@@ -46,132 +53,53 @@
   background-color: #3e8e41;
 }
 
-#mynetwork {
-  width: 900px;
-  height: 900px;
-  border: 1px solid lightgray;
-}
-#loadingBar {
-  position: absolute;
-  top: 0px;
-  left: 0px;
-  width: 902px;
-  height: 902px;
-  background-color: rgba(200, 200, 200, 0.8);
-  -webkit-transition: all 0.5s ease;
-  -moz-transition: all 0.5s ease;
-  -ms-transition: all 0.5s ease;
-  -o-transition: all 0.5s ease;
-  transition: all 0.5s ease;
-  opacity: 1;
-}
-#wrapper {
+/* dropdown button new */
+.button-1 {
+  background: hsl(345, 100%, 37%);
+  border-radius: 8px;
+  border-style: none;
+  box-sizing: border-box;
+  color: #ffffff;
+  cursor: pointer;
+  display: inline-block;
+  font-size: 14px;
+  height: 45px;
+  line-height: 20px;
+  list-style: none;
+  margin: 0;
+  outline: none;
+  padding: 10px 16px;
   position: relative;
-  width: 900px;
-  height: 900px;
+  text-align: center;
+  text-decoration: none;
+  transition: color 100ms;
+  vertical-align: baseline;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
 }
 
-#text {
-  position: absolute;
-  top: 8px;
-  left: 530px;
-  width: 30px;
-  height: 50px;
-  margin: auto auto auto auto;
-  font-size: 22px;
-  color: #000000;
+.button-1:hover,
+.button-1:focus {
+  background-color: #f082ac;
 }
-
-div.outerBorder {
-  position: relative;
-  top: 400px;
-  width: 600px;
-  height: 44px;
-  margin: auto auto auto auto;
-  border: 8px solid rgba(0, 0, 0, 0.1);
-  background: rgb(252, 252, 252); /* Old browsers */
-  background: -moz-linear-gradient(
-    top,
-    rgba(252, 252, 252, 1) 0%,
-    rgba(237, 237, 237, 1) 100%
-  ); /* FF3.6+ */
-  background: -webkit-gradient(
-    linear,
-    left top,
-    left bottom,
-    color-stop(0%, rgba(252, 252, 252, 1)),
-    color-stop(100%, rgba(237, 237, 237, 1))
-  ); /* Chrome,Safari4+ */
-  background: -webkit-linear-gradient(
-    top,
-    rgba(252, 252, 252, 1) 0%,
-    rgba(237, 237, 237, 1) 100%
-  ); /* Chrome10+,Safari5.1+ */
-  background: -o-linear-gradient(
-    top,
-    rgba(252, 252, 252, 1) 0%,
-    rgba(237, 237, 237, 1) 100%
-  ); /* Opera 11.10+ */
-  background: -ms-linear-gradient(
-    top,
-    rgba(252, 252, 252, 1) 0%,
-    rgba(237, 237, 237, 1) 100%
-  ); /* IE10+ */
-  background: linear-gradient(
-    to bottom,
-    rgba(252, 252, 252, 1) 0%,
-    rgba(237, 237, 237, 1) 100%
-  ); /* W3C */
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#fcfcfc', endColorstr='#ededed',GradientType=0 ); /* IE6-9 */
-  border-radius: 72px;
-  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
-}
-
-#border {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  width: 500px;
-  height: 23px;
-  margin: auto auto auto auto;
-  box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.2);
-  border-radius: 10px;
-}
-
-#bar {
-  position: absolute;
-  top: 0px;
-  left: 0px;
-  width: 20px;
-  height: 20px;
-  margin: auto auto auto auto;
-  border-radius: 11px;
-  border: 2px solid rgba(30, 30, 30, 0.05);
-  background: rgb(0, 173, 246); /* Old browsers */
-  box-shadow: 2px 0px 4px rgba(0, 0, 0, 0.4);
-}
-
 
 /* Legend styling */
 
-
 .legendContainer {
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  width: 900px;
-  height: 200px;
-  background-color: #212121;
-  
+  width: 70vw;
+  height: max-content;
 }
 .nodesContainer {
   display: flex;
   justify-content: center;
 }
 
-.circleContainer{
+.circleContainer {
   display: flex;
+  align-items: center;
 }
 
 .legendCircle {
@@ -179,29 +107,28 @@ div.outerBorder {
   width: 20px;
   box-shadow: 2px 0px 4px rgba(0, 0, 0, 0.4);
   border-radius: 50%;
-  margin-top: 18px;
   margin-right: 8px;
- 
 }
 
-.nodeTitle{
+.nodeTitle {
   color: white;
   font-weight: 400;
   margin-right: 20px;
-  
 }
 .edge {
   display: flex;
+  align-items: center;
 }
-.arrow{
-  font-size: 50px;
+.arrow {
+  font-size: 35px;
   margin-right: 10px;
+  
 }
 
 .edgesContainer {
   display: flex;
+  align-items: center;
 }
-
 
 .edgeTitle {
   color: white;

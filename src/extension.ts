@@ -10,7 +10,7 @@ import { send } from "process";
 import {
   populateStructure,
   populatePCView,
-  populateServicesView
+  populateServicesView,
   // inLineCheck,
   // generateAST
 } from "./createViewAlgos/populateAlgos";
@@ -60,7 +60,7 @@ export function activate(context: vscode.ExtensionContext) {
       vscode.ViewColumn.One, // showOptions
       {
         enableScripts: true,
-        retainContextWhenHidden: true
+        retainContextWhenHidden: true,
       } // options
     );
 
@@ -87,7 +87,7 @@ export function activate(context: vscode.ExtensionContext) {
         path.join(
           __dirname,
           "../webview-ui/dist/webview-ui",
-          "main.ef07d52684c804e1.js"
+          "main.82b1c7506f973f5f.js"
         )
       )
     );
@@ -96,7 +96,7 @@ export function activate(context: vscode.ExtensionContext) {
         path.join(
           __dirname,
           "../webview-ui/dist/webview-ui",
-          "styles.ef46db3751d8e999.css"
+          "styles.8567a20a5369e76b.css"
         )
       )
     );
@@ -104,15 +104,16 @@ export function activate(context: vscode.ExtensionContext) {
       command: string;
       data: any;
     }
-    
-    let items: any[] =[];
+
+    let items: any[] = [];
     let selectorNames: object[] = [];
     let servicesList: object[] = [];
     let modulesList: object[] = [];
     let currentFilePath: string = "";
     let pcObject: object = {};
     let fsObject: object = {};
-
+    let cachedServicesObject: object;
+    let generatedServices: boolean = false;
     panel.webview.onDidReceiveMessage(
       (message: Message) => {
         switch (message.command) {
@@ -121,6 +122,7 @@ export function activate(context: vscode.ExtensionContext) {
             selectorNames = [];
             servicesList = []; //Do we need to create this here AND instantiate the variable on line 115? or is that overkill?
             modulesList = []; // same a above
+            generatedServices = false;
             const srcRootPath = message.data.filePath;
             currentFilePath = message.data.filePath;
             let rootPath: string = "";
@@ -135,7 +137,12 @@ export function activate(context: vscode.ExtensionContext) {
             klaw(rootPath)
               .on("data", (item) => items.push(item))
               .on("end", () => {
-                fsObject = populateStructure(items, selectorNames, servicesList, modulesList);
+                fsObject = populateStructure(
+                  items,
+                  selectorNames,
+                  servicesList,
+                  modulesList
+                );
 
                 const sendNewPathObj: Message = {
                   command: "generateFolderFile",
@@ -147,16 +154,17 @@ export function activate(context: vscode.ExtensionContext) {
             break;
           }
 
-
-
           case "loadServices": {
-            if (servicesList) {
-
+            if (!generatedServices) {
+              cachedServicesObject = populateServicesView(
+                selectorNames,
+                servicesList
+              );
+              generatedServices = true;
             }
-            const servicesObject: any = populateServicesView(selectorNames, servicesList);
             const serviceMessage: Message = {
-              command: 'updateServices',
-              data: servicesObject
+              command: "updateServices",
+              data: cachedServicesObject,
             };
             panel.webview.postMessage(serviceMessage);
             break;
@@ -164,8 +172,8 @@ export function activate(context: vscode.ExtensionContext) {
 
           case "reloadServices": {
             const serviceMessage: Message = {
-              command: 'reloadServices',
-              data: {}
+              command: "reloadServices",
+              data: {},
             };
             panel.webview.postMessage(serviceMessage);
           }
@@ -217,7 +225,6 @@ export function activate(context: vscode.ExtensionContext) {
       polyfillsUri,
       scriptUri
     );
-
     /*
       Leaving 
     */
@@ -240,7 +247,6 @@ function getWebViewContent(
   polyfillsUri: any,
   scriptUri: any
 ) {
-
   return `<!DOCTYPE html>
   <html lang="en">
     <head>

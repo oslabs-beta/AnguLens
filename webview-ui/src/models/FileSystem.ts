@@ -22,14 +22,13 @@ export class PcItem {
       name: string;
       path: string;
       children: RouterChildren[]; // Make sure children is an array of PcItem
-    },
+    }
   ) {}
 }
 
-
 export interface DataStore {
-  nodes: DataSet<any>,
-  edges: DataSet<any>
+  nodes: DataSet<any>;
+  edges: DataSet<any>;
 }
 
 export class ServiceItem {
@@ -43,8 +42,8 @@ export class ServiceItem {
 }
 
 export interface InjectionPoint {
-  selectorName: string,
-  folderPath: string
+  selectorName: string;
+  folderPath: string;
 }
 
 export interface RouterChildren {
@@ -53,9 +52,8 @@ export interface RouterChildren {
   inputs: Input[];
   outputs: Output[];
   path: string;
-  urlPath: string
+  urlPath: string;
 }
-
 
 export interface Input {
   name: string;
@@ -77,7 +75,8 @@ export interface Node {
   };
   hidden?: boolean;
   open?: boolean;
-  color?: string;
+  color?: string | {};
+  font?: {};
   onFolderClick?: () => void;
 }
 
@@ -99,5 +98,7 @@ export interface Edge {
     from?: object;
   };
   group?: object;
+  label?: string;
+  font?: object;
 }
 //

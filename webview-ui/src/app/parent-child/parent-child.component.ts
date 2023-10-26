@@ -7,8 +7,9 @@ import {
   OnDestroy,
 } from '@angular/core';
 import { DataSet, DataView } from 'vis-data';
-import { Network } from 'vis-network';
+import { Network } from 'vis-network/standalone';
 import { ExtensionMessage } from '../../models/message';
+import { ParentChildServices } from 'src/services/ParentChildServices';
 
 import { vscode } from '../utilities/vscode';
 import {
@@ -19,7 +20,8 @@ import {
   Input,
   Output,
   RouterChildren,
-  DataStore
+  DataStore,
+  ServiceItem,
 } from '../../models/FileSystem';
 import { Router } from '@angular/router';
 @Component({
@@ -31,12 +33,70 @@ import { Router } from '@angular/router';
 export class ParentChildComponent implements OnInit, OnDestroy {
   @ViewChild('networkContainer') networkContainer!: ElementRef;
 
-  constructor() {}
+  constructor(private pcService: ParentChildServices) {}
 
   nodes: Node[] = [];
   edges: Edge[] = [];
   pcItems: PcItem[] = [];
+  servicesData: ServiceItem[] | undefined;
   private network: Network | undefined;
+
+  handleClickModal(network: Network) {
+    network.on('doubleClick', (params: any) => {
+      if (params.nodes.length > 0) {
+        const nodeId = params.nodes[0];
+        if (nodeId) {
+          // Open Modal for specific node component
+          let deliverPc: PcItem | null = null;
+          for (const item of this.pcItems) {
+            if (item.id === nodeId) {
+              deliverPc = item;
+              break;
+            }
+          }
+          const nodeServices: string[] = [];
+          // iterate through each service in array
+          this.servicesData?.forEach((service: ServiceItem) => {
+            // filter out node in injectionPoints key array
+            const containsNode = service.injectionPoints.filter(
+              (node) => node.folderPath === nodeId
+            );
+
+            if (containsNode.length > 0) {
+              console.log('NODE ID', nodeId);
+              console.log('CONTAINSNODE', containsNode);
+              console.log('CONTAINS NODE SERVICE', service);
+              nodeServices.push(service.className);
+            }
+          });
+
+          const edgeRelations = this.getEdgesOfNode(nodeId);
+
+          if (deliverPc && edgeRelations && nodeServices) {
+            console.log('nodeServices', nodeServices);
+            this.pcService.openModal({
+              pcItem: deliverPc as PcItem,
+              edges: edgeRelations as Object,
+              services: nodeServices as string[],
+            });
+          }
+        }
+      }
+    });
+  }
+
+  getEdgesOfNode(nodeId: string) {
+    // Item.relation === output, Sending Data from node to parent
+    const outputEdges = this.edges.filter(
+      (edge) => edge.from === nodeId && edge.relation === 'output'
+    );
+    // Item.relation === input,  Receiving Data from parent to node
+    const inputEdges = this.edges.filter(
+      (edge) => edge.to === nodeId && edge.relation === 'input'
+    );
+    return { inputs: inputEdges, outputs: outputEdges };
+  }
+
   private handleMessageEvent = (event: MessageEvent) => {
     const message: ExtensionMessage = event.data;
     console.log('caught message?', message);
@@ -50,11 +110,14 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           fsEdges: Edge[];
           pcNodes: Node[];
           pcEdges: Edge[];
-          servicesNodes: Node[],
-          servicesEdges: Edge[]
+          servicesNodes: Node[];
+          servicesEdges: Edge[];
+          servicesData: ServiceItem[];
+          pcItems: PcItem[];
         };
         this.nodes = state.pcNodes;
         this.edges = state.pcEdges;
+        this.servicesData = state.servicesData;
         const newNodes = new DataSet(state.pcNodes);
         const newEdges = new DataSet(state.pcEdges);
         const data: {
@@ -66,7 +129,9 @@ export class ParentChildComponent implements OnInit, OnDestroy {
         };
         const container = this.networkContainer.nativeElement;
         this.network = new Network(container, data, this.options);
+        this.pcItems = state.pcItems;
         vscode.setState({
+          pcItems: this.pcItems,
           pcData: data,
           fsData: state.fsData,
           fsNodes: state.fsNodes,
@@ -74,13 +139,17 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           pcNodes: state.pcNodes,
           pcEdges: state.pcEdges,
           servicesNodes: state.servicesNodes,
-          servicesEdges: state.servicesEdges
+          servicesEdges: state.servicesEdges,
+          servicesData: state.servicesData,
         });
+        this.handleClickModal(this.network);
         break;
       }
-      
+
       case 'updatePC': {
         this.pcItems = this.populate(message.data);
+        console.log('PC MESSAGE DATA', message.data);
+        this.pcService.setItems(this.pcItems);
         const state = vscode.getState() as {
           pcData: DataStore | undefined;
           fsData: DataStore | undefined;
@@ -88,15 +157,15 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           fsEdges: Edge[];
           pcNodes: Node[];
           pcEdges: Edge[];
-          servicesNodes: Node[],
-          servicesEdges: Edge[]
+          servicesNodes: Node[];
+          servicesEdges: Edge[];
+          servicesData: ServiceItem[];
         };
 
-        const { nodes, edges } = this.createNodesAndEdges(
-          this.pcItems
-        );
+        const { nodes, edges } = this.createNodesAndEdges(this.pcItems);
         this.nodes = nodes;
         this.edges = edges;
+        this.servicesData = state.servicesData;
 
         const newNodes = new DataSet(nodes);
         const newEdges = new DataSet(edges);
@@ -114,6 +183,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
         //update state
 
         vscode.setState({
+          pcItems: this.pcItems,
           pcData: data,
           fsData: state.fsData,
           fsNodes: state.fsNodes,
@@ -121,9 +191,11 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           pcNodes: this.nodes,
           pcEdges: this.edges,
           servicesNodes: state.servicesNodes,
-          servicesEdges: state.servicesEdges
+          servicesEdges: state.servicesEdges,
+          servicesData: state.servicesData,
         });
         this.network = new Network(container, data, this.options);
+        this.handleClickModal(this.network);
         break;
       }
 
@@ -135,12 +207,50 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           fsEdges: Edge[];
           pcNodes: Node[];
           pcEdges: Edge[];
+          pcItems: PcItem[];
+          servicesData: ServiceItem[];
         };
         this.nodes = state.pcNodes;
         this.edges = state.pcEdges;
+        this.pcItems = state.pcItems;
+        this.servicesData = state.servicesData;
+
+        console.log('pcItems', this.pcItems);
 
         const container = this.networkContainer.nativeElement;
         this.network = new Network(container, state.pcData, this.options);
+        this.handleClickModal(this.network);
+        break;
+      }
+
+      case 'updateServices': {
+        this.servicesData = message.data;
+        const state = vscode.getState() as {
+          pcData: DataStore | undefined;
+          fsData: DataStore | undefined;
+          fsNodes: Node[];
+          fsEdges: Edge[];
+          pcNodes: Node[];
+          pcEdges: Edge[];
+          pcItems: PcItem[];
+          servicesNodes: Node[];
+          servicesEdges: Edge[];
+          servicesData: ServiceItem[];
+        };
+
+        vscode.setState({
+          pcData: state.pcData,
+          fsData: state.fsData,
+          fsNodes: state.fsNodes,
+          fsEdges: state.fsEdges,
+          pcNodes: state.pcNodes,
+          pcEdges: state.pcEdges,
+          pcItems: state.pcItems,
+          servicesNodes: state.servicesNodes,
+          servicesEdges: state.servicesEdges,
+          servicesData: this.servicesData,
+        });
+        console.log('SERVICE DATA', this.servicesData);
         break;
       }
 
@@ -151,6 +261,10 @@ export class ParentChildComponent implements OnInit, OnDestroy {
   };
 
   options = {
+    interaction: {
+      navigationButtons: true,
+      keyboard: true,
+    },
     layout: {
       hierarchical: {
         direction: 'UD', // Up-Down direction
@@ -175,7 +289,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
     },
 
     edges: {
-      color: 'blue',
+      color: 'cyan',
       smooth: {
         enabled: true,
         type: 'cubicBezier',
@@ -246,12 +360,11 @@ export class ParentChildComponent implements OnInit, OnDestroy {
       };
       const container = this.networkContainer.nativeElement;
       this.network = new Network(container, data, this.options);
+      this.handleClickModal(this.network);
     }
   }
 
-  createNodesAndEdges(
-    pcItems: PcItem[]
-  ): { nodes: Node[]; edges: Edge[] } {
+  createNodesAndEdges(pcItems: PcItem[]): { nodes: Node[]; edges: Edge[] } {
     const nodes: Node[] = [];
     const edges: Edge[] = [];
 
@@ -264,8 +377,8 @@ export class ParentChildComponent implements OnInit, OnDestroy {
         // Add the current item as a node
         let fileImg: string = '';
         let selectedImg: string = '';
-        
-        if(!hasAddedRootNode){
+
+        if (!hasAddedRootNode) {
           nodes.push({
             id: item.id,
             label: item.label,
@@ -276,6 +389,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           nodes.push({
             id: item.id,
             label: item.label,
+            color: { background: 'cyan', border: 'black' },
           });
         }
         if (item.inputs.length > 0) {
@@ -286,8 +400,8 @@ export class ParentChildComponent implements OnInit, OnDestroy {
               from: item.inputs[inputItem].pathFrom,
               to: item.id,
               relation: 'input',
-              color: { color: 'green' },
-              smooth: { type: 'curvedCCW', roundness: 0.25 },
+              color: { color: 'green', highlight: 'green' },
+              smooth: { type: 'curvedCCW', roundness: 0.3 },
               arrows: {
                 to: {
                   enabled: true,
@@ -297,6 +411,8 @@ export class ParentChildComponent implements OnInit, OnDestroy {
                   type: 'arrow',
                 },
               },
+              label: 'Input',
+              font: { align: 'middle' },
             };
             edges.push(edge);
           }
@@ -308,7 +424,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
               id: `${item.id}-${item.outputs[outputItem].pathTo}`,
               from: item.id,
               to: item.outputs[outputItem].pathTo,
-              color: { color: 'red' },
+              color: { color: 'red', highlight: 'red' },
               relation: 'output',
               arrows: {
                 to: {
@@ -320,6 +436,8 @@ export class ParentChildComponent implements OnInit, OnDestroy {
                 },
               },
               smooth: { type: 'curvedCCW', roundness: 0.2 },
+              label: 'Output',
+              font: { align: 'middle' },
             };
             edges.push(edge);
           }
@@ -346,12 +464,12 @@ export class ParentChildComponent implements OnInit, OnDestroy {
       }
 
       //add router and roputer children nodes and edges
-      if (item.router !== undefined && item.router.children)  {
+      if (item.router !== undefined && item.router.children) {
         // Create the "router-outlet" node
         const routerOutletNode: Node = {
           id: 'router-outlet',
           label: 'router-outlet',
-          color: '#CBC3E3'
+          color: '#CBC3E3',
         };
         nodes.push(routerOutletNode);
         const edge: Edge = {
@@ -360,7 +478,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           to: item.id, // Connect to the "router-outlet" node
           relation: 'router-outlet',
           smooth: true,
-          color: { color: 'purple' },
+          color: { color: 'purple', highlight: 'purple' },
         };
         edges.push(edge);
         //recursively add children
@@ -369,7 +487,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           nodes.push({
             id: routerChild.path,
             label: routerChild.name,
-            color: '#CBC3E3'
+            color: { color: 'purple', highlight: 'purple' },
           });
 
           // Create an edge from the router component to the "router-outlet"
@@ -379,7 +497,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
             to: 'router-outlet', // Connect to the "router-outlet" node
             relation: 'router',
             smooth: true,
-            color: { color: 'purple' },
+            color: { color: 'purple', highlight: 'purple' },
           };
           edges.push(edge);
 
@@ -405,7 +523,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           nodes.push({
             id: innerRouterChild.path,
             label: innerRouterChild.name,
-            color: '#CBC3E3'
+            color: '#CBC3E3',
           });
 
           // Create an edge from the router child to its parent router
@@ -415,7 +533,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
             to: parentId,
             relation: 'router-outlet',
             smooth: true,
-            color: { color: 'purple' },
+            color: { color: 'purple', highlight: 'purple' },
           };
           edges.push(edge);
 
@@ -440,7 +558,6 @@ export class ParentChildComponent implements OnInit, OnDestroy {
   }
 
   populate(obj: any, items: PcItem[] = []): PcItem[] {
-   
     function populateGraph(obj: any, parentComponent?: string): PcItem | void {
       // if current object has a name -> create a node for it
       if (obj.hasOwnProperty('name')) {

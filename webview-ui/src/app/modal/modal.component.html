@@ -1,0 +1,129 @@
+<div class="modal-container">
+  <div class="sidebar" [class.show-sidebar]="isSidebarVisible">
+    <button class="nav-toggle" (click)="toggleSidebar()"></button>
+    <header>{{ modalItem?.label }}</header>
+
+    <ul class="sidebar-content">
+      <li>
+        <div
+          class="click-container"
+          (click)="showSection('inputs')"
+          [class.rotated]="showInputs"
+        >
+          <a
+            href="#"
+            id="a-inputs"
+            (click)="showSection('inputs')"
+            [class.rotated]="showInputs"
+          >
+            Inputs
+          </a>
+          <svg
+            class="arrow"
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            style="fill: white; transform: ; msfilter: "
+            [style.transform]="showInputs ? 'rotate(-180deg)' : 'rotate(0)'"
+          >
+            <path
+              d="M16.293 9.293 12 13.586 7.707 9.293l-1.414 1.414L12 16.414l5.707-5.707z"
+            ></path>
+          </svg>
+        </div>
+        <div *ngIf="showInputs && inputs && inputs.length > 0">
+          <ul class="sublist">
+            <li class="subitem" *ngFor="let input of inputs">
+              <p>
+                Variable: <code id="code-input">{{ input.name }}</code>
+              </p>
+              From:
+              <code id="code-output-parent">{{ input.pathFrom }}</code> Parent
+              Component
+            </li>
+          </ul>
+        </div>
+      </li>
+
+      <li>
+        <div
+          class="click-container"
+          (click)="showSection('outputs')"
+          [class.rotated]="showOutputs"
+        >
+          <a
+            href="#"
+            (click)="showSection('outputs')"
+            [class.rotated]="showOutputs"
+          >
+            Outputs
+          </a>
+          <svg
+            class="arrow"
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            style="fill: white; transform: ; msfilter: "
+            [style.transform]="showOutputs ? 'rotate(-180deg)' : 'rotate(0)'"
+          >
+            <path
+              d="M16.293 9.293 12 13.586 7.707 9.293l-1.414 1.414L12 16.414l5.707-5.707z"
+            ></path>
+          </svg>
+        </div>
+        <div *ngIf="showOutputs && outputs && outputs.length > 0">
+          <ul class="sublist">
+            <li class="subitem" *ngFor="let output of outputs">
+              <p>
+                Variable: <code id="code-output">{{ output.name }}</code>
+              </p>
+              To Parent:
+              <code id="code-output-parent">{{ output.pathTo }}</code>
+            </li>
+          </ul>
+        </div>
+      </li>
+
+      <li>
+        <div
+          class="click-container"
+          (click)="showSection('services')"
+          [class.rotated]="showServices"
+        >
+          <a
+            href="#"
+            id="a-services"
+            (click)="showSection('services')"
+            [class.rotated]="showServices"
+          >
+            Services
+          </a>
+          <svg
+            class="arrow"
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            style="fill: white; transform: ; msfilter: "
+            [style.transform]="showServices ? 'rotate(-180deg)' : 'rotate(0)'"
+          >
+            <path
+              d="M16.293 9.293 12 13.586 7.707 9.293l-1.414 1.414L12 16.414l5.707-5.707z"
+            ></path>
+          </svg>
+        </div>
+        <div *ngIf="showServices && services && services.length > 0">
+          <ul class="sublist">
+            <li class="subitem" *ngFor="let service of services">
+              <p>
+                <code id="code-output">{{ service }}</code>
+              </p>
+            </li>
+          </ul>
+        </div>
+      </li>
+    </ul>
+  </div>
+</div>
