@@ -1,26 +1,41 @@
 .container {
   display: flex;
   flex-direction: column;
+  align-items: center; /* Center items horizontally */
+  justify-content: center; /* Center items vertically */
   background-color: #212121;
+  height: 100vh; /* Ensure the container takes the full viewport height */
+}
+.mainContainer {
+  margin-right: 150px;
 }
 .current-views-container {
   display: flex;
   flex-direction: row;
+  
+}
+.containerOutsideButton {
+  display: flex;
+  justify-content: center;
+  background-color: #212121;
 }
 
 .buttonContainer {
   display: flex;
-  background-color: #212121;
-  height: 90px;
-  display: flex;
   justify-content: center;
-  align-items: center;
+  height: 90px;
+  width: 60vw;
   border-radius: 2px;
+  margin-top: 10px;
   margin-bottom: 20px; /* Adjust as needed */
+  
+ 
+  
 }
 
 /* CSS */
 .button-77 {
+  height: 40px;
   align-items: center;
   appearance: none;
   background-clip: padding-box;
@@ -37,12 +52,13 @@
   font-size: 16px;
   font-weight: 800;
   justify-content: center;
-  line-height: 24px;
-  margin: 0;
-  min-height: 64px;
+  line-height: 15px;
+  margin-left: 15px;
+  margin-right: 15px;
+  min-height: 20px;
   outline: none;
   overflow: visible;
-  padding: 19px 26px;
+  padding: 5px 20px;
   pointer-events: auto;
   position: relative;
   text-align: center;
@@ -55,12 +71,12 @@
   width: auto;
   word-break: keep-all;
   z-index: 0;
-  margin-right: 20px;
+  
 }
 
 @media (min-width: 768px) {
   .button-77 {
-    padding: 19px 32px;
+    padding: 5px 20px;
   }
 }
 
