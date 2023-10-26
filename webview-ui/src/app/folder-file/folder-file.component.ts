@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import { DataSet } from 'vis-data';
 import { Network } from 'vis-network/standalone';
-import { FsItem, PcItem, Node, Edge } from '../../models/FileSystem';
+import { FsItem, PcItem, Node, Edge, DataStore } from '../../models/FileSystem';
 import { ExtensionMessage } from '../../models/message';
 import { URIObj } from 'src/models/uri';
 import { vscode } from '../utilities/vscode';
@@ -151,12 +151,14 @@ export class FolderFileComponent implements OnInit, OnDestroy {
         this.canLoadBar = false;
 
         const state = vscode.getState() as {
-          pcData: any;
-          fsData: any;
+          pcData: DataStore | undefined ;
+          fsData: DataStore | undefined;
           fsNodes: Node[];
           fsEdges: Edge[];
           pcNodes: Node[];
           pcEdges: Edge[];
+          servicesNodes: Node[],
+          servicesEdges: Edge[]
         };
         this.nodes = state.fsNodes;
         this.edges = state.fsEdges;
@@ -199,6 +201,8 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           pcData: state.pcData,
           pcNodes: state.pcNodes,
           pcEdges: state.pcEdges,
+          servicesNodes: state.servicesNodes,
+          servicesEdges: state.servicesEdges
         });
 
         break;
@@ -208,11 +212,13 @@ export class FolderFileComponent implements OnInit, OnDestroy {
       case 'generateFolderFile': {
         this.fsItems = this.populate(message.data.src);
         const state = vscode.getState() as {
-          pcData?: any;
+          pcData?: DataStore;
           fsNodes?: Node[];
           fsEdges?: Edge[];
           pcNodes?: Node[];
           pcEdges?: Edge[];
+          servicesNodes?: Node[],
+          servicesEdges?: Edge[]
         };
 
         const { nodes, edges } = this.createNodesAndEdges(
@@ -269,6 +275,8 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           pcData: state.pcData,
           pcNodes: state.pcNodes,
           pcEdges: state.pcEdges,
+          servicesNodes: state.servicesNodes,
+          servicesEdges: state.servicesEdges
         });
         break;
       }
@@ -277,8 +285,8 @@ export class FolderFileComponent implements OnInit, OnDestroy {
       case 'reloadFolderFile': {
         this.canLoadBar = false;
         const state = vscode.getState() as {
-          pcData: any;
-          fsData: any;
+          pcData: DataStore;
+          fsData: DataStore;
           fsNodes: Node[];
           fsEdges: Edge[];
         };

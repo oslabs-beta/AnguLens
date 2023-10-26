@@ -13,6 +13,7 @@ import {
   RouterChildren,
   ServiceItem,
   InjectionPoint,
+  DataStore
 } from '../../models/FileSystem';
 import { Router } from '@angular/router';
 
@@ -24,7 +25,6 @@ import { Router } from '@angular/router';
 export class ServicesViewComponent implements OnInit, OnDestroy{
   @ViewChild('networkContainer') networkContainer!: ElementRef;
   constructor() {}
-  persisting: boolean = false;
   services: ServiceItem[] = [];
   network: Network | undefined;
   nodes: Node[] = [];
@@ -76,7 +76,6 @@ export class ServicesViewComponent implements OnInit, OnDestroy{
     switch (message.command) {  
       
       case 'updateServices': {
-        this.persisting = true;
         const serviceObj = message.data;
         const state = vscode.getState() as {
           pcData: any;
@@ -114,8 +113,36 @@ export class ServicesViewComponent implements OnInit, OnDestroy{
           fsEdges: state.fsEdges,
           pcNodes: state.pcNodes,
           pcEdges: state.pcEdges,
-          servicesData: data
+          servicesNodes: nodes,
+          servicesEdges: edges
         });
+        break;
+      }
+
+      case 'reloadServices': {
+       const state = vscode.getState() as {
+          pcData: DataStore | undefined;
+          fsData: DataStore | undefined;
+          fsNodes: Node[];
+          fsEdges: Edge[];
+          pcNodes: Node[];
+          pcEdges: Edge[];
+          servicesNodes: Node[],
+          servicesEdges: Edge[]
+        };
+        this.nodes = state.servicesNodes;
+        this.edges = state.servicesEdges;
+        const newNodes = new DataSet(state.servicesNodes);
+        const newEdges = new DataSet(state.servicesEdges);
+        const data: {
+          nodes: DataSet<any, 'id'>;
+          edges: DataSet<any, 'id'>;
+        } = {
+          nodes: newNodes,
+          edges: newEdges,
+        };
+        const container = this.networkContainer.nativeElement;
+        this.network = new Network(container, data, this.options);
         break;
       }
 
