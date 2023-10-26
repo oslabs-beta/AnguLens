@@ -7,7 +7,7 @@ import {
   OnDestroy,
 } from '@angular/core';
 import { DataSet, DataView } from 'vis-data';
-import { Network } from 'vis-network';
+import { Network } from 'vis-network/standalone';
 import { ExtensionMessage } from '../../models/message';
 import { vscode } from '../utilities/vscode';
 import {
@@ -37,6 +37,10 @@ export class ServicesViewComponent implements OnInit, OnDestroy {
   nodes: Node[] = [];
   edges: Edge[] = [];
   options = {
+    interaction: {
+      navigationButtons: true,
+      keyboard: true,
+    },
     layout: {
       hierarchical: {
         direction: 'UD', // Up-Down direction
@@ -68,6 +72,8 @@ export class ServicesViewComponent implements OnInit, OnDestroy {
         roundness: 0.4,
       },
     },
+
+    
   };
   private handleMessageEvent = (event: MessageEvent) => {
     const message: ExtensionMessage = event.data;

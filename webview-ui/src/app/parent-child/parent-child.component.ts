@@ -7,7 +7,7 @@ import {
   OnDestroy,
 } from '@angular/core';
 import { DataSet, DataView } from 'vis-data';
-import { Network } from 'vis-network';
+import { Network } from 'vis-network/standalone';
 import { ExtensionMessage } from '../../models/message';
 import { ParentChildServices } from 'src/services/ParentChildServices';
 
@@ -261,6 +261,10 @@ export class ParentChildComponent implements OnInit, OnDestroy {
   };
 
   options = {
+    interaction: {
+      navigationButtons: true,
+      keyboard: true,
+    },
     layout: {
       hierarchical: {
         direction: 'UD', // Up-Down direction

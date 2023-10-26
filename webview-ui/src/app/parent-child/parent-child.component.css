@@ -1,7 +1,6 @@
 .center {
   display: flex;
   justify-content: flex-end;
-  background-color: #212121;
   margin-bottom: 10px;
 }
 .dropbtn {
@@ -56,7 +55,7 @@
   cursor: pointer;
   display: inline-block;
   font-size: 14px;
-  height: 50px;
+  height: 45px;
   line-height: 20px;
   list-style: none;
   margin: 0;
@@ -85,7 +84,6 @@
   justify-content: center;
   width: 70vw;
   height: max-content;
-  background-color: #212121;
 }
 .nodesContainer {
   display: flex;
@@ -116,6 +114,7 @@
 .arrow {
   font-size: 35px;
   margin-right: 10px;
+  margin-top: 10px;
 }
 
 .edgesContainer {
