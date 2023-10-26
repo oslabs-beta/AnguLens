@@ -9,13 +9,41 @@
   </div>
 </div>
 
-<div
+  <div
   #networkContainer
   style="
     margin-left: 5rem;
     width: 70vw;
     height: 70vh;
     background-color: white;
-  "
+    "
 ></div>
+<div class="legendContainer">
+  <div class="nodesContainer">
+    <div class="circleContainer">
+      <div class="legendCircle" style="background-color:#ff6961;"></div>
+      <h4 class="nodeTitle">Root Node</h4>
+    </div>
+    <div class="circleContainer">
+      <div class="legendCircle" style="background-color: #CBC3E3;"></div>
+      <h4 class="nodeTitle">Router-Outlet Node</h4>
+    </div>
+    <div class="circleContainer">
+      <div class="legendCircle" style="background-color: #92cbf3;"></div>
+      <h4 class="nodeTitle">Component Node</h4>
+    </div>
+  </div>
+  <div class="edgesContainer">
+    <div class="edge">
+      <div class="arrow" style="color: green;">&#8594;</div>
+      <h4 class="edgeTitle">Inputs</h4>
+    </div>
+    <div class="edge">
+      <div class="arrow" style="color: red;">&#8594;</div>
+      <h4 class="edgeTitle">Outputs</h4>
+    </div>
+  </div>
+  
+</div>
+
 
