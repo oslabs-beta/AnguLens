@@ -21,6 +21,7 @@ import {
   Output,
   RouterChildren,
   DataStore,
+  ServiceItem,
 } from '../../models/FileSystem';
 import { Router } from '@angular/router';
 @Component({
@@ -37,6 +38,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
   nodes: Node[] = [];
   edges: Edge[] = [];
   pcItems: PcItem[] = [];
+  servicesData: ServiceItem[] | undefined;
   private network: Network | undefined;
 
   handleClickModal(network: Network) {
@@ -45,7 +47,6 @@ export class ParentChildComponent implements OnInit, OnDestroy {
         const nodeId = params.nodes[0];
         if (nodeId) {
           // Open Modal for specific node component
-          console.log(this.pcItems, 'PC ITEMS');
           let deliverPc: PcItem | null = null;
           for (const item of this.pcItems) {
             if (item.id === nodeId) {
@@ -53,13 +54,30 @@ export class ParentChildComponent implements OnInit, OnDestroy {
               break;
             }
           }
+          const nodeServices: string[] = [];
+          // iterate through each service in array
+          this.servicesData?.forEach((service: ServiceItem) => {
+            // filter out node in injectionPoints key array
+            const containsNode = service.injectionPoints.filter(
+              (node) => node.folderPath === nodeId
+            );
+
+            if (containsNode.length > 0) {
+              console.log('NODE ID', nodeId);
+              console.log('CONTAINSNODE', containsNode);
+              console.log('CONTAINS NODE SERVICE', service);
+              nodeServices.push(service.className);
+            }
+          });
 
           const edgeRelations = this.getEdgesOfNode(nodeId);
 
-          if (deliverPc && edgeRelations) {
+          if (deliverPc && edgeRelations && nodeServices) {
+            console.log('nodeServices', nodeServices);
             this.pcService.openModal({
               pcItem: deliverPc as PcItem,
               edges: edgeRelations as Object,
+              services: nodeServices as string[],
             });
           }
         }
@@ -94,10 +112,12 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           pcEdges: Edge[];
           servicesNodes: Node[];
           servicesEdges: Edge[];
+          servicesData: ServiceItem[];
           pcItems: PcItem[];
         };
         this.nodes = state.pcNodes;
         this.edges = state.pcEdges;
+        this.servicesData = state.servicesData;
         const newNodes = new DataSet(state.pcNodes);
         const newEdges = new DataSet(state.pcEdges);
         const data: {
@@ -120,6 +140,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           pcEdges: state.pcEdges,
           servicesNodes: state.servicesNodes,
           servicesEdges: state.servicesEdges,
+          servicesData: state.servicesData,
         });
         this.handleClickModal(this.network);
         break;
@@ -138,11 +159,13 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           pcEdges: Edge[];
           servicesNodes: Node[];
           servicesEdges: Edge[];
+          servicesData: ServiceItem[];
         };
 
         const { nodes, edges } = this.createNodesAndEdges(this.pcItems);
         this.nodes = nodes;
         this.edges = edges;
+        this.servicesData = state.servicesData;
 
         const newNodes = new DataSet(nodes);
         const newEdges = new DataSet(edges);
@@ -169,6 +192,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           pcEdges: this.edges,
           servicesNodes: state.servicesNodes,
           servicesEdges: state.servicesEdges,
+          servicesData: state.servicesData,
         });
         this.network = new Network(container, data, this.options);
         this.handleClickModal(this.network);
@@ -184,14 +208,49 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           pcNodes: Node[];
           pcEdges: Edge[];
           pcItems: PcItem[];
+          servicesData: ServiceItem[];
         };
         this.nodes = state.pcNodes;
         this.edges = state.pcEdges;
         this.pcItems = state.pcItems;
+        this.servicesData = state.servicesData;
+
+        console.log('pcItems', this.pcItems);
 
         const container = this.networkContainer.nativeElement;
         this.network = new Network(container, state.pcData, this.options);
         this.handleClickModal(this.network);
+        break;
+      }
+
+      case 'updateServices': {
+        this.servicesData = message.data;
+        const state = vscode.getState() as {
+          pcData: DataStore | undefined;
+          fsData: DataStore | undefined;
+          fsNodes: Node[];
+          fsEdges: Edge[];
+          pcNodes: Node[];
+          pcEdges: Edge[];
+          pcItems: PcItem[];
+          servicesNodes: Node[];
+          servicesEdges: Edge[];
+          servicesData: ServiceItem[];
+        };
+
+        vscode.setState({
+          pcData: state.pcData,
+          fsData: state.fsData,
+          fsNodes: state.fsNodes,
+          fsEdges: state.fsEdges,
+          pcNodes: state.pcNodes,
+          pcEdges: state.pcEdges,
+          pcItems: state.pcItems,
+          servicesNodes: state.servicesNodes,
+          servicesEdges: state.servicesEdges,
+          servicesData: this.servicesData,
+        });
+        console.log('SERVICE DATA', this.servicesData);
         break;
       }
 

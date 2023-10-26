@@ -11,7 +11,7 @@ export class ModalComponent implements OnInit {
   modalItem: PcItem | null = null;
   inputs: any[] = []; // Array for selected node's inputs (Node receiving data from its parent)
   outputs: any[] = []; // Array for outputs (Node sending data to its child)
-  injectables: any[] = []; // Array for injectables
+  services: string[] = []; // Array for injectables
   section: string = '';
   showInputs = true;
   showOutputs = true;
@@ -27,6 +27,7 @@ export class ModalComponent implements OnInit {
       console.log(this.inputs, 'INPUTS');
       this.outputs = deliverable.pcItem.outputs;
       this.connectEdges(this.inputs, this.outputs);
+      this.services = [...deliverable.services];
       this.showInputs = true;
       this.showOutputs = true;
       this.openModal();
@@ -61,8 +62,6 @@ export class ModalComponent implements OnInit {
     this.isSidebarVisible = true;
   }
 
-
-  
   showSection(section: string) {
     switch (section) {
       case 'inputs':

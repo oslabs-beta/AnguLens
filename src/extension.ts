@@ -87,7 +87,7 @@ export function activate(context: vscode.ExtensionContext) {
         path.join(
           __dirname,
           "../webview-ui/dist/webview-ui",
-          "main.307b3409181dc2ca.js"
+          "main.2850b52e76eb4360.js"
         )
       )
     );
@@ -112,7 +112,8 @@ export function activate(context: vscode.ExtensionContext) {
     let currentFilePath: string = "";
     let pcObject: object = {};
     let fsObject: object = {};
-
+    let cachedServicesObject: object;
+    let generatedServices: boolean = false;
     panel.webview.onDidReceiveMessage(
       (message: Message) => {
         switch (message.command) {
@@ -121,6 +122,7 @@ export function activate(context: vscode.ExtensionContext) {
             selectorNames = [];
             servicesList = []; //Do we need to create this here AND instantiate the variable on line 115? or is that overkill?
             modulesList = []; // same a above
+            generatedServices = false;
             const srcRootPath = message.data.filePath;
             currentFilePath = message.data.filePath;
             let rootPath: string = "";
@@ -153,15 +155,16 @@ export function activate(context: vscode.ExtensionContext) {
           }
 
           case "loadServices": {
-            if (servicesList) {
+            if (!generatedServices) {
+              cachedServicesObject = populateServicesView(
+                selectorNames,
+                servicesList
+              );
+              generatedServices = true;
             }
-            const servicesObject: any = populateServicesView(
-              selectorNames,
-              servicesList
-            );
             const serviceMessage: Message = {
               command: "updateServices",
-              data: servicesObject,
+              data: cachedServicesObject,
             };
             panel.webview.postMessage(serviceMessage);
             break;

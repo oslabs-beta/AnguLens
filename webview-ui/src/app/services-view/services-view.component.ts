@@ -1,4 +1,11 @@
-import { Component, ChangeDetectionStrategy, ElementRef, OnInit, ViewChild, OnDestroy } from '@angular/core';
+import {
+  Component,
+  ChangeDetectionStrategy,
+  ElementRef,
+  OnInit,
+  ViewChild,
+  OnDestroy,
+} from '@angular/core';
 import { DataSet, DataView } from 'vis-data';
 import { Network } from 'vis-network';
 import { ExtensionMessage } from '../../models/message';
@@ -13,16 +20,16 @@ import {
   RouterChildren,
   ServiceItem,
   InjectionPoint,
-  DataStore
+  DataStore,
 } from '../../models/FileSystem';
 import { Router } from '@angular/router';
 
 @Component({
   selector: 'services-view',
   templateUrl: './services-view.component.html',
-  styleUrls: ['./services-view.component.css']
+  styleUrls: ['./services-view.component.css'],
 })
-export class ServicesViewComponent implements OnInit, OnDestroy{
+export class ServicesViewComponent implements OnInit, OnDestroy {
   @ViewChild('networkContainer') networkContainer!: ElementRef;
   constructor() {}
   services: ServiceItem[] = [];
@@ -72,8 +79,7 @@ export class ServicesViewComponent implements OnInit, OnDestroy{
   private handleMessageEvent = (event: MessageEvent) => {
     const message: ExtensionMessage = event.data;
 
-    switch (message.command) {  
-      
+    switch (message.command) {
       case 'updateServices': {
         const serviceObj = message.data;
         const state = vscode.getState() as {
@@ -83,9 +89,11 @@ export class ServicesViewComponent implements OnInit, OnDestroy{
           fsEdges: Edge[];
           pcNodes: Node[];
           pcEdges: Edge[];
+          pcItems: PcItem[];
+          servicesData: ServiceItem[];
         };
 
-        //run message.data through helper functions 
+        //run message.data through helper functions
         this.services = this.populate(serviceObj);
 
         //turn into nodes and edges
@@ -112,21 +120,23 @@ export class ServicesViewComponent implements OnInit, OnDestroy{
           pcNodes: state.pcNodes,
           pcEdges: state.pcEdges,
           servicesNodes: nodes,
-          servicesEdges: edges
+          servicesEdges: edges,
+          pcItems: state.pcItems,
+          servicesData: state.servicesData,
         });
         break;
       }
 
       case 'reloadServices': {
-       const state = vscode.getState() as {
+        const state = vscode.getState() as {
           pcData: DataStore | undefined;
           fsData: DataStore | undefined;
           fsNodes: Node[];
           fsEdges: Edge[];
           pcNodes: Node[];
           pcEdges: Edge[];
-          servicesNodes: Node[],
-          servicesEdges: Edge[]
+          servicesNodes: Node[];
+          servicesEdges: Edge[];
         };
         this.nodes = state.servicesNodes;
         this.edges = state.servicesEdges;
@@ -145,7 +155,10 @@ export class ServicesViewComponent implements OnInit, OnDestroy{
       }
 
       default:
-        console.log('Services DEFAULT CASE unknown command ->', message.command);
+        console.log(
+          'Services DEFAULT CASE unknown command ->',
+          message.command
+        );
         break;
     }
   };
@@ -153,7 +166,7 @@ export class ServicesViewComponent implements OnInit, OnDestroy{
   setupMessageListener(): void {
     window.addEventListener('message', this.handleMessageEvent);
   }
-  
+
   ngOnInit(): void {
     this.setupMessageListener();
   }
@@ -163,7 +176,10 @@ export class ServicesViewComponent implements OnInit, OnDestroy{
     window.removeEventListener('message', this.handleMessageEvent);
   }
 
-  createNodesEdges(serviceItems: ServiceItem[]) : { nodes: Node[], edges: Edge[]} {
+  createNodesEdges(serviceItems: ServiceItem[]): {
+    nodes: Node[];
+    edges: Edge[];
+  } {
     const nodes: Node[] = [];
     const edges: Edge[] = [];
     let idCounter = 0;
@@ -177,7 +193,7 @@ export class ServicesViewComponent implements OnInit, OnDestroy{
         item.injectionPoints.forEach((injectItem: InjectionPoint) => {
           const newInjectNode: Node = {
             id: `${injectItem.folderPath}-${idCounter}`,
-            label: injectItem.selectorName
+            label: injectItem.selectorName,
           };
           nodes.push(newInjectNode);
           const newEdge: Edge = {
@@ -191,10 +207,10 @@ export class ServicesViewComponent implements OnInit, OnDestroy{
       idCounter++;
     });
 
-    return {nodes, edges};
+    return { nodes, edges };
   }
 
-  populate(servicesItems: ServiceItem[] = []) : ServiceItem[] {
+  populate(servicesItems: ServiceItem[] = []): ServiceItem[] {
     const serviceArray: ServiceItem[] = [];
     servicesItems.forEach((item: ServiceItem) => {
       const newServiceItem: ServiceItem = {
@@ -202,7 +218,7 @@ export class ServicesViewComponent implements OnInit, OnDestroy{
         fileName: item.fileName,
         injectionPoints: item.injectionPoints,
         path: item.path,
-        providedIn: item.providedIn
+        providedIn: item.providedIn,
       };
       serviceArray.push(newServiceItem);
     });

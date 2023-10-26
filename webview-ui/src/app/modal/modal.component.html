@@ -114,16 +114,15 @@
             ></path>
           </svg>
         </div>
-        <!-- <div *ngIf="showServices && outputs && outputs.length > 0">
+        <div *ngIf="showServices && services && services.length > 0">
           <ul class="sublist">
-            <li class="subitem" *ngFor="let output of outputs">
+            <li class="subitem" *ngFor="let service of services">
               <p>
-                Variable: <code>{{ output.name }}</code>
+                <code id="code-output">{{ service }}</code>
               </p>
-              To Parent: {{ output.pathTo }}
             </li>
           </ul>
-        </div> -->
+        </div>
       </li>
     </ul>
   </div>
