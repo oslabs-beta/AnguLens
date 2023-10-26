@@ -199,6 +199,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
         direction: 'UD', // Up-Down direction
         // nodeSpacing: 1000,
         // levelSeparation: 300,
+        parentCentralization: true,
         edgeMinimization: true,
         shakeTowards: 'roots', // Tweak the layout algorithm to get better results
         // sortMethod: 'directed', // Sort based on the hierarchical structure
@@ -217,6 +218,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
     },
 
     edges: {
+      color: 'blue',
       smooth: {
         enabled: true,
         type: 'cubicBezier',
@@ -294,66 +296,30 @@ export class ParentChildComponent implements OnInit, OnDestroy {
   createNodesAndEdges(pcItems: PcItem[]): { nodes: Node[]; edges: Edge[] } {
     const nodes: Node[] = [];
     const edges: Edge[] = [];
+
+    let hasAddedRootNode = false;
     // Helper function to recursively add nodes and edges
     function addNodesAndEdges(item: PcItem, parentFolder?: string) {
-      console.log('itemHERERE', item);
-      //start of adding router nodes and edges
-      if (item.router !== undefined && item.router.children) {
-        // Create the "router-outlet" node
-        const routerOutletNode: Node = {
-          id: 'router-outlet',
-          label: 'router-outlet',
-          color: '#CBC3E3',
-        };
-        nodes.push(routerOutletNode);
-        const edge: Edge = {
-          id: `${item.id}-router-outlet`,
-          from: routerOutletNode.id,
-          to: item.id, // Connect to the "router-outlet" node
-          relation: 'router-outlet',
-          smooth: true,
-          color: { color: 'purple' },
-        };
-        edges.push(edge);
-        //recursively add children
-        for (const routerChild of item.router.children) {
-          // Add the router component as a node
-          nodes.push({
-            id: routerChild.path,
-            label: routerChild.name,
-            color: '#CBC3E3',
-          });
-
-          // Create an edge from the router component to the "router-outlet"
-          const edge: Edge = {
-            id: `${routerChild.name}-router-outlet`,
-            from: routerChild.path,
-            to: 'router-outlet', // Connect to the "router-outlet" node
-            relation: 'router',
-            smooth: true,
-            color: { color: 'purple' },
-          };
-          edges.push(edge);
-
-          // Recursively add nodes and edges for children of router children
-          if (routerChild.children && routerChild.children.length > 0) {
-            for (const innerRouterChild of routerChild.children) {
-              routerChildrenHelper(innerRouterChild, routerChild.path);
-            }
-          }
-        }
-      }
       // Check if the node already exists to avoid duplicates
       const existingNode = nodes.find((node) => node.id === item.id);
       if (!existingNode) {
         // Add the current item as a node
         let fileImg: string = '';
         let selectedImg: string = '';
-        nodes.push({
-          id: item.id,
-          label: item.label,
-        });
 
+        if (!hasAddedRootNode) {
+          nodes.push({
+            id: item.id,
+            label: item.label,
+            color: '#ff6961',
+          });
+          hasAddedRootNode = true;
+        } else {
+          nodes.push({
+            id: item.id,
+            label: item.label,
+          });
+        }
         if (item.inputs.length > 0) {
           // iterate through inputs array
           for (let inputItem in item.inputs) {
@@ -424,6 +390,53 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           }
         }
       }
+
+      //add router and roputer children nodes and edges
+      if (item.router !== undefined && item.router.children) {
+        // Create the "router-outlet" node
+        const routerOutletNode: Node = {
+          id: 'router-outlet',
+          label: 'router-outlet',
+          color: '#CBC3E3',
+        };
+        nodes.push(routerOutletNode);
+        const edge: Edge = {
+          id: `${item.id}-router-outlet`,
+          from: routerOutletNode.id,
+          to: item.id, // Connect to the "router-outlet" node
+          relation: 'router-outlet',
+          smooth: true,
+          color: { color: 'purple' },
+        };
+        edges.push(edge);
+        //recursively add children
+        for (const routerChild of item.router.children) {
+          // Add the router component as a node
+          nodes.push({
+            id: routerChild.path,
+            label: routerChild.name,
+            color: '#CBC3E3',
+          });
+
+          // Create an edge from the router component to the "router-outlet"
+          const edge: Edge = {
+            id: `${routerChild.name}-router-outlet`,
+            from: routerChild.path,
+            to: 'router-outlet', // Connect to the "router-outlet" node
+            relation: 'router',
+            smooth: true,
+            color: { color: 'purple' },
+          };
+          edges.push(edge);
+
+          // Recursively add nodes and edges for children of router children
+          if (routerChild.children && routerChild.children.length > 0) {
+            for (const innerRouterChild of routerChild.children) {
+              routerChildrenHelper(innerRouterChild, routerChild.path);
+            }
+          }
+        }
+      }
       // Helper function for adding nodes and edges for children of router children
       function routerChildrenHelper(
         innerRouterChild: RouterChildren,
@@ -473,9 +486,6 @@ export class ParentChildComponent implements OnInit, OnDestroy {
   }
 
   populate(obj: any, items: PcItem[] = []): PcItem[] {
-    console.log('obj HERE', obj);
-    // let firstKey = Object.keys(obj)[0];
-
     function populateGraph(obj: any, parentComponent?: string): PcItem | void {
       // if current object has a name -> create a node for it
       if (obj.hasOwnProperty('name')) {
