@@ -256,6 +256,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
         };
         const container = this.networkContainer.nativeElement;
         this.network = new Network(container, data, this.options);
+
         this.handleLoadingBar(this.network);
         //event listener for double click to open file
         this.network.on('doubleClick', (params: any) => {
@@ -454,6 +455,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
 
           font: {
             color: 'white',
+            size: 14,
           },
         };
 
@@ -473,6 +475,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
               id: `${item.id}-${childId}`,
               from: item.id,
               to: childId,
+              color: 'gold',
             };
             edges.push(edge);
             const child = fsItems.find((fsItem) => fsItem.id === childId);
