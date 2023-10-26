@@ -1,6 +1,17 @@
 <div align="center">
-  <img src='./assets/Angulens_3.png' alt="Magnifying glass AnguLens logo" width="200" height="200">
+  <img src="./assets/Angulens_3.png" alt="Magnifying glass AnguLens logo" width="200" height="200">
 </div>
+
+<div align="center"> 
+  <img src="https://img.shields.io/badge/version-1.0.0-darkred?logoColor=white" alt="Version number: 1.0.0">
+  <img src="https://img.shields.io/badge/Contributors-4-darkred?logoColor=white" alt="Contributors: 4">
+</div>
+
+<div align="center"> 
+  <img src="https://img.shields.io/badge/Angular-darkred?style=flat-square&logo=angular" alt="angular badge">
+  <img src="https://img.shields.io/badge/TypeScript-blue?style=flat-square&logo=typescript&logoColor=white" alt="typescript badge">
+</div>
+
 
 #
 
@@ -28,4 +39,36 @@ Using AnguLens you can:
 3. Right click on "src" folder in Angular project 
 4. Click "Copy Path"
 5. Paste path into text input and click generate
-  
+
+
+
+# Folder-File view
+Displays file structure of selected directory 
+- Click on folders to open or close them for a cleaner view 
+- Double click files to navigate current VSCode window to clicked file 
+
+# Component view
+Displays component hierarchy, including routers, with overlayed connections representing different connections
+- Filter component connections using dropdown menu
+  - Inputs/Outputs
+  - Component Hierarchy
+- Click on components to get additional information in modal
+
+
+[contributors-url]: https://github.com/oslabs-beta/AnguLens/graphs/contributors
+[contributors-shield]: https://img.shields.io/badge/Contributors-4-darkred?logoColor=white
+[version-shield]: https://img.shields.io/badge/version-1.0.0-darkred?logoColor=white
+[angular-shield]: https://img.shields.io/badge/Angular-darkred?style=flat-square&logo=angular
+[angular-url]: https://angular.io/
+[typescript-shield]: https://img.shields.io/badge/TypeScript-blue?style=flat-square&logo=typescript&logoColor=white
+[typescript-url]: https://www.typescriptlang.org/
+
+# Contributing
+AnguLens is an open source project and we encourage iteration and or contribution. To coontribute fork the repo, make feature branches, and PR from your feature branch into AnguLen's dev. 
+
+## Current Roadmap
+  - Removing use of retain context when hidden from VSCode API and use state instead
+  - Support for Workspaces/monorepos
+  - Mapping Signals
+  - Expanding module support 
+  - Mapping Observabels 
