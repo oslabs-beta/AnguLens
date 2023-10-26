@@ -1,3 +1,9 @@
+@import url("https://fonts.googleapis.com/css2?family=Rubik&family=Work+Sans:wght@600&display=swap");
+* {
+  font-family: "Rubik", sans-serif;
+  font-weight: 600;
+}
+
 .container {
   display: flex;
   flex-direction: column;
@@ -12,7 +18,6 @@
 .current-views-container {
   display: flex;
   flex-direction: row;
-  
 }
 .containerOutsideButton {
   display: flex;
@@ -27,14 +32,7 @@
   height: max-content;
   width: max-content;
   border-radius: 2px;
-  
-  
-  
- 
-  
 }
-
-
 
 /* CSS */
 .button-82-pushable {
@@ -61,10 +59,7 @@
   background: hsl(0deg 0% 0% / 0.25);
   will-change: transform;
   transform: translateY(2px);
-  transition:
-    transform
-    600ms
-    cubic-bezier(.3, .7, .4, 1);
+  transition: transform 600ms cubic-bezier(0.3, 0.7, 0.4, 1);
 }
 
 .button-82-edge {
@@ -93,10 +88,7 @@
   background: hsl(345, 100%, 37%);
   will-change: transform;
   transform: translateY(-4px);
-  transition:
-    transform
-    600ms
-    cubic-bezier(.3, .7, .4, 1);
+  transition: transform 600ms cubic-bezier(0.3, 0.7, 0.4, 1);
 }
 
 @media (min-width: 768px) {
@@ -113,10 +105,7 @@
 
 .button-82-pushable:hover .button-82-front {
   transform: translateY(-6px);
-  transition:
-    transform
-    250ms
-    cubic-bezier(.3, .7, .4, 1.5);
+  transition: transform 250ms cubic-bezier(0.3, 0.7, 0.4, 1.5);
 }
 
 .button-82-pushable:active .button-82-front {
@@ -126,10 +115,7 @@
 
 .button-82-pushable:hover .button-82-shadow {
   transform: translateY(4px);
-  transition:
-    transform
-    250ms
-    cubic-bezier(.3, .7, .4, 1.5);
+  transition: transform 250ms cubic-bezier(0.3, 0.7, 0.4, 1.5);
 }
 
 .button-82-pushable:active .button-82-shadow {
