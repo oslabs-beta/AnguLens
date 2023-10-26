@@ -157,11 +157,17 @@ div.outerBorder {
 
 .legendContainer {
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
   width: 100vw;
   height: 200px;
   background-color: rgb(41, 38, 38);
   
+}
+.nodesContainer {
+  display: flex;
+  justify-content: center;
 }
 
 .circleContainer{
@@ -183,4 +189,21 @@ div.outerBorder {
   font-weight: 400;
   margin-right: 20px;
   
+}
+.edge {
+  display: flex;
+}
+.arrow{
+  font-size: 50px;
+  margin-right: 10px;
+}
+
+.edgesContainer {
+  display: flex;
+}
+
+
+.edgeTitle {
+  color: white;
+  margin-right: 10px;
 }
