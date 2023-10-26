@@ -86,7 +86,7 @@ export function activate(context: vscode.ExtensionContext) {
         path.join(
           __dirname,
           "../webview-ui/dist/webview-ui",
-          "main.106aa7170bdeae54.js"
+          "main.05da7abc3467d6b3.js"
         )
       )
     );
@@ -103,8 +103,8 @@ export function activate(context: vscode.ExtensionContext) {
       command: string;
       data: any;
     }
-    
-    let items: any[] =[];
+
+    let items: any[] = [];
     let selectorNames: object[] = [];
     let servicesList: object[] = [];
     let modulesList: object[] = [];
@@ -134,7 +134,12 @@ export function activate(context: vscode.ExtensionContext) {
             klaw(rootPath)
               .on("data", (item) => items.push(item))
               .on("end", () => {
-                fsObject = populateStructure(items, selectorNames, servicesList, modulesList);
+                fsObject = populateStructure(
+                  items,
+                  selectorNames,
+                  servicesList,
+                  modulesList
+                );
 
                 const sendNewPathObj: Message = {
                   command: "generateFolderFile",

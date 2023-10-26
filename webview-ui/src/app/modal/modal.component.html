@@ -12,6 +12,7 @@
         >
           <a
             href="#"
+            id="a-inputs"
             (click)="showSection('inputs')"
             [class.rotated]="showInputs"
           >
@@ -35,9 +36,11 @@
           <ul class="sublist">
             <li class="subitem" *ngFor="let input of inputs">
               <p>
-                Variable: <code>{{ input.name }}</code>
+                Variable: <code id="code-input">{{ input.name }}</code>
               </p>
-              From: {{ input.pathFrom }} Parent Component
+              From:
+              <code id="code-output-parent">{{ input.pathFrom }}</code> Parent
+              Component
             </li>
           </ul>
         </div>
@@ -76,7 +79,8 @@
               <p>
                 Variable: <code id="code-output">{{ output.name }}</code>
               </p>
-              To Parent: {{ output.pathTo }}
+              To Parent:
+              <code id="code-output-parent">{{ output.pathTo }}</code>
             </li>
           </ul>
         </div>
@@ -90,6 +94,7 @@
         >
           <a
             href="#"
+            id="a-services"
             (click)="showSection('services')"
             [class.rotated]="showServices"
           >

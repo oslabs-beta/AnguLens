@@ -145,9 +145,34 @@ code {
   font-family: monospace;
   background: rgba(135, 131, 120, 0.15);
   color: #eb5757;
-  font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono",
-    Courier, monospace;
+  padding: 0.25em;
+  border: 20px;
 }
 
-#code-output {
+#a-inputs {
+  color: #04bd6c;
+  font-weight: 400;
+}
+
+#code-input {
+  font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono",
+    Courier, monospace;
+  color: #04bd6c;
+  padding: 0.25em;
+  margin-top: 0.11em;
+  border: 20px;
+}
+
+#a-services {
+  color: white;
+  font-weight: 400;
+}
+
+#code-output-parent {
+  color: #ffcf40;
+  font-family: monospace;
+  background: rgba(135, 131, 120, 0.15);
+  padding: 0.25em;
+  border: 20px;
+  margin-top: 0.11em;
 }
