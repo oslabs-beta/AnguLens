@@ -33,12 +33,11 @@ export class ServicesViewComponent implements OnInit, OnDestroy{
     layout: {
       hierarchical: {
         direction: 'UD', // Up-Down direction
+        sortMethod: 'directed',
         // nodeSpacing: 1000,
         // levelSeparation: 300,
-        parentCentralization: true,
+        parentCentralization: false,
         edgeMinimization: true,
-        shakeTowards: 'roots', // Tweak the layout algorithm to get better results
-        // sortMethod: 'directed', // Sort based on the hierarchical structure
       },
     },
 
@@ -143,7 +142,7 @@ export class ServicesViewComponent implements OnInit, OnDestroy{
     console.log('running createNodesEdges');
     const nodes: Node[] = [];
     const edges: Edge[] = [];
-    
+    let idCounter = 0;
     serviceItems.forEach((item: ServiceItem) => {
       const newServiceNode: Node = {
         id: item.path,
@@ -152,22 +151,20 @@ export class ServicesViewComponent implements OnInit, OnDestroy{
       nodes.push(newServiceNode);
       if (item.injectionPoints.length > 0) {
         item.injectionPoints.forEach((injectItem: InjectionPoint) => {
-          const existingNode = nodes.find((node) => node.id === injectItem.folderPath);
-          if(!existingNode){
-            const newInjectNode: Node = {
-              id: injectItem.folderPath,
-              label: injectItem.selectorName
-            };
-            nodes.push(newInjectNode);
-          }
+          const newInjectNode: Node = {
+            id: `${injectItem.folderPath}-${idCounter}`,
+            label: injectItem.selectorName
+          };
+          nodes.push(newInjectNode);
           const newEdge: Edge = {
-            id: `${item.path}-${injectItem.folderPath}`,
+            id: `${item.path}-${injectItem.folderPath}-${idCounter}`,
             from: item.path,
-            to: injectItem.folderPath,
+            to: newInjectNode.id,
           };
           edges.push(newEdge);
         });
       }
+      idCounter++;
     });
 
     return {nodes, edges};
