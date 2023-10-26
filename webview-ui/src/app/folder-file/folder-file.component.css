@@ -1,8 +1,6 @@
 .center-container {
   display: flex;
-  flex-grow: 3;
-  flex-direction: column;
-  align-items: center;
+  justify-content: flex-end;
   background-color: #212121;
   margin-bottom: 10px;
 }
@@ -25,18 +23,14 @@
 }
 
 .network-container {
-  width: 60vw;
-  height: 60vh;
+  width: 70vw;
+  height: 70vh;
   background-color: white;
   margin-left: 5rem;
   display: block;
 }
 
-#mynetwork {
-  width: 60vw;
-  height: 60vh;
-  border: 1px solid lightgray;
-}
+
 #loadingBar {
   position: absolute;
   top: 0px;
