@@ -71,7 +71,6 @@ export class ServicesViewComponent implements OnInit, OnDestroy{
   };
   private handleMessageEvent = (event: MessageEvent) => {
     const message: ExtensionMessage = event.data;
-    console.log('caught message?', message);
 
     switch (message.command) {  
       
@@ -86,7 +85,6 @@ export class ServicesViewComponent implements OnInit, OnDestroy{
           pcEdges: Edge[];
         };
 
-        console.log('services in service component ', serviceObj);
         //run message.data through helper functions 
         this.services = this.populate(serviceObj);
 
@@ -166,7 +164,6 @@ export class ServicesViewComponent implements OnInit, OnDestroy{
   }
 
   createNodesEdges(serviceItems: ServiceItem[]) : { nodes: Node[], edges: Edge[]} {
-    console.log('running createNodesEdges');
     const nodes: Node[] = [];
     const edges: Edge[] = [];
     let idCounter = 0;
@@ -198,7 +195,6 @@ export class ServicesViewComponent implements OnInit, OnDestroy{
   }
 
   populate(servicesItems: ServiceItem[] = []) : ServiceItem[] {
-    console.log('running populate');
     const serviceArray: ServiceItem[] = [];
     servicesItems.forEach((item: ServiceItem) => {
       const newServiceItem: ServiceItem = {
@@ -208,7 +204,6 @@ export class ServicesViewComponent implements OnInit, OnDestroy{
         path: item.path,
         providedIn: item.providedIn
       };
-      console.log('item in populate ', item);
       serviceArray.push(newServiceItem);
     });
     return serviceArray;
