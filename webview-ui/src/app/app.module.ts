@@ -10,6 +10,8 @@ import { ParentChildComponent } from './parent-child/parent-child.component';
 
 import { FileSystemService } from 'src/services/FileSystemService';
 import { ParentChildServices } from 'src/services/ParentChildServices';
+import { ServicesViewComponent } from './services-view/services-view.component';
+
 import { ModalComponent } from './modal/modal.component';
 // import { NgIconsModule } from '@ng-icons/core';
 // import matfFolderAnimationColored from '@ng-icons/material-file-icons';
@@ -20,6 +22,7 @@ import { ModalComponent } from './modal/modal.component';
     FolderFileComponent,
     ParentChildComponent,
     ModalComponent,
+    ServicesViewComponent,
   ],
   //q: what is declarations used for?
   //a: declarations is used to make directives (including components and pipes) from the current module available to other directives in the current module. Selectors of directives, components or pipes are only matched against the HTML if they are declared or imported.

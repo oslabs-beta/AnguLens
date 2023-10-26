@@ -20,6 +20,7 @@ import {
   Input,
   Output,
   RouterChildren,
+  DataStore,
 } from '../../models/FileSystem';
 import { Router } from '@angular/router';
 @Component({
@@ -85,13 +86,15 @@ export class ParentChildComponent implements OnInit, OnDestroy {
     switch (message.command) {
       case 'loadState': {
         const state = vscode.getState() as {
-          pcItems: PcItem[];
-          pcData: any;
-          fsData: any;
+          pcData: DataStore | undefined;
+          fsData: DataStore | undefined;
           fsNodes: Node[];
           fsEdges: Edge[];
           pcNodes: Node[];
           pcEdges: Edge[];
+          servicesNodes: Node[];
+          servicesEdges: Edge[];
+          pcItems: PcItem[];
         };
         this.nodes = state.pcNodes;
         this.edges = state.pcEdges;
@@ -115,6 +118,8 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           fsEdges: state.fsEdges,
           pcNodes: state.pcNodes,
           pcEdges: state.pcEdges,
+          servicesNodes: state.servicesNodes,
+          servicesEdges: state.servicesEdges,
         });
         this.handleClickModal(this.network);
         break;
@@ -125,13 +130,14 @@ export class ParentChildComponent implements OnInit, OnDestroy {
         console.log('PC MESSAGE DATA', message.data);
         this.pcService.setItems(this.pcItems);
         const state = vscode.getState() as {
-          pcItems: PcItem[];
-          pcData: object;
-          fsData: any;
+          pcData: DataStore | undefined;
+          fsData: DataStore | undefined;
           fsNodes: Node[];
           fsEdges: Edge[];
           pcNodes: Node[];
           pcEdges: Edge[];
+          servicesNodes: Node[];
+          servicesEdges: Edge[];
         };
 
         const { nodes, edges } = this.createNodesAndEdges(this.pcItems);
@@ -161,6 +167,8 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           fsEdges: state.fsEdges,
           pcNodes: this.nodes,
           pcEdges: this.edges,
+          servicesNodes: state.servicesNodes,
+          servicesEdges: state.servicesEdges,
         });
         this.network = new Network(container, data, this.options);
         this.handleClickModal(this.network);
@@ -169,8 +177,8 @@ export class ParentChildComponent implements OnInit, OnDestroy {
 
       case 'reloadPC': {
         const state = vscode.getState() as {
-          pcData: any;
-          fsData: any;
+          pcData: DataStore;
+          fsData: DataStore;
           fsNodes: Node[];
           fsEdges: Edge[];
           pcNodes: Node[];
