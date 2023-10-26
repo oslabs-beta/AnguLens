@@ -10,6 +10,7 @@ import { send } from "process";
 import {
   populateStructure,
   populatePCView,
+  populateServicesView
   // inLineCheck,
   // generateAST
 } from "./createViewAlgos/populateAlgos";
@@ -86,7 +87,7 @@ export function activate(context: vscode.ExtensionContext) {
         path.join(
           __dirname,
           "../webview-ui/dist/webview-ui",
-          "main.518ef54e2fc911a3.js"
+          "main.34afeef483a1e1f6.js"
         )
       )
     );
@@ -146,6 +147,11 @@ export function activate(context: vscode.ExtensionContext) {
             break;
           }
 
+          case "loadServices": {
+            const servicesObject: any = populateServicesView(selectorNames, servicesList);
+            console.log('services in test case: ', servicesObject);
+            break;
+          }
           case "loadParentChild": {
             pcObject = populatePCView(selectorNames, servicesList);
             const pcMessage: Message = {

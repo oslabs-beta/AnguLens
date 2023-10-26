@@ -18,8 +18,18 @@ export class AppComponent implements OnInit {
     this.currentView = 'folder-file';
   }
 
+  testServices() {
+    if (this.currentView === 'parent-child' || this.currentView === 'folder-file') {
+      this.currentView = 'services';
+      vscode.postMessage({
+        command: 'loadServices',
+        data: {}
+      });
+    }
+  }
+
   loadFolderFile() {
-    if (this.currentView === 'parent-child') {
+    if (this.currentView === 'parent-child' || this.currentView === 'services') {
       this.currentView = 'folder-file';
 
       vscode.postMessage({
@@ -31,7 +41,7 @@ export class AppComponent implements OnInit {
 
   loadParentChild() {
     this.generatedPc = this.fileSystemService.getGeneratedPC();
-    if (this.currentView === 'folder-file') {
+    if (this.currentView === 'folder-file' || this.currentView === 'services') {
       this.currentView = 'parent-child';
 
       if (this.generatedPc === true) {
