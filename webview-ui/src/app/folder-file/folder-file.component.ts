@@ -11,7 +11,14 @@ import {
 } from '@angular/core';
 import { DataSet } from 'vis-data';
 import { Network } from 'vis-network/standalone';
-import { FsItem, PcItem, Node, Edge, DataStore, ServiceItem } from '../../models/FileSystem';
+import {
+  FsItem,
+  PcItem,
+  Node,
+  Edge,
+  DataStore,
+  ServiceItem,
+} from '../../models/FileSystem';
 import { ExtensionMessage } from '../../models/message';
 import { vscode } from '../utilities/vscode';
 
@@ -207,7 +214,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           pcItems: state.pcItems,
           servicesNodes: state.servicesNodes,
           servicesEdges: state.servicesEdges,
-          servicesData: state.servicesData
+          servicesData: state.servicesData,
         });
         break;
       }
@@ -225,7 +232,6 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           servicesNodes?: Node[];
           servicesEdges?: Edge[];
           servicesData?: ServiceItem[];
-
         };
 
         const { nodes, edges } = this.createNodesAndEdges(this.fsItems);
@@ -283,7 +289,7 @@ export class FolderFileComponent implements OnInit, OnDestroy {
           pcItems: state.pcItems,
           servicesNodes: state.servicesNodes,
           servicesEdges: state.servicesEdges,
-          servicesData: state.servicesData
+          servicesData: state.servicesData,
         });
         break;
       }

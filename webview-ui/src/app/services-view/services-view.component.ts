@@ -68,13 +68,6 @@ export class ServicesViewComponent implements OnInit, OnDestroy {
         roundness: 0.4,
       },
     },
-
-    physics: {
-      hierarchicalRepulsion: {
-        avoidOverlap: 1,
-        nodeDistance: 145,
-      },
-    },
   };
   private handleMessageEvent = (event: MessageEvent) => {
     const message: ExtensionMessage = event.data;

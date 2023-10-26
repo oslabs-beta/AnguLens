@@ -274,7 +274,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
     },
 
     nodes: {
-      shape: 'circle',
+      shape: 'square',
       shadow: {
         enabled: true,
         color: 'rgba(0,0,0,0.5)',
@@ -385,6 +385,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           nodes.push({
             id: item.id,
             label: item.label,
+            color: { background: 'cyan', border: 'black' },
           });
         }
         if (item.inputs.length > 0) {
@@ -395,7 +396,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
               from: item.inputs[inputItem].pathFrom,
               to: item.id,
               relation: 'input',
-              color: { color: 'green' },
+              color: { color: 'green', highlight: 'green' },
               smooth: { type: 'curvedCCW', roundness: 0.3 },
               arrows: {
                 to: {
@@ -419,7 +420,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
               id: `${item.id}-${item.outputs[outputItem].pathTo}`,
               from: item.id,
               to: item.outputs[outputItem].pathTo,
-              color: { color: 'red' },
+              color: { color: 'red', highlight: 'red' },
               relation: 'output',
               arrows: {
                 to: {
@@ -473,7 +474,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           to: item.id, // Connect to the "router-outlet" node
           relation: 'router-outlet',
           smooth: true,
-          color: { color: 'purple' },
+          color: { color: 'purple', highlight: 'purple' },
         };
         edges.push(edge);
         //recursively add children
@@ -482,7 +483,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
           nodes.push({
             id: routerChild.path,
             label: routerChild.name,
-            color: '#CBC3E3',
+            color: { color: 'purple', highlight: 'purple' },
           });
 
           // Create an edge from the router component to the "router-outlet"
@@ -492,7 +493,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
             to: 'router-outlet', // Connect to the "router-outlet" node
             relation: 'router',
             smooth: true,
-            color: { color: 'purple' },
+            color: { color: 'purple', highlight: 'purple' },
           };
           edges.push(edge);
 
@@ -528,7 +529,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
             to: parentId,
             relation: 'router-outlet',
             smooth: true,
-            color: { color: 'purple' },
+            color: { color: 'purple', highlight: 'purple' },
           };
           edges.push(edge);
 
