@@ -1,7 +1,6 @@
 .center {
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  justify-content: flex-end;
   background-color: #212121;
   margin-bottom: 10px;
 }
@@ -46,15 +45,46 @@
   background-color: #3e8e41;
 }
 
+
+/* dropdown button new */
+.button-1 {
+  background: hsl(345, 100%, 37%);
+  border-radius: 8px;
+  border-style: none;
+  box-sizing: border-box;
+  color: #FFFFFF;
+  cursor: pointer;
+  display: inline-block;
+  font-size: 14px;
+  height: 50px;
+  line-height: 20px;
+  list-style: none;
+  margin: 0;
+  outline: none;
+  padding: 10px 16px;
+  position: relative;
+  text-align: center;
+  text-decoration: none;
+  transition: color 100ms;
+  vertical-align: baseline;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  
+}
+
+.button-1:hover,
+.button-1:focus {
+  background-color: #F082AC;
+}
+
 /* Legend styling */
 
 .legendContainer {
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  width: 900px;
-  height: 200px;
+  width: 70vw;
+  height: max-content;
   background-color: #212121;
 }
 .nodesContainer {
@@ -84,7 +114,7 @@
   display: flex;
 }
 .arrow {
-  font-size: 50px;
+  font-size: 35px;
   margin-right: 10px;
 }
 

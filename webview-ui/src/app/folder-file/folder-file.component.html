@@ -2,32 +2,39 @@
   <label for="filePathInput"></label>
   <div class="input-button-container">
     <input
-      type="text"
-      id="filePathInput"
-      [(ngModel)]="filePath"
-      placeholder="Enter file path"
-      class="custom-input"
+    type="text"
+    id="filePathInput"
+    [(ngModel)]="filePath"
+    placeholder="Enter file path"
+    class="custom-input"
     />
-    <button (click)="loadNetwork()" class="custom-button">Load Network</button>
+    <button class="button-82-pushable" role="button" (click)="loadNetwork()">
+      <span class="button-82-shadow"></span>
+      <span class="button-82-edge"></span>
+      <span class="button-82-front text">
+        Load Network
+      </span>
+    </button>
   </div>
 </div>
 
-<div>
-  <!-- <div *ngIf="!canLoadBar" #networkContainer class="network-container"></div> -->
-  <div #networkContainer class="network-container"></div>
 
-  <div *ngIf="canLoadBar" class="wrapper">
-    <div
-      id="loadingBar"
-      [style.display]="loadingBarDisplay"
-      [style.opacity]="loadingBarOpacity"
-    >
-      <div class="outerBorder">
-        <div id="text">{{ loadingBarText }}</div>
-        <div id="border">
-          <div id="bar" [style.width]="loadingBarWidth"></div>
-        </div>
+
+<!-- <div *ngIf="!canLoadBar" #networkContainer class="network-container"></div> -->
+<div #networkContainer class="network-container"></div>
+
+<div *ngIf="canLoadBar" class="wrapper">
+  <div
+    id="loadingBar"
+    [style.display]="loadingBarDisplay"
+    [style.opacity]="loadingBarOpacity"
+  >
+    <div class="outerBorder">
+      <div id="text">{{ loadingBarText }}</div>
+      <div id="border">
+        <div id="bar" [style.width]="loadingBarWidth"></div>
       </div>
     </div>
   </div>
 </div>
+

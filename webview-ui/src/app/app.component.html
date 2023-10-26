@@ -1,14 +1,5 @@
 <div class="container">
-  <div class="buttonContainer">
-    <div>
-      <button class="button-77" (click)="loadFolderFile()">Folder-File</button>
-      <button class="button-77" (click)="loadParentChild()">
-        Parent-Child
-      </button>
-      <button class="button-77" (click)="loadServices()">Services</button>
-    </div>
-  </div>
-  <main>
+  <main class="mainContainer">
     <!-- <nav class="navbar">
       <ul class="navbar-nav">
         <li class="nav-item">
@@ -27,6 +18,37 @@
         </li>
       </ul>
     </nav> -->
+    <div class="containerOutsideButton">
+      <div class="buttonContainer">
+        <button
+          class="button-82-pushable"
+          role="button"
+          (click)="loadFolderFile()"
+        >
+          <span class="button-82-shadow"></span>
+          <span class="button-82-edge"></span>
+          <span class="button-82-front text"> Folder-File </span>
+        </button>
+        <button
+          class="button-82-pushable"
+          role="button"
+          (click)="loadParentChild()"
+        >
+          <span class="button-82-shadow"></span>
+          <span class="button-82-edge"></span>
+          <span class="button-82-front text"> Parent-Child </span>
+        </button>
+        <button
+          class="button-82-pushable"
+          role="button"
+          (click)="loadServices()"
+        >
+          <span class="button-82-shadow"></span>
+          <span class="button-82-edge"></span>
+          <span class="button-82-front text"> Services </span>
+        </button>
+      </div>
+    </div>
     <div class="current-views-container">
       <div *ngIf="currentView === 'folder-file'">
         <folder-file></folder-file>
