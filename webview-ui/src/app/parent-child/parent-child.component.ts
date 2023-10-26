@@ -53,14 +53,29 @@ export class ParentChildComponent implements OnInit, OnDestroy {
             }
           }
 
-          console.log('params.node', params.nodes);
-          console.log('connections', params.nodes.connections);
-          if (deliverPc) {
-            this.pcService.openModal(deliverPc);
+          const edgeRelations = this.getEdgesOfNode(nodeId);
+
+          if (deliverPc && edgeRelations) {
+            this.pcService.openModal({
+              pcItem: deliverPc as PcItem,
+              edges: edgeRelations as Object,
+            });
           }
         }
       }
     });
+  }
+
+  getEdgesOfNode(nodeId: string) {
+    // Item.relation === output, Sending Data from node to parent
+    const outputEdges = this.edges.filter(
+      (edge) => edge.from === nodeId && edge.relation === 'output'
+    );
+    // Item.relation === input,  Receiving Data from parent to node
+    const inputEdges = this.edges.filter(
+      (edge) => edge.to === nodeId && edge.relation === 'input'
+    );
+    return { inputs: inputEdges, outputs: outputEdges };
   }
 
   private handleMessageEvent = (event: MessageEvent) => {
@@ -272,6 +287,7 @@ export class ParentChildComponent implements OnInit, OnDestroy {
       };
       const container = this.networkContainer.nativeElement;
       this.network = new Network(container, data, this.options);
+      this.handleClickModal(this.network);
     }
   }
 

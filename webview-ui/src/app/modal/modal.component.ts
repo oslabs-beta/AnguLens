@@ -9,18 +9,48 @@ import { ParentChildServices } from 'src/services/ParentChildServices';
 })
 export class ModalComponent implements OnInit {
   modalItem: PcItem | null = null;
+  inputs: any[] = []; // Array for selected node's inputs (Node receiving data from its parent)
+  outputs: any[] = []; // Array for outputs (Node sending data to its child)
+  injectables: any[] = []; // Array for injectables
+  section: string = '';
+  showInputs = true;
+  showOutputs = true;
+  showServices = true;
 
   constructor(private pcService: ParentChildServices) {}
 
   ngOnInit(): void {
-    this.pcService.openModal$.subscribe((pcItem) => {
+    this.pcService.openModal$.subscribe((deliverable) => {
       // Receive pcItem along with the event
-      this.modalItem = pcItem;
+      this.modalItem = deliverable.pcItem;
+      this.inputs = deliverable.pcItem.inputs;
+      console.log(this.inputs, 'INPUTS');
+      this.outputs = deliverable.pcItem.outputs;
+      this.connectEdges(this.inputs, this.outputs);
+      this.showInputs = true;
+      this.showOutputs = true;
       this.openModal();
     });
   }
 
   isSidebarVisible = false;
+
+  connectEdges(inputs: any[], outputs: any[]) {
+    inputs.forEach((input) => {
+      this.pcService.getItems().forEach((item) => {
+        if (item.id === input.pathFrom) {
+          input.pathFrom = item.label;
+        }
+      });
+    });
+    outputs.forEach((output) => {
+      this.pcService.getItems().forEach((item) => {
+        if (item.id === output.pathTo) {
+          output.pathTo = item.label;
+        }
+      });
+    });
+  }
 
   toggleSidebar() {
     console.log('CLICKED TOGGLE');
@@ -29,6 +59,28 @@ export class ModalComponent implements OnInit {
 
   openModal() {
     this.isSidebarVisible = true;
+  }
+  showSection(section: string) {
+    switch (section) {
+      case 'inputs':
+        this.showInputs = !this.showInputs;
+        this.inputs = this.modalItem?.inputs || [];
+        break;
+      case 'outputs':
+        this.showOutputs = !this.showOutputs;
+        this.outputs = this.modalItem?.outputs || [];
+        break;
+      case 'services':
+        this.showServices = !this.showServices;
+        break;
+      default:
+        // Handle unknown section
+        break;
+    }
+  }
+
+  getSVGUri(uri: string): string {
+    return 'data:image/svg+xml,' + encodeURIComponent(uri);
   }
 }
 

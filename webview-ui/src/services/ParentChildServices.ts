@@ -13,7 +13,7 @@ export class ParentChildServices {
   filePath: object = {};
 
   // subject to open modal
-  private openModalSource = new Subject<PcItem>();
+  private openModalSource = new Subject<{ pcItem: PcItem; edges: object }>();
   openModal$ = this.openModalSource.asObservable();
 
   // Add any other state variables as needed
@@ -25,7 +25,7 @@ export class ParentChildServices {
     return this.pcItems;
   }
 
-  openModal(pcItem: PcItem) {
-    this.openModalSource.next(pcItem);
+  openModal(deliverables: { pcItem: PcItem; edges: object }) {
+    this.openModalSource.next(deliverables);
   }
 }
