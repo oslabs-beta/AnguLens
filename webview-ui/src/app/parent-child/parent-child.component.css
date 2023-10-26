@@ -49,11 +49,9 @@
 
 .legendContainer {
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  width: 900px;
-  height: 200px;
+  width: 70vw;
+  height: max-content;
   background-color: #212121;
 }
 .nodesContainer {
@@ -83,7 +81,7 @@
   display: flex;
 }
 .arrow {
-  font-size: 50px;
+  font-size: 35px;
   margin-right: 10px;
 }
 
