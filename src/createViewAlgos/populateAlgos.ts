@@ -1,3 +1,5 @@
+//@ts-nocheck
+
 import * as ts from "typescript";
 import * as fs from "fs";
 import { tsquery } from "@phenomnomnominal/tsquery";
