@@ -18,7 +18,7 @@
 ## AnguLens
 
 Welcome to AnguLens, a VSCode extension build to aid understanding of Angular based projects through visualization.
-Visit our landing page <a href="https://www.angulens.com>here</a>
+Visit our landing page [here](https://www.angulens.com)
 
 ## Features 
 
